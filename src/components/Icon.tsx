@@ -1,7 +1,9 @@
 import type { CSSProperties } from "react";
 const paths: Record<string, string> = {
+  shield: "M12 3 4 6v6c0 5 8 9 8 9s8-4 8-9V6Zm-4 9 3 3 5-6",
+  chevron: "m9 5 7 7-7 7",
   home: "m3 10 9-7 9 7v11h-6v-7H9v7H3Z",
-  compass: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Zm4 5-3 5-5 3 3-5Z",
+  compass: "M7 11C1 11 1 4 7 4c2-4 8-4 10 0 6 0 6 7 0 7v9H7Zm0 5h10",
   dough: "M3 15c0-5 4-9 9-9s9 4 9 9c0 4-18 4-18 0Zm5-4 1-1m5 0 1 1",
   clock: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Zm0 4v5l3 2",
   book: "M12 6C9 4 5 4 3 5v15c3-1 6-1 9 1 3-2 6-2 9-1V5c-2-1-6-1-9 1Zm0 0v15",
@@ -35,7 +37,7 @@ export function Icon({
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="1.5"
+      strokeWidth="1.7"
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"

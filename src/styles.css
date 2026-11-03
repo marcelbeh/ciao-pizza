@@ -144,36 +144,6 @@ main {
   margin-top: 12px;
   line-height: 1.7;
 }
-.hero {
-  border-radius: 8px;
-  background: #174e25;
-  color: var(--color-cream);
-  position: relative;
-  overflow: hidden;
-  display: grid;
-}
-.hero-copy {
-  padding: 30px 26px;
-  z-index: 1;
-}
-.hero-label {
-  font-size: 9px;
-  letter-spacing: 2px;
-  color: #d7caa0;
-  font-weight: 600;
-}
-.hero h2 {
-  font-size: 43px;
-  line-height: 1.06;
-  letter-spacing: -1px;
-  margin: 20px 0;
-}
-.hero p {
-  font-size: 13px;
-  line-height: 1.85;
-  color: #e1e7db;
-  max-width: 340px;
-}
 .button {
   display: inline-flex;
   align-items: center;
@@ -195,53 +165,6 @@ main {
 .button svg {
   width: 18px;
   height: 18px;
-}
-.hero-note {
-  display: block;
-  font-size: 10px;
-  color: #d4ddcd;
-  margin-top: 18px;
-}
-.pizza-art {
-  height: 240px;
-  position: relative;
-  display: grid;
-  place-items: center;
-  margin-top: -20px;
-}
-.pizza-art > svg {
-  width: 290px;
-  max-width: 100%;
-  transform: rotate(-13deg);
-  filter: drop-shadow(0 15px 16px #082c1a55);
-  z-index: 1;
-}
-.art-ring {
-  position: absolute;
-  border: 1px solid #ede9ce25;
-  border-radius: 50%;
-  width: 310px;
-  height: 310px;
-}
-.ring-two {
-  width: 355px;
-  height: 355px;
-}
-.art-caption {
-  position: absolute;
-  right: 20px;
-  bottom: 22px;
-  z-index: 2;
-  font-size: 10px;
-  letter-spacing: 2px;
-  text-align: center;
-  transform: rotate(-12deg);
-}
-.art-caption i {
-  font-family: var(--font-display);
-  font-size: 27px;
-  letter-spacing: 0;
-  color: #e6c57c;
 }
 .section-heading {
   margin: 34px 0 20px;
@@ -304,11 +227,6 @@ main {
   width: 42px;
   border-radius: 9px;
 }
-.card-number {
-  font-family: var(--font-display);
-  font-size: 17px;
-  color: #aaa693;
-}
 .module-card h3 {
   font-size: 24px;
   letter-spacing: -0.3px;
@@ -320,24 +238,6 @@ main {
   line-height: 1.7;
   max-width: 280px;
 }
-.card-bottom {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: auto;
-  padding-top: 23px;
-}
-.card-bottom > span {
-  font-size: 9px;
-  text-transform: uppercase;
-  letter-spacing: 1.2px;
-  color: #74715d;
-}
-.card-bottom svg {
-  width: 18px;
-  height: 18px;
-  color: var(--color-basil);
-}
 .module-card:nth-child(3n + 2) .icon-tile {
   background: #f8ede6;
   color: #b53928;
@@ -345,31 +245,6 @@ main {
 .module-card:nth-child(3n) .icon-tile {
   background: #f6efd9;
   color: #8a651b;
-}
-.closing-note {
-  margin-top: 30px;
-  border-top: 1px solid #ded8c8;
-  border-bottom: 1px solid #ded8c8;
-  padding: 24px 0;
-  display: flex;
-  gap: 22px;
-  align-items: center;
-}
-.italian-mark {
-  font-family: var(--font-display);
-  font-style: italic;
-  font-size: 36px;
-  color: var(--color-pomodoro);
-  letter-spacing: -2px;
-}
-.closing-note h2 {
-  font-size: 20px;
-}
-.closing-note p {
-  font-size: 11px;
-  line-height: 1.8;
-  color: #68685e;
-  margin-top: 6px;
 }
 .page-footer {
   max-width: 1440px;
@@ -547,26 +422,6 @@ main {
   .module-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  .hero {
-    grid-template-columns: 1.1fr 1fr;
-  }
-  .pizza-art {
-    height: 100%;
-    margin: 0;
-  }
-  .pizza-art > svg {
-    width: 350px;
-    max-width: 125%;
-  }
-  .hero-copy {
-    padding: 36px 30px;
-  }
-  .hero h2 {
-    font-size: 46px;
-  }
-  .art-caption {
-    bottom: 20px;
-  }
   .section-heading > .phase-badge {
     display: inline-block;
   }
@@ -575,9 +430,6 @@ main {
   }
   .page-footer > span:last-child {
     display: inline;
-  }
-  .closing-note {
-    padding: 28px 10px;
   }
 }
 @media (min-width: 1024px) {
@@ -719,18 +571,6 @@ main {
   .page-intro {
     margin-bottom: 30px;
   }
-  .hero-copy {
-    padding: 38px 34px;
-  }
-  .hero h2 {
-    font-size: 52px;
-  }
-  .pizza-art > svg {
-    width: 375px;
-  }
-  .pizza-art {
-    min-height: 355px;
-  }
   .section-heading {
     margin-top: 38px;
   }
@@ -748,33 +588,6 @@ main {
 @media (min-width: 1300px) {
   .module-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-  .hero {
-    grid-template-columns: 1fr 1fr;
-  }
-  .hero-copy {
-    padding: 42px;
-  }
-  .hero h2 {
-    font-size: 60px;
-  }
-  .hero p {
-    max-width: 390px;
-  }
-  .pizza-art > svg {
-    width: 400px;
-  }
-  .art-ring {
-    width: 360px;
-    height: 360px;
-  }
-  .ring-two {
-    width: 420px;
-    height: 420px;
-  }
-  .art-caption {
-    right: 36px;
-    bottom: 36px;
   }
 }
 @media (prefers-reduced-motion: reduce) {

@@ -2,6 +2,8 @@
 
 Pizza-Pilot, professionelles Teigstudio, Rezeptbibliothek, Pizzaabend-Planer und Einkaufsliste, interaktiver Backcoach, Teig-Doc und Pizza-Tagebuch im Ciao!-Classico-Design. React, TypeScript, Vite, Tailwind CSS, React Router und installierbare PWA. Keine Dateien aus `PizzaDoughCalculator` übernommen.
 
+**P5 in Vorbereitung:** neues referenzbasiertes Classico-Branding und Dashboard; [Design, Assets und Prüfung](docs/P5-CLASSICO.md). Kein automatischer Livegang.
+
 ## Entwickeln und prüfen
 
 Node.js ab 22.12 (empfohlen Node 24 LTS), npm. Für die Kernfunktionen sind **keine Zugangsdaten** nötig.
@@ -9,6 +11,7 @@ Node.js ab 22.12 (empfohlen Node 24 LTS), npm. Für die Kernfunktionen sind **ke
 ```sh
 npm ci
 npm run dev
+npm run verify:branding
 npm run typecheck
 npm test
 npm run build
@@ -58,6 +61,6 @@ Browserdaten können vom Benutzer oder Betriebssystem gelöscht werden. Regelmä
 
 GitHub Pages verwendet `/ciao-pizza/`, Hash-Routing und einen Service Worker mit allen gebauten App-Modulen. Offline-Nutzung setzt einen erfolgreichen ersten Online-Besuch und die Aktivierung des Service Workers voraus. Updates werden angekündigt. Private API-Antworten werden nicht gecacht.
 
-Der manuelle Workflow `.github/workflows/pages.yml` veröffentlicht ausschließlich `main` nach Eingabe `FREIGEGEBEN`. Build und Tests laufen erneut vor dem Deployment. Push/Merge allein veröffentlicht nichts. P4 wird ausschließlich als Pull Request vorbereitet; Merge und Veröffentlichung benötigen die ausdrückliche Freigabe.
+Der manuelle Workflow `.github/workflows/pages.yml` veröffentlicht ausschließlich `main` nach Eingabe `FREIGEGEBEN`. Build und Tests laufen erneut vor dem Deployment. Push/Merge allein veröffentlicht nichts. P5 wird ausschließlich als Pull Request vorbereitet; Merge und Veröffentlichung benötigen die ausdrückliche Freigabe.
 
 Für spätere Cloud-Arbeiten ausschließlich öffentliche `VITE_SUPABASE_URL` und `VITE_SUPABASE_PUBLISHABLE_KEY` verwenden. Keine Passwörter, Secret-/Service-Role-Keys oder SMTP-Zugangsdaten ins Frontend oder Repository. `.env.local` ist ignoriert. Cloud-Prüfung optional: `npm run verify:cloud` mit konfigurierten öffentlichen Werten.

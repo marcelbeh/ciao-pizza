@@ -9,12 +9,13 @@
   "scripts": {
     "dev": "vite",
     "typecheck": "tsc --noEmit",
-    "build": "npm run typecheck && vite build",
+    "build": "npm run verify:branding && npm run typecheck && vite build",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
     "check": "npm run test && npm run build",
-    "verify:cloud": "node scripts/check-supabase.mjs"
+    "verify:cloud": "node scripts/check-supabase.mjs",
+    "verify:branding": "node scripts/check-branding.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.118.0",

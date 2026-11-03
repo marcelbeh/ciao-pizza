@@ -1,124 +1,181 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useDough } from "../../app/DoughProvider";
+import { modules } from "../registry";
 import { ModuleCard } from "../../components/ModuleCard";
 import { Icon } from "../../components/Icon";
-import { modules } from "../registry";
+import { dashboardStatus, timeUntil } from "../../core/dough/dashboardStatus";
+import { calculateDough, formatGrams } from "../../core/dough/calculations";
+import { styles } from "../../core/dough/model";
+const order = [
+  "pizza-pilot",
+  "teigstudio",
+  "reife-monitor",
+  "rezeptbibliothek",
+  "pizzaabend-planer",
+  "backcoach",
+  "teig-doc",
+  "pizza-tagebuch",
+  "einkaufsliste",
+];
 export default function DashboardPage() {
+  const dough = useDough();
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    if (!dough.state.active) return;
+    const tick = setInterval(() => {
+      if (!document.hidden) setNow(Date.now());
+    }, 60000);
+    const update = () => setNow(Date.now());
+    document.addEventListener("visibilitychange", update);
+    return () => {
+      clearInterval(tick);
+      document.removeEventListener("visibilitychange", update);
+    };
+  }, [!!dough.state.active]);
+  const plan = dough.state.active;
+  const status = plan ? dashboardStatus(plan, now) : null;
+  const result = plan ? calculateDough(plan) : null;
   return (
-    <>
-      <div className="page-intro">
-        <p className="eyebrow">LA DOLCE PIZZA · CIAO! 2.0</p>
-        <h1>
-          Ein guter Tag für <em>Pizza.</em>
-        </h1>
-        <p>Dein Handwerk. Deine Leidenschaft. Dein Ciao!</p>
-      </div>
-      <section className="hero" aria-labelledby="hero-title">
-        <div className="hero-copy">
-          <span className="hero-label">PASSIONE, UN PASSO ALLA VOLTA</span>
-          <h2 id="hero-title">
-            Große Pizza.
-            <br />
-            Beginnt bei dir.
-          </h2>
-          <p>
-            Ein Ort für deine Ideen, dein Wissen und die Freude am Selbermachen.
-            Plane deinen Teig, sammle Rezepte und bereite deinen nächsten Pizzaabend vor.
-          </p>
-          <Link className="button button-cream" to="/pizza-pilot">
-            Pizza-Pilot entdecken <Icon name="arrow" />
-          </Link>
-          <span className="hero-note">
-            Mit Liebe zum Detail. Von Anfang an.
-          </span>
-        </div>
-        <div className="pizza-art" aria-hidden="true">
-          <div className="art-ring ring-one" />
-          <div className="art-ring ring-two" />
-          <span className="art-caption">
-            FATTO CON
-            <br />
-            <i>amore</i>
-          </span>
-          <svg viewBox="0 0 360 360">
-            <defs>
-              <radialGradient id="crust">
-                <stop stopColor="#e4b45d" />
-                <stop offset=".86" stopColor="#edc17c" />
-                <stop offset="1" stopColor="#ad6b32" />
-              </radialGradient>
-            </defs>
-            <circle cx="180" cy="180" r="141" fill="url(#crust)" />
-            <circle cx="180" cy="180" r="124" fill="#b93225" />
-            <path
-              d="M78 143Q93 78 158 71q69-7 101 53t24 87q-16 66-85 78T83 236q-32-40-5-93"
-              fill="#f4e5b5"
-            />
-            {[
-              [110, 123],
-              [232, 139],
-              [158, 239],
-              [245, 227],
-              [169, 99],
-              [105, 203],
-            ].map(([cx, cy], i) => (
-              <g key={i}>
-                <circle cx={cx} cy={cy} r="21" fill="#c6422f" />
-                <circle cx={cx} cy={cy} r="13" fill="#df6948" />
-                <path
-                  d={`M${cx - 5} ${cy - 6}l8 13m-12-3 15-7`}
-                  stroke="#ec9c60"
-                  strokeWidth="2"
-                />
-              </g>
-            ))}
-            {[
-              [168, 151, 20],
-              [221, 191, -35],
-              [119, 258, 55],
-              [104, 165, -25],
-              [210, 90, 55],
-            ].map(([x, y, r], i) => (
-              <path
-                key={i}
-                d="M0 0Q-25-30 2-45 28-22 0 0Z"
-                fill="#2b632e"
-                transform={`translate(${x} ${y}) rotate(${r})`}
-              />
-            ))}
-            <g fill="#855326" opacity=".65">
-              <circle cx="95" cy="81" r="5" />
-              <circle cx="270" cy="96" r="4" />
-              <circle cx="310" cy="183" r="5" />
-              <circle cx="258" cy="285" r="6" />
-              <circle cx="71" cy="244" r="5" />
-              <circle cx="166" cy="45" r="4" />
-              <circle cx="128" cy="306" r="4" />
-            </g>
-          </svg>
+    <div className="dashboard">
+      <section className="welcome-hero" aria-labelledby="welcome-title">
+        <picture>
+          <source
+            media="(max-width: 640px)"
+            srcSet={`${import.meta.env.BASE_URL}brand/dough-hero-small.webp`}
+          />
+          <img
+            src={`${import.meta.env.BASE_URL}brand/dough-hero.webp`}
+            width={1200}
+            height={720}
+            fetchPriority="high"
+            alt="Frischer, bemehlter Pizzateig auf einer warmen Arbeitsfläche"
+          />
+        </picture>
+        <div className="welcome-copy">
+          <p className="hero-kicker">LA TUA PIZZA. LA TUA PASSIONE.</p>
+          <h1 id="welcome-title">Benvenuto!</h1>
+          <p>Planen · Kneten · Reifen · Backen</p>
+          <span className="italian-stripe" aria-hidden="true" />
         </div>
       </section>
-      <div className="section-heading">
-        <div>
-          <p className="eyebrow">DEINE PIZZA-WERKSTATT</p>
-          <h2>Alles an seinem Platz.</h2>
+      <div className="dashboard-content">
+        <section className="active-dough" aria-labelledby="active-title">
+          <div className="active-dough-top">
+            <div className="dough-portrait" aria-hidden="true">
+              <img
+                src={`${import.meta.env.BASE_URL}brand/dough-hero-small.webp`}
+                width={64}
+                height={64}
+              />
+            </div>
+            <div className="active-dough-copy">
+              <p className="eyebrow">DEIN NÄCHSTER PIZZA-MOMENT</p>
+              <h2 id="active-title">Aktiver Teig</h2>
+              {!dough.ready ? (
+                <p role="status">Teigplan wird geladen …</p>
+              ) : plan && status && result ? (
+                <>
+                  <p className="active-plan-name">{plan.name}</p>
+                  <p>
+                    {styles[plan.style].name} · {plan.count} Pizzen ·{" "}
+                    {formatGrams(result.ballGrams)} g
+                  </p>
+                </>
+              ) : (
+                <p>Hier beginnt dein nächster Pizzaabend.</p>
+              )}
+            </div>
+          </div>
+          {dough.error && (
+            <p role="alert" className="dashboard-error">
+              {dough.error}
+            </p>
+          )}
+          {dough.ready && plan && status ? (
+            <>
+              <div className="ripeness">
+                <div>
+                  <span>
+                    Reifung nach Plan <small>· Schätzung</small>
+                  </span>
+                  <strong>{status.progress} %</strong>
+                </div>
+                <progress
+                  aria-label="Geschätzter zeitlicher Reifefortschritt"
+                  max={100}
+                  value={status.progress}
+                />
+              </div>
+              <Link className="next-step" to="/teigstudio">
+                <Icon name="clock" />
+                <span>
+                  {status.expired ? (
+                    <>
+                      <strong>Backtermin erreicht</strong>
+                      <small>Termin und Teigzustand prüfen</small>
+                    </>
+                  ) : status.next ? (
+                    <>
+                      <strong>Noch {timeUntil(status.next.at - now)}</strong>
+                      <small>
+                        bis {status.next.label} ·{" "}
+                        {new Intl.DateTimeFormat("de-DE", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          day: "2-digit",
+                          month: "2-digit",
+                          timeZone: plan.timeZone,
+                        }).format(new Date(status.next.at))}
+                      </small>
+                    </>
+                  ) : (
+                    <strong>Teigplan ansehen</strong>
+                  )}
+                </span>
+                <Icon name="chevron" />
+              </Link>
+              <p className="schedule-caption">
+                Zeitfortschritt aus deiner Planung – keine Messung der
+                Teigreife.
+              </p>
+            </>
+          ) : (
+            dough.ready && (
+              <div className="first-plan">
+                <p>
+                  Plane deinen Teig. Ciao! behält Mengen und nächste Schritte
+                  für dich im Blick.
+                </p>
+                <Link className="button" to="/pizza-pilot">
+                  Ersten Teig planen <Icon name="arrow" />
+                </Link>
+              </div>
+            )
+          )}
+        </section>
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">MIT GEFÜHL. MIT CIAO!</p>
+            <h2>Deine Pizza-Werkstatt</h2>
+          </div>
         </div>
-        <span className="phase-badge">P4 · Backen & lernen</span>
-      </div>
-      <div className="module-grid">
-        {modules.slice(1).map((module, index) => (
-          <ModuleCard key={module.id} module={module} index={index + 1} />
-        ))}
-      </div>
-      <aside className="closing-note">
-        <span className="italian-mark">Ciao!</span>
-        <div>
-          <h2>Gutes braucht einen guten Anfang.</h2>
-          <p>
-            Dies ist das neue Zuhause deiner Pizza-Leidenschaft. Die Werkzeuge
-            folgen Schritt für Schritt.
-          </p>
+        <div className="module-grid">
+          {order.map((id, index) => {
+            const module = modules.find((m) => m.id === id)!;
+            return <ModuleCard key={id} module={module} index={index + 1} />;
+          })}
         </div>
-      </aside>
-    </>
+        <aside className="academy-note">
+          <Icon name="academy" />
+          <div>
+            <strong>Gutes Handwerk beginnt mit Wissen.</strong>
+            <Link to="/pizza-academy">
+              Zur Pizza-Academy <span>· In Vorbereitung</span>
+            </Link>
+          </div>
+        </aside>
+      </div>
+    </div>
   );
 }
