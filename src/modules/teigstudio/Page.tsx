@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useDough, StorageStatus } from "../../app/DoughProvider";
 import { createPlan, type DoughPlan } from "../../core/dough/model";
 import {
@@ -10,30 +10,29 @@ import { PlanEditor } from "../../components/dough/PlanEditor";
 import { RecipeSummary } from "../../components/dough/RecipeSummary";
 import { Profiles } from "./Profiles";
 import "./studio.css";
-export default function Page() {
+function Studio() {
   const workspace = useDough();
   const [plan, setPlan] = useState(
     () => workspace.state.active ?? createPlan(),
   );
+  const source = useRef(JSON.stringify(workspace.state.active));
   useEffect(() => {
-    if (workspace.state.active) setPlan(workspace.state.active);
+    const nextSource = JSON.stringify(workspace.state.active);
+    if (nextSource !== source.current) {
+      source.current = nextSource;
+      if (workspace.state.active) setPlan(workspace.state.active);
+    }
   }, [workspace.state.active]);
   function update(next: DoughPlan) {
     setPlan(next);
-    if (!Object.keys(validatePlan(next)).length) workspace.setActive(next);
+    if (!Object.keys(validatePlan(next)).length) {
+      source.current = JSON.stringify(next);
+      workspace.setActive(next);
+    }
   }
   const valid = !Object.keys(validatePlan(plan)).length;
   return (
     <>
-      <div className="page-intro">
-        <p className="eyebrow">MEHL. WASSER. DEIN HANDWERK.</p>
-        <h1>Teigstudio</h1>
-        <p>
-          Deine Rezeptur, bis ins Detail. Jede gültige Änderung wird zum aktiven
-          Teigplan.
-        </p>
-      </div>
-      <StorageStatus />
       {workspace.ready && (
         <>
           <div className="studio-toolbar">
@@ -82,3 +81,20 @@ export default function Page() {
     </>
   );
 }
+
+export default function Page() {
+ const workspace = useDough();
+ return <>      <div className="page-intro">
+        <p className="eyebrow">MEHL. WASSER. DEIN HANDWERK.</p>
+        <h1>Teigstudio</h1>
+        <p>
+          Deine Rezeptur, bis ins Detail. Jede gültige Änderung wird zum aktiven
+          Teigplan.
+        </p>
+      </div>
+      <StorageStatus />
+
+ {workspace.ready ? <Studio /> : <p role="status">Teigplan wird geladen …</p>}
+ </>;
+}
+

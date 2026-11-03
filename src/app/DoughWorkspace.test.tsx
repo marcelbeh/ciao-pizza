@@ -141,6 +141,25 @@ describe("pilot, studio and durable profiles", () => {
       expect((await repo.load()).active?.hydration).toBe(67),
     );
   });
+  it("preserves a fresh invalid draft while its own valid save is being echoed", async () => {
+    const repo = createDoughRepository(
+      createIndexedDbStore(crypto.randomUUID()),
+    );
+    await repo.save({ version: 1, active: createPlan(), profiles: [] });
+    render(
+      <DoughProvider repository={repo}>
+        <Studio />
+      </DoughProvider>,
+    );
+    const field = await screen.findByRole("spinbutton", { name: /^Hydration/ });
+    fireEvent.change(field, { target: { value: "67" } });
+    fireEvent.change(field, { target: { value: "" } });
+    await waitFor(async () =>
+      expect((await repo.load()).active?.hydration).toBe(67),
+    );
+    expect(field).toHaveValue(null);
+    expect(screen.getByRole("alert")).toHaveTextContent("Ungültige Eingaben");
+  });
 });
 function Harness() {
   const w = useDough();
