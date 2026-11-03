@@ -19,7 +19,11 @@ export function ModuleCard({
       <h3>{module.title}</h3>
       <p>{module.description}</p>
       <span className="card-bottom">
-        <span>In Vorbereitung</span>
+        <span>
+          {module.id === "pizza-pilot" || module.id === "teigstudio"
+            ? "Öffnen"
+            : "In Vorbereitung"}
+        </span>
         <Icon name="arrow" />
       </span>
     </Link>

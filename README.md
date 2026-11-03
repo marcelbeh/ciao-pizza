@@ -1,6 +1,6 @@
 # Ciao! 2.0
 
-Dein persönlicher Pizza-Assistent. **P0: technisches Fundament**, vollständig neu erstellt.
+Dein persönlicher Pizza-Assistent. **P1: Pizza-Pilot & Teigstudio**, vollständig neu erstellt.
 Es wurden keine Dateien oder Komponenten aus `PizzaDoughCalculator` übernommen.
 
 ## Lokal entwickeln
@@ -50,8 +50,7 @@ docs/                  Architektur und technischer Prüfbericht
 
 Alle elf Bereiche sind erreichbar: Dashboard, Pizza-Pilot, Teigstudio,
 Reife-Monitor, Rezeptbibliothek, Pizzaabend-Planer, Einkaufsliste, Backcoach,
-Pizza-Tagebuch, Teig-Doc und Pizza-Academy. Fachliche Funktionen, Demodaten,
-Berechnungen oder simulierte KI-Antworten sind bewusst nicht enthalten.
+Pizza-Tagebuch, Teig-Doc und Pizza-Academy. Pizza-Pilot und Teigstudio sind mit gemeinsamem Teigplan, Zutatenberechnung und lokalen Profilen implementiert. Die übrigen Module bleiben Platzhalter. Fachannahmen, Bedienung und Einschränkungen stehen in [P1-DOUGH.md](docs/P1-DOUGH.md).
 
 ## Designsystem · Modern Italian Premium – Classico
 
@@ -75,7 +74,7 @@ Der Vite-Basispfad ist fest `/ciao-pizza/`. Hash-Routing erzeugt zum Beispiel
 `/ciao-pizza/#/teigstudio`; ein Reload braucht so keine serverseitige SPA-Umleitung.
 Manifest, Icons, Service-Worker-Scope und Start-URL passen zum Basispfad.
 Der Produktionsbuild liegt in `dist/` und kann später auf GitHub Pages bereitgestellt werden.
-Es gibt **keinen automatischen Deployment-Workflow** und keine Veröffentlichung in P0.
+Es gibt **keinen automatischen Deployment-Workflow** und keine Veröffentlichung in P0/P1.
 
 Nach einem erfolgreichen Online-Erstbesuch wird die App-Shell inklusive aller
 Modul-Chunks offline zwischengespeichert. Updates werden zur Bestätigung angeboten.
@@ -87,7 +86,7 @@ Der Installationshinweis erklärt diesen Weg, wenn kein Install-Prompt verfügba
 
 `createIndexedDbStore()` liefert einen asynchronen, testbaren Speicheradapter.
 Er öffnet die Datenbank erst bei Benutzung, bestätigt Schreibvorgänge erst nach
-Transaktionsabschluss und meldet Fehler. P0 speichert keine fachlichen Datensätze.
+Transaktionsabschluss und meldet Fehler. P1 speichert aktive Teigpläne und benannte Profil-Snapshots in einem versionierten Workspace.
 Browser können lokale Daten löschen; IndexedDB ist kein Backup. Ein Export- und
 Migrationskonzept gehört in die spätere fachliche Umsetzung.
 
@@ -97,7 +96,7 @@ sind ignoriert. `VITE_*` ist immer öffentlich; niemals geheime Schlüssel eintr
 
 ## Qualität und Status
 
-Siehe [technischen Prüfbericht](docs/P0-VERIFICATION.md) für ausgeführte Prüfungen,
+Siehe [P1-Fach- und Prüfbericht](docs/P1-DOUGH.md) sowie den [P0-Prüfbericht](docs/P0-VERIFICATION.md) für ausgeführte Prüfungen,
 verbleibende Einschränkungen und den Abhängigkeitsaudit.
 CI führt ausschließlich Installation, Tests und Build aus; Merge und Deployment
 bleiben manuelle Entscheidungen nach Freigabe.

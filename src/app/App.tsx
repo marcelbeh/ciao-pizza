@@ -18,6 +18,7 @@ import {
 import { modules } from "../modules/registry";
 import { Icon } from "../components/Icon";
 import { PwaNotice } from "../infrastructure/pwa/PwaNotice";
+import { DoughProvider } from "./DoughProvider";
 
 const Dashboard = lazy(() => import("../modules/dashboard/DashboardPage"));
 const pages = import.meta.glob<{ default: React.ComponentType }>(
@@ -213,7 +214,9 @@ export function App() {
   return (
     <ErrorBoundary>
       <HashRouter>
-        <Shell />
+        <DoughProvider>
+          <Shell />
+        </DoughProvider>
       </HashRouter>
     </ErrorBoundary>
   );
