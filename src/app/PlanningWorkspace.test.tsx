@@ -84,3 +84,38 @@ it("edits only copies of original recipes and persists an own recipe", async () 
     ).getByRole("button", { name: /Margherita.*Original/ }),
   ).toBeInTheDocument();
 });
+
+it("accepts a flour-based active dough with a non-tenth ball weight in the native form", async () => {
+  const { createPlan } = await import("../core/dough/model");
+  const { calculateDough } = await import("../core/dough/calculations");
+  const repo = new LocalRepository(
+    createIndexedDbStore("flour-ui-" + crypto.randomUUID()),
+  );
+  await repo.load();
+  const plan = {
+    ...createPlan(),
+    massMode: "flour" as const,
+    flourGrams: 500,
+    count: 3,
+  };
+  await repo.change((w) => ({ ...w, dough: { ...w.dough, active: plan } }));
+  render(
+    <MemoryRouter>
+      <LocalWorkspace repo={repo}>
+        <Planner />
+      </LocalWorkspace>
+    </MemoryRouter>,
+  );
+  const input = (await screen.findByLabelText(
+    "Teiglingsgewicht (g)",
+  )) as HTMLInputElement;
+  expect(input.valueAsNumber).toBeCloseTo(calculateDough(plan).ballGrams, 8);
+  expect(input.validity.stepMismatch).toBe(false);
+  expect(input.form!.checkValidity()).toBe(true);
+  fireEvent.click(screen.getByRole("button", { name: "Pizzaabend speichern" }));
+  await waitFor(() => expect(repo.getSnapshot()!.evenings).toHaveLength(1));
+  expect(repo.getSnapshot()!.evenings[0].dough.ballGrams).toBeCloseTo(
+    calculateDough(plan).ballGrams,
+    8,
+  );
+});

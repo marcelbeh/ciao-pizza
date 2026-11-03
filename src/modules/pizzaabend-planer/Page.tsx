@@ -248,7 +248,7 @@ function Planner() {
             label="Teiglingsgewicht (g)"
             min={50}
             max={2000}
-            step={0.1}
+            step="any"
             value={draft.dough.ballGrams}
             onChange={(ballGrams) =>
               update({ dough: { ...draft.dough, ballGrams } })
