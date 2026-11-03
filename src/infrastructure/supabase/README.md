@@ -1,17 +1,22 @@
-# Spätere Supabase-Anbindung
+# Supabase-Anbindung
 
-P0 enthält bewusst keinen Client, keine Requests und keine Supabase-Abhängigkeit.
-Die App funktioniert ohne Umgebungsvariablen und ohne Account.
+Bestehendes Projekt `ciao-pizza`, Ref `jhweepsclnottxqgppqf`, EU-West.
+SDK: exakt gepinntes `@supabase/supabase-js`. Nur `sb_publishable_…` im Frontend.
 
-Für eine spätere Integration hier den Client und explizite Remote-Repository-Adapter ergänzen.
-Die fachlichen Repository-Ports gehören nach `core/`; UI-Module bekommen ihre Implementierung
-über eine zentrale Composition Root in `app/`. Den lokalen Store nicht stillschweigend durch
-einen Remote-Store ersetzen: Offline-Verhalten, Konflikte, Migration und Sync müssen separat
-definiert werden.
+- `client.ts`: öffentliche Konfiguration, persistierte Auth-Sitzung, begrenzte Netzwerkwartezeit.
+- `remoteWorkspace.ts`: kontogebundene Reads und revisionierte RPC-Commits.
+- `syncedRepository.ts`: Offline-Cache, serialisierte Änderungen, Konflikte und Import.
+- `core/cloud/document.ts`: versioniertes Datenformat und verlustbewahrende Zusammenführung.
 
-`.env.example` reserviert URL und **öffentlichen Publishable Key**. Alle `VITE_*`-Werte
-sind öffentlich im Browser sichtbar. Secret-/Service-Role-Keys dürfen dort niemals stehen.
-Vor Aktivierung: Auth-Konzept, Eigentümermodell, RLS-Policies und Datenmigration prüfen.
-Keine Infrastruktur, Tabellen oder Benutzerkonten wurden in P0 angelegt.
+`ciao_workspaces` enthält pro Konto einen atomaren Arbeitsstand mit Teigplänen,
+Profilen, Rezeptdatensätzen und Einstellungen. Das hält das vorhandene P1-Datenmodell
+unverändert. `ciao_sync_receipts` schützt Wiederholungen nach verlorenen Antworten;
+`ciao_import_backups` bewahrt vollständige Import-/Konflikt-Originale.
+Alle Tabellen sind per RLS auf `auth.uid() = user_id` begrenzt; anonyme Sitzungen
+sind ausgeschlossen. Der Commit ist `SECURITY INVOKER` mit expliziter Benutzerprüfung.
 
-Referenz: https://supabase.com/docs/guides/getting-started/api-keys
+Es gibt noch keine eigenständige Rezept-/Einstellungsoberfläche; vorhandene bzw.
+künftige Datensätze bleiben bei Teigänderungen erhalten. Keine neuen Fachmodule.
+
+Einrichtung und Freigabe: [LIVEGANG.md](../../../docs/LIVEGANG.md).
+Prüfbericht: [CLOUD-VERIFICATION.md](../../../docs/CLOUD-VERIFICATION.md).

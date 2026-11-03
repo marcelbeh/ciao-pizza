@@ -1,102 +1,105 @@
 # Ciao! 2.0
 
-Dein persönlicher Pizza-Assistent. **P1: Pizza-Pilot & Teigstudio**, vollständig neu erstellt.
-Es wurden keine Dateien oder Komponenten aus `PizzaDoughCalculator` übernommen.
+Ein intelligenter Pizza-Assistent im Classico-Design. React, TypeScript, Vite,
+Tailwind CSS, React Router und PWA. Pizza-Pilot und Teigstudio sind funktionsfähig;
+die übrigen neun Bereiche behalten ihre Navigation und Platzhalter.
+Keine Dateien aus `PizzaDoughCalculator` übernommen.
 
-## Lokal entwickeln
+## Entwickeln und prüfen
 
-Voraussetzung: Node.js ab 22.12 (empfohlen: Node 24 LTS) und npm.
+Node.js ab 22.12 (empfohlen: Node 24 LTS), npm.
 
 ```sh
 npm ci
+# .env.example nach .env.local kopieren und die zwei öffentlichen Werte setzen
 npm run dev
 npm run typecheck
 npm test
 npm run build
 npm run preview
-# Tests, TypeScript und Produktionsbuild zusammen:
 npm run check
+# Mit gesetzten öffentlichen Umgebungsvariablen: reale Verbindung/Anonymzugriff prüfen
+npm run verify:cloud
+# Alternativ lokal mit der ignorierten Konfigurationsdatei:
+node --env-file=.env.local scripts/check-supabase.mjs
 ```
 
-Entwicklungsserver: `http://localhost:5173/ciao-pizza/`.
-Produktionsvorschau: `http://localhost:4173/ciao-pizza/`.
-`npm run test:watch` startet den Test-Watch-Modus.
-Der Service Worker wird nur im Produktionsbuild aktiviert.
+Entwicklung: `http://localhost:5173/ciao-pizza/`, Produktionsvorschau:
+`http://localhost:4173/ciao-pizza/`. `npm run test:watch` startet gezielte Tests im
+Watch-Modus. Service Worker nur im Produktionsbuild.
 
-## Stack und Struktur
+## Aktueller Stand
 
-React, striktes TypeScript, Vite, Tailwind CSS, React Router, native IndexedDB,
-Vite PWA/Workbox und Vitest. Keine UI-Bibliothek, kein globaler State-Container und
-noch kein Backend-SDK. Versionen sind exakt festgelegt; `package-lock.json` ist verbindlich.
+- **Pizza-Pilot:** sechs Schritte von Stil und Gerät über Mengen und Termin bis
+  zur Teigführung und vollständigen Rezeptübersicht; Übergabe an das Teigstudio.
+- **Teigstudio:** Zutaten aus vollständiger Massenbilanz, Teiglings-/Mehlmodus,
+  editierbare Bäckerprozente, Frisch-/Instanthefe, Temperaturen und Gar-/Ofenzeiten.
+- **Eigene Profile:** speichern, laden, bearbeiten/umbenennen und löschen.
+- **Supabase:** private Anmeldung per E-Mail-Code, zentrale dauerhafte Speicherung,
+  kontogetrennter IndexedDB-Cache, sicherer Erstimport, Versionskonflikte,
+  Originalarchive und portable JSON-Sicherungen.
+- **Rezeptbibliothek und Einstellungen:** noch keine eigenen Fachoberflächen.
+  Die Cloud-Datenstruktur bewahrt Rezeptdatensätze und Einstellungen bereits bei
+  Teigänderungen mit. Keine zusätzliche Neuentwicklung dieser Module.
+- **GitHub Pages:** `/ciao-pizza/` und Hash-Routing bleiben erhalten. Ein manueller,
+  explizit freizugebender Actions-Workflow ist vorbereitet, noch nicht ausgeführt.
+
+[Fachannahmen und P1-Bedienung](docs/P1-DOUGH.md) ·
+[Einrichtung und Livegang für den Betreiber](docs/LIVEGANG.md) ·
+[aktueller Prüfbericht](docs/CLOUD-VERIFICATION.md)
+
+## Architektur
 
 ```text
 src/
-  app/                 App-Shell, Navigation, Routing, Fehlergrenze
-  components/          Fachunabhängige UI-Bausteine
-  modules/             Eigenständige, lazy geladene Modul-Einstiege
-    registry.ts        Modulmetadaten und Navigationsziele
-    dashboard/         Startansicht
-    <modul>/Page.tsx   Je ein klar gekennzeichneter Platzhalter
-  core/storage/        UI-unabhängiger Speichervertrag
+  app/                  App-Shell, Auth-Gate, gemeinsamer Teigplan
+  components/           Geteilte Classico-UI und Rezepteditor
+  core/dough/           Reine Berechnung und Validierung
+  core/cloud/           Versioniertes Datenformat, sichere Zusammenführung
+  core/storage/         Bestehender Speichervertrag
   infrastructure/
-    storage/           IndexedDB-Adapter, Schema Version 1
-    pwa/               Installation, Updates, Fehlerhinweise
-    supabase/          Dokumentierter Erweiterungspunkt
-  test/                Gemeinsame Testumgebung
-  styles.css           Design-Tokens und responsives Designsystem
-public/                Eigene Icons, Apple-Touch- und Maskable-Icons
-docs/                  Architektur und technischer Prüfbericht
+    storage/            IndexedDB-Adapter und bisheriges P1-Importformat
+    supabase/           SDK, Remote-Zugriff, Synchronisierung und Offline-Cache
+    pwa/                Installation und bestätigte Updates
+  modules/              Elf eigenständige Route-Einstiege
+supabase/
+  migrations/           Versionierte, bereits angewendete Datenbankmigration
+  tests/                Reproduzierbarer RLS-Test mit Rollback
+scripts/                Release-Konfiguration und reale Verbindungsprüfung
 ```
 
-Alle elf Bereiche sind erreichbar: Dashboard, Pizza-Pilot, Teigstudio,
-Reife-Monitor, Rezeptbibliothek, Pizzaabend-Planer, Einkaufsliste, Backcoach,
-Pizza-Tagebuch, Teig-Doc und Pizza-Academy. Pizza-Pilot und Teigstudio sind mit gemeinsamem Teigplan, Zutatenberechnung und lokalen Profilen implementiert. Die übrigen Module bleiben Platzhalter. Fachannahmen, Bedienung und Einschränkungen stehen in [P1-DOUGH.md](docs/P1-DOUGH.md).
+Der Teigrechner bleibt unabhängig von React und Supabase. Bestehende P1-Daten
+werden als atomarer, versionierter Workspace gespeichert. So können aktiver Plan,
+Profile, Rezepte und Einstellungen nicht durch einen Teilfehler auseinanderlaufen.
+RLS isoliert jede Zeile nach Benutzer-ID. Der transaktionale Commit verwendet
+`SECURITY INVOKER`, Versionsprüfung und idempotente Mutations-IDs.
 
-## Designsystem · Modern Italian Premium – Classico
+## Daten, Offline und Sicherheit
 
-| Token | Farbe | Rolle |
-| --- | --- | --- |
-| Basilikum | `#1B5E20` | Marke, Navigation, primäre Aktionen |
-| Pomodoro | `#D32F2F` | Warme Akzente |
-| Creme | `#F9F5EA` | Seitenhintergrund |
-| Gold | `#D4A038` | Details und Fokusakzente |
-| Dunkelgrau | `#1F1F1F` | Haupttext |
+Für Anmeldung und ersten Datenabruf ist Internet erforderlich. Bei bestehender
+Sitzung bleibt ein geladener Konto-Cache offline bearbeitbar; neue Änderungen
+werden nach Verbindungsrückkehr synchronisiert. Pro Konto ist in einem Browser
+nur ein bearbeitender Tab erlaubt. Andere Geräte werden durch die Cloud-Version
+abgesichert. Bei Konflikten bleiben beide Stände erhalten, bis sie ausdrücklich
+zusammengeführt werden. Alle Originale werden dabei privat archiviert.
 
-Lokale Systemschrift-Kombination aus eleganter Serifenschrift und ruhiger Sans-Serif:
-keine externen Font-Requests oder Lizenzabhängigkeiten. SVG-Illustration und Icons
-sind eigens erstellt. Karten, Buttons, Badges und Abstände werden gemeinsam verwendet.
-Mobile First mit Bottom-Navigation, vollständigem Modulmenü, Safe-Area-Abständen,
-sichtbarem Tastaturfokus und Unterstützung für reduzierte Bewegung.
+Lokale P1-Daten werden nach Anmeldung über „Lokale Daten in dieses Konto
+übernehmen“ importiert. Das lokale Original wird nicht gelöscht. Daten auf einer
+anderen Browser-Origin müssen zunächst dort importiert/synchronisiert oder als
+JSON-Sicherung übertragen werden. Siehe die konkrete Anleitung in LIVEGANG.md.
 
-## GitHub Pages und PWA
+`VITE_*`-Werte sind immer öffentlich. Nur die Projekt-URL und einen
+`sb_publishable_…`-Key verwenden. Keine Datenbankpasswörter, Secret-/Service-Role-Keys
+oder SMTP-Zugangsdaten ins Frontend/Repository eintragen. `.env.local` ist ignoriert.
+Auth- und Daten-API-Antworten werden nicht durch den Service Worker gecacht.
+Browserdaten sind kein Backup; wichtige Stände über „Sicherung herunterladen“ sichern.
 
-Der Vite-Basispfad ist fest `/ciao-pizza/`. Hash-Routing erzeugt zum Beispiel
-`/ciao-pizza/#/teigstudio`; ein Reload braucht so keine serverseitige SPA-Umleitung.
-Manifest, Icons, Service-Worker-Scope und Start-URL passen zum Basispfad.
-Der Produktionsbuild liegt in `dist/` und kann später auf GitHub Pages bereitgestellt werden.
-Es gibt **keinen automatischen Deployment-Workflow** und keine Veröffentlichung in P0/P1.
+## Designsystem
 
-Nach einem erfolgreichen Online-Erstbesuch wird die App-Shell inklusive aller
-Modul-Chunks offline zwischengespeichert. Updates werden zur Bestätigung angeboten.
-Installation benötigt HTTPS (oder localhost) und Browser-Unterstützung.
-Auf dem iPhone in Safari: **Teilen → Zum Home-Bildschirm**.
-Der Installationshinweis erklärt diesen Weg, wenn kein Install-Prompt verfügbar ist.
+Classico bleibt unverändert: Basilikumgrün `#1B5E20`, Pomodororot `#D32F2F`,
+Creme `#F9F5EA`, Gold `#D4A038` und Dunkelgrau `#1F1F1F`. Systemschriften,
+mobile Navigation mit Safe Areas, eigene SVGs, native Formularfelder und reduzierte
+Bewegung. Anmeldung und Sync-Hinweise ergänzen diese Gestaltung.
 
-## Lokale Daten und spätere Cloud
-
-`createIndexedDbStore()` liefert einen asynchronen, testbaren Speicheradapter.
-Er öffnet die Datenbank erst bei Benutzung, bestätigt Schreibvorgänge erst nach
-Transaktionsabschluss und meldet Fehler. P1 speichert aktive Teigpläne und benannte Profil-Snapshots in einem versionierten Workspace.
-Browser können lokale Daten löschen; IndexedDB ist kein Backup. Ein Export- und
-Migrationskonzept gehört in die spätere fachliche Umsetzung.
-
-Supabase ist nur vorbereitet: siehe [Integrationsgrenze](src/infrastructure/supabase/README.md).
-`.env.example` enthält ausschließlich leere optionale Variablen. Lokale `.env`-Dateien
-sind ignoriert. `VITE_*` ist immer öffentlich; niemals geheime Schlüssel eintragen.
-
-## Qualität und Status
-
-Siehe [P1-Fach- und Prüfbericht](docs/P1-DOUGH.md) sowie den [P0-Prüfbericht](docs/P0-VERIFICATION.md) für ausgeführte Prüfungen,
-verbleibende Einschränkungen und den Abhängigkeitsaudit.
-CI führt ausschließlich Installation, Tests und Build aus; Merge und Deployment
-bleiben manuelle Entscheidungen nach Freigabe.
+**Kein automatischer Livegang durch Push oder Merge.** Deployment ausschließlich
+nach ausdrücklicher Freigabe über den manuellen Workflow auf `main`.

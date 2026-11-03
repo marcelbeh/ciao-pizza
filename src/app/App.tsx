@@ -18,7 +18,7 @@ import {
 import { modules } from "../modules/registry";
 import { Icon } from "../components/Icon";
 import { PwaNotice } from "../infrastructure/pwa/PwaNotice";
-import { DoughProvider } from "./DoughProvider";
+import { CloudWorkspace } from "./CloudWorkspace";
 
 const Dashboard = lazy(() => import("../modules/dashboard/DashboardPage"));
 const pages = import.meta.glob<{ default: React.ComponentType }>(
@@ -206,7 +206,6 @@ function Shell() {
           <span>Mehr</span>
         </button>
       </nav>
-      <PwaNotice />
     </div>
   );
 }
@@ -214,9 +213,10 @@ export function App() {
   return (
     <ErrorBoundary>
       <HashRouter>
-        <DoughProvider>
+        <CloudWorkspace>
           <Shell />
-        </DoughProvider>
+        </CloudWorkspace>
+        <PwaNotice />
       </HashRouter>
     </ErrorBoundary>
   );
