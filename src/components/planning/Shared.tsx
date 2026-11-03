@@ -59,7 +59,13 @@ export function useAction() {
       await action();
       setMessage(success);
     } catch (e) {
-      setMessage(e instanceof Error ? e.message : "Speichern fehlgeschlagen.");
+      setMessage(
+        e instanceof Error && e.name === "QuotaExceededError"
+          ? "Der lokale Gerätespeicher ist voll. Dein Entwurf bleibt sichtbar. Bitte Fotos im Entwurf reduzieren und gespeicherte Daten extern sichern."
+          : e instanceof Error
+            ? e.message
+            : "Speichern fehlgeschlagen.",
+      );
     } finally {
       setBusy(false);
     }

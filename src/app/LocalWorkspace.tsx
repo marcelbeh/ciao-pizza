@@ -55,8 +55,9 @@ export function LocalWorkspace({
         <div>
           <strong>Ciao! · Ohne Anmeldung</strong>
           <p>
-            Deine Pläne und Profile bleiben auf diesem Gerät. Auch Rezepte,
-            Pizzaabende und Einkaufslisten werden lokal gespeichert.
+            Deine Pläne und Profile bleiben auf diesem Gerät. Auch Tagebuch,
+            Fotos, Backläufe, Rezepte, Pizzaabende und Einkaufslisten werden
+            lokal gespeichert.
             {offline
               ? " Du bist offline. Alle Kernfunktionen bleiben verfügbar."
               : ""}
@@ -81,8 +82,8 @@ export function LocalWorkspace({
                 e.target.value = "";
                 if (!file) return;
                 try {
-                  if (file.size > 10000000)
-                    throw Error("Sicherung ist größer als 10 MB.");
+                  if (file.size > 50000000)
+                    throw Error("Sicherung ist größer als 50 MB.");
                   await repo.importBackup(JSON.parse(await file.text()));
                   setEpoch((n) => n + 1);
                   setNotice(

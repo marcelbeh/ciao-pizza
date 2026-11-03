@@ -1,3 +1,4 @@
+import type { BakingData } from "../baking/model";
 import type { DoughPlan, DoughState, Style } from "../dough/model";
 export const categories = [
   "Mehl",
@@ -27,6 +28,8 @@ export interface Recipe {
   yieldPizzas: number;
   ingredients: Ingredient[];
   instructions: string;
+  /** Optional successful dough formula from the journal; toppings still exclude dough. */
+  dough?: DoughPlan;
 }
 export interface EveningLine {
   id: string;
@@ -77,6 +80,8 @@ export interface LocalWorkspace {
   settings: Record<string, unknown>;
   fermentations: Record<string, unknown>[];
   legacyOriginal?: unknown;
+  /** Additive P4 schema; missing in older V2 backups means an empty baking workspace. */
+  baking?: BakingData;
 }
 export const emptyWorkspace = (): LocalWorkspace => ({
   version: 2,

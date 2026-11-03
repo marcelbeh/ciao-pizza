@@ -1,3 +1,7 @@
+import "../../components/baking/baking.css";
+import { useNavigate } from "react-router-dom";
+import { useDough } from "../../app/DoughProvider";
+import { RecipeSummary } from "../../components/dough/RecipeSummary";
 import { useState } from "react";
 import { useLocal } from "../../app/LocalWorkspace";
 import { styles } from "../../core/dough/model";
@@ -17,6 +21,8 @@ import {
 import { formatQuantity } from "../../core/planning/calculations";
 import { Field, Numeric, useAction } from "../../components/planning/Shared";
 export default function Page() {
+  const dough = useDough();
+  const navigate = useNavigate();
   const { state, repository } = useLocal();
   const action = useAction();
   const [selected, setSelected] = useState(builtInRecipes[0].id);
@@ -137,6 +143,22 @@ export default function Page() {
             </ul>
           )}
           <p className="recipe-instructions">{current.instructions}</p>
+          {current.dough && (
+            <details className="baking-detail">
+              <summary>Gespeicherte Teigrezeptur aus dem Tagebuch</summary>
+              <RecipeSummary plan={current.dough} />
+              <button
+                className="button secondary"
+                disabled={!dough.ready}
+                onClick={() => {
+                  dough.setActive(structuredClone(current.dough!));
+                  navigate("/teigstudio");
+                }}
+              >
+                Teigrezeptur im Teigstudio öffnen (ersetzt aktiven Plan)
+              </button>
+            </details>
+          )}
           <div className="planning-actions">
             <button
               className="button secondary"

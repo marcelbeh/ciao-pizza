@@ -102,7 +102,7 @@ export default function DashboardPage() {
           <p className="eyebrow">DEINE PIZZA-WERKSTATT</p>
           <h2>Alles an seinem Platz.</h2>
         </div>
-        <span className="phase-badge">P3 · Planen & genießen</span>
+        <span className="phase-badge">P4 · Backen & lernen</span>
       </div>
       <div className="module-grid">
         {modules.slice(1).map((module, index) => (

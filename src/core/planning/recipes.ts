@@ -1,3 +1,4 @@
+import { assertPlan } from "../dough/calculations";
 import type { Recipe } from "./model";
 import { categories, toppings, units } from "./model";
 import { styles } from "../dough/model";
@@ -115,12 +116,13 @@ export function assertRecipe(value: unknown): asserts value is Recipe {
     !r.instructions.trim() ||
     r.instructions.length > 8000 ||
     !Array.isArray(r.ingredients) ||
-    !r.ingredients.length ||
+    (!r.ingredients.length && !r.dough) ||
     r.ingredients.length > 80
   )
     throw Error(
       "Rezept prüfen: Name, Stil, Portionen, Zutaten und Zubereitung sind erforderlich.",
     );
+  if (r.dough !== undefined) assertPlan(r.dough);
   const ids = new Set<string>();
   for (const i of r.ingredients) {
     if (

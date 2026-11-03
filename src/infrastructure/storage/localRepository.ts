@@ -1,3 +1,5 @@
+import { assertBaking } from "../../core/baking/validation";
+import { emptyBaking } from "../../core/baking/model";
 import type { KeyValueStore } from "../../core/storage/KeyValueStore";
 import {
   emptyWorkspace,
@@ -77,6 +79,11 @@ export function assertWorkspace(
       "Unbekannte lokale Datenversion. Deine Daten werden nicht überschrieben.",
     );
   assertState(w.dough);
+  if (w.baking !== undefined) assertBaking(w.baking);
+  if (new TextEncoder().encode(JSON.stringify(w)).length > 50000000)
+    throw Error(
+      "Die Sicherung überschreitet 50 MB. Bitte Importarchive extern sichern und kleinere Sicherungen verwenden.",
+    );
   for (const r of w.recipes) {
     assertRecipe(r);
     if (isOriginal(r.id) || r.id.startsWith("builtin:"))
@@ -200,6 +207,41 @@ export class LocalRepository {
           plan: incoming.dough.active,
           updatedAt: new Date().toISOString(),
         });
+      if (incoming.baking) {
+        const current = w.baking ?? emptyBaking();
+        const sessions = new Map<string, string>();
+        for (const session of incoming.baking.sessions) {
+          const id = crypto.randomUUID();
+          sessions.set(session.id, id);
+          current.sessions.push({
+            ...session,
+            id,
+            revision: 1,
+            sourceEveningId: session.sourceEveningId
+              ? (idMap.get(session.sourceEveningId) ?? null)
+              : null,
+          });
+        }
+        for (const entry of incoming.baking.entries)
+          current.entries.push({
+            ...entry,
+            id: crypto.randomUUID(),
+            revision: 1,
+            sourceEveningId: entry.sourceEveningId
+              ? (idMap.get(entry.sourceEveningId) ?? null)
+              : null,
+            sourceSessionId: entry.sourceSessionId
+              ? (sessions.get(entry.sourceSessionId) ?? null)
+              : null,
+            photos: entry.photos.map((photo) => ({
+              ...photo,
+              id: crypto.randomUUID(),
+            })),
+          });
+        for (const diagnosis of incoming.baking.diagnoses)
+          current.diagnoses.push({ ...diagnosis, id: crypto.randomUUID() });
+        w.baking = current;
+      }
       w.fermentations.push(...incoming.fermentations);
       w.settings = { ...incoming.settings, ...w.settings };
       // Full source preserves conflicting settings, unknown legacy fields and future sync payloads.
