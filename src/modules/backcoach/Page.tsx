@@ -1,3 +1,4 @@
+import { AcademyLink } from "../../components/AcademyLink";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useLocal } from "../../app/LocalWorkspace";
@@ -118,6 +119,9 @@ export default function Page() {
           anpassen; der sichtbare Backzustand entscheidet.
         </p>
       </div>
+      <AcademyLink article="backtemperatur" section="richtwerte">
+        Backtemperaturen richtig einordnen
+      </AcademyLink>
       <section className="dough-panel">
         <h2>Backlauf wählen</h2>
         <div className="form-grid">

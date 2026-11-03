@@ -1,3 +1,4 @@
+import { AcademyLink } from "../../components/AcademyLink";
 import { useState } from "react";
 import { useLocal } from "../../app/LocalWorkspace";
 import { createPlan } from "../../core/dough/model";
@@ -52,6 +53,9 @@ export default function Page() {
           einer behaupteten KI-Diagnose.
         </p>
       </div>
+      <AcademyLink article="fehler" section="teig">
+        Typische Fehler einordnen
+      </AcademyLink>
       <section className="dough-panel">
         <h2>Deine Ausgangsdaten</h2>
         <SourceSelect value={source} onChange={setSource} includeJournal />

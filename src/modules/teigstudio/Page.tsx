@@ -1,3 +1,4 @@
+import { AcademyLink } from "../../components/AcademyLink";
 import { useEffect, useRef, useState } from "react";
 import { useDough, StorageStatus } from "../../app/DoughProvider";
 import { createPlan, type DoughPlan } from "../../core/dough/model";
@@ -83,8 +84,11 @@ function Studio() {
 }
 
 export default function Page() {
- const workspace = useDough();
- return <>      <div className="page-intro">
+  const workspace = useDough();
+  return (
+    <>
+      {" "}
+      <div className="page-intro">
         <p className="eyebrow">MEHL. WASSER. DEIN HANDWERK.</p>
         <h1>Teigstudio</h1>
         <p>
@@ -92,9 +96,15 @@ export default function Page() {
           Teigplan.
         </p>
       </div>
+      <AcademyLink article="hydration" section="prozent">
+        Hydration & Bäckerprozente verstehen
+      </AcademyLink>
       <StorageStatus />
-
- {workspace.ready ? <Studio /> : <p role="status">Teigplan wird geladen …</p>}
- </>;
+      {workspace.ready ? (
+        <Studio />
+      ) : (
+        <p role="status">Teigplan wird geladen …</p>
+      )}
+    </>
+  );
 }
-

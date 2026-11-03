@@ -1086,3 +1086,9 @@ html[data-keyboard-open="true"] .pwa-area {
     transform: rotate(360deg);
   }
 }
+
+/* P6 · Quiet knowledge entry points */
+.academy-context { margin-block: 12px 24px; font-size: .93rem; }
+.academy-context a { color: var(--color-basil); text-underline-offset: .2em; }
+.sidebar .academy-submenu { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
+.academy-submenu summary { cursor: pointer; padding: 10px 18px; }

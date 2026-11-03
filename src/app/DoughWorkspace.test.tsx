@@ -128,9 +128,11 @@ describe("pilot, studio and durable profiles", () => {
     );
     await repo.save({ version: 1, active: createPlan(), profiles: [] });
     render(
-      <DoughProvider repository={repo}>
-        <Studio />
-      </DoughProvider>,
+      <HashRouter>
+        <DoughProvider repository={repo}>
+          <Studio />
+        </DoughProvider>
+      </HashRouter>,
     );
     const field = await screen.findByRole("spinbutton", { name: /^Hydration/ });
     fireEvent.change(field, { target: { value: "" } });
@@ -147,9 +149,11 @@ describe("pilot, studio and durable profiles", () => {
     );
     await repo.save({ version: 1, active: createPlan(), profiles: [] });
     render(
-      <DoughProvider repository={repo}>
-        <Studio />
-      </DoughProvider>,
+      <HashRouter>
+        <DoughProvider repository={repo}>
+          <Studio />
+        </DoughProvider>
+      </HashRouter>,
     );
     const field = await screen.findByRole("spinbutton", { name: /^Hydration/ });
     fireEvent.change(field, { target: { value: "67" } });
