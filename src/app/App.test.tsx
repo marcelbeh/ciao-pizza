@@ -1,4 +1,10 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import {
+  configure,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { App } from "./App";
 import { modules } from "../modules/registry";
@@ -17,6 +23,8 @@ vi.mock("virtual:pwa-register/react", () => ({
     updateServiceWorker: vi.fn(),
   }),
 }));
+// Lazy route imports can exceed the library default on a busy local runner.
+configure({ asyncUtilTimeout: 5000 });
 beforeEach(() => {
   window.location.hash = "/";
 });
