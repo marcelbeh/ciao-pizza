@@ -1,3 +1,4 @@
+import { LocalWorkspace } from "./LocalWorkspace";
 import {
   useEffect,
   useMemo,
@@ -14,7 +15,7 @@ import { SyncedRepository } from "../infrastructure/supabase/syncedRepository";
 import { createIndexedDbStore } from "../infrastructure/storage/indexedDbStore";
 import { DOUGH_KEY } from "../infrastructure/storage/doughRepository";
 import { migrateLegacy } from "../core/cloud/document";
-import { DoughProvider, useDough } from "./DoughProvider";
+import { DoughProvider } from "./DoughProvider";
 import "./cloud.css";
 const store = createIndexedDbStore();
 const legacyOwner = "legacy-import-owner:v1";
@@ -28,42 +29,11 @@ function download(value: unknown, name = "ciao-sicherung.json") {
   link.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
+/** Local First is unconditional; the optional account implementation stays prepared below. */
 export function CloudWorkspace({ children }: { children: ReactNode }) {
-  if (import.meta.env.VITE_AUTH_MODE === "local")
-    return (
-      <DoughProvider>
-        <LocalNotice />
-        {children}
-      </DoughProvider>
-    );
-  return <AuthenticatedWorkspace>{children}</AuthenticatedWorkspace>;
+  return <LocalWorkspace>{children}</LocalWorkspace>;
 }
-function LocalNotice() {
-  const workspace = useDough();
-  return (
-    <aside className="cloud-bar" aria-label="Lokaler Modus">
-      <div>
-        <strong>Ciao! · Ohne Anmeldung</strong>
-        <p>
-          Deine Pläne und Profile bleiben auf diesem Gerät. Konten und
-          Cloud-Synchronisierung folgen später.
-        </p>
-      </div>
-      <div className="cloud-actions">
-        <button
-          type="button"
-          disabled={!workspace.ready || workspace.saving}
-          onClick={() =>
-            download(workspace.state, "ciao-lokale-sicherung.json")
-          }
-        >
-          Sicherung herunterladen
-        </button>
-      </div>
-    </aside>
-  );
-}
-function AuthenticatedWorkspace({ children }: { children: ReactNode }) {
+export function AuthenticatedWorkspace({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState("");

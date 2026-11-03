@@ -63,6 +63,31 @@ export function createIndexedDbStore(name = "ciao-pizza"): KeyValueStore {
     });
   }
   return {
+    async update<T>(
+      key: string,
+      change: (previous: T | undefined) => T,
+    ): Promise<T> {
+      const db = await open();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE, "readwrite");
+        const store = tx.objectStore(STORE);
+        let next: T;
+        let failure: unknown;
+        const request = store.get(key);
+        request.onsuccess = () => {
+          try {
+            next = change(request.result);
+            store.put(next, key);
+          } catch (error) {
+            failure = error;
+            tx.abort();
+          }
+        };
+        tx.oncomplete = () => resolve(next);
+        tx.onabort = tx.onerror = () =>
+          reject(failure ?? tx.error ?? new Error("Speichern fehlgeschlagen."));
+      });
+    },
     get: <T>(key: string) =>
       run<T | undefined>("readonly", (store) => store.get(key)),
     set: <T>(key: string, value: T) =>

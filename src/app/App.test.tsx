@@ -4,10 +4,10 @@ import { App } from "./App";
 import { modules } from "../modules/registry";
 import type { ReactNode } from "react";
 vi.mock("./CloudWorkspace", async () => {
-  const { DoughProvider } = await import("./DoughProvider");
+  const { LocalWorkspace } = await import("./LocalWorkspace");
   return {
     CloudWorkspace: ({ children }: { children: ReactNode }) => (
-      <DoughProvider>{children}</DoughProvider>
+      <LocalWorkspace>{children}</LocalWorkspace>
     ),
   };
 });
