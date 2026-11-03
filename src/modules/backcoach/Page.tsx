@@ -45,15 +45,26 @@ export default function Page() {
   const focus = useRef<HTMLElement>(null);
   const [fullscreen, setFullscreen] = useState(false);
   useEffect(() => {
-    const tick = setInterval(() => setNow(Date.now()), 1000);
     const changed = () =>
       setFullscreen(document.fullscreenElement === focus.current);
     document.addEventListener("fullscreenchange", changed);
     return () => {
-      clearInterval(tick);
       document.removeEventListener("fullscreenchange", changed);
     };
   }, []);
+  // Timestamp math stays in the domain; only redraw an actually running, visible timer.
+  useEffect(() => {
+    if (!session || session.timer.startedAt === null) return;
+    const update = () => setNow(Date.now());
+    const tick = setInterval(() => {
+      if (!document.hidden) update();
+    }, 1000);
+    document.addEventListener("visibilitychange", update);
+    return () => {
+      clearInterval(tick);
+      document.removeEventListener("visibilitychange", update);
+    };
+  }, [session?.timer.startedAt]);
   if (!state) return null;
   const editable =
     session?.step === "preheat" &&

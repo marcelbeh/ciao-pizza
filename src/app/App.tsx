@@ -1,3 +1,4 @@
+import { Logo } from "../components/Logo";
 import {
   Component,
   Suspense,
@@ -55,12 +56,54 @@ class ErrorBoundary extends Component<
 }
 function Shell() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [keyboardOpen, setKeyboardOpen] = useState(false);
+  useEffect(() => {
+    const viewport = window.visualViewport;
+    if (!viewport) return;
+    const update = () => {
+      const open =
+        window.innerHeight - viewport.height > 150 &&
+        !!document.activeElement?.matches("input,textarea,select");
+      setKeyboardOpen(open);
+      document.documentElement.dataset.keyboardOpen = String(open);
+    };
+    viewport.addEventListener("resize", update);
+    document.addEventListener("focusin", update);
+    document.addEventListener("focusout", update);
+    return () => {
+      viewport.removeEventListener("resize", update);
+      document.removeEventListener("focusin", update);
+      document.removeEventListener("focusout", update);
+      delete document.documentElement.dataset.keyboardOpen;
+    };
+  }, []);
   const menuButton = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (!menuOpen) return;
+    const frame = requestAnimationFrame(() =>
+      document.querySelector<HTMLAnchorElement>("#mobile-menu a")?.focus(),
+    );
+    const escape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setMenuOpen(false);
+        menuButton.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", escape);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("keydown", escape);
+    };
+  }, [menuOpen]);
   const location = useLocation();
   const current = modules.find((module) => module.path === location.pathname);
   useEffect(() => {
     document.title = `${current?.title ?? "Seite nicht gefunden"} · Ciao!`;
     setMenuOpen(false);
+    const localTools = document.getElementById(
+      "local-data-tools",
+    ) as HTMLDetailsElement | null;
+    if (localTools) localTools.open = false;
     document.getElementById("main-content")?.focus();
     window.scrollTo({ top: 0, behavior: "instant" });
   }, [location.pathname, current]);
@@ -69,7 +112,7 @@ function Shell() {
     menuButton.current?.focus();
   }
   return (
-    <div className="app-shell">
+    <div className={`app-shell${keyboardOpen ? " keyboard-open" : ""}`}>
       <a
         className="skip-link"
         href="#main-content"
@@ -82,7 +125,7 @@ function Shell() {
       </a>
       <aside className="sidebar">
         <Link to="/" className="brand" aria-label="Ciao! Dashboard">
-          Ciao!<span>LA TUA PIZZA. LA TUA PASSIONE.</span>
+          <Logo />
         </Link>
         <p className="nav-label">DEINE WERKSTATT</p>
         <nav aria-label="Hauptnavigation">
@@ -107,13 +150,13 @@ function Shell() {
             <br />
             <strong>Mit Ciao!</strong>
           </p>
-          <small>VERSION 2.0 · FONDAMENTA</small>
+          <small>DER PIZZATEIG-ASSISTENT</small>
         </div>
       </aside>
       <div className="workspace">
         <header className="topbar">
           <Link to="/" className="mobile-brand">
-            Ciao!
+            <Logo compact />
           </Link>
           <span className="breadcrumb">
             Deine Werkstatt <span>/</span>{" "}
@@ -150,7 +193,11 @@ function Shell() {
             ))}
           </nav>
         )}
-        <main id="main-content" tabIndex={-1}>
+        <main
+          id="main-content"
+          tabIndex={-1}
+          className={current?.id === "dashboard" ? "dashboard-main" : undefined}
+        >
           <Suspense
             fallback={
               <p role="status" className="loading">
@@ -185,11 +232,31 @@ function Shell() {
         </footer>
       </div>
       <nav className="bottom-nav" aria-label="Schnellnavigation">
-        {[modules[0], modules[1], modules[2], modules[4]].map((module) => (
-          <NavLink key={module.id} to={module.path} end>
+        {[modules[0], modules[1], modules[4], modules[5]].map((module) => (
+          <NavLink
+            key={module.id}
+            to={module.path}
+            end
+            className={({ isActive }) =>
+              isActive ||
+              (module.id === "pizza-pilot" &&
+                ["/teigstudio", "/reife-monitor"].includes(
+                  location.pathname,
+                )) ||
+              (module.id === "pizzaabend-planer" &&
+                ["/einkaufsliste", "/backcoach"].includes(location.pathname))
+                ? "active"
+                : ""
+            }
+          >
             <Icon name={module.icon} />
             <span>
-              {module.id === "rezeptbibliothek" ? "Rezepte" : module.title}
+              {{
+                dashboard: "Übersicht",
+                "pizza-pilot": "Teig",
+                rezeptbibliothek: "Rezepte",
+                "pizzaabend-planer": "Planung",
+              }[module.id] ?? module.title}
             </span>
           </NavLink>
         ))}

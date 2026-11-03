@@ -1,3 +1,4 @@
+import { Icon } from "../components/Icon";
 import {
   createContext,
   useContext,
@@ -51,57 +52,86 @@ export function LocalWorkspace({
   }, [repo]);
   return (
     <Context.Provider value={repo}>
-      <aside className="cloud-bar" aria-label="Lokaler Modus">
-        <div>
-          <strong>Ciao! · Ohne Anmeldung</strong>
-          <p>
-            Deine Pläne und Profile bleiben auf diesem Gerät. Auch Tagebuch,
-            Fotos, Backläufe, Rezepte, Pizzaabende und Einkaufslisten werden
-            lokal gespeichert.
-            {offline
-              ? " Du bist offline. Alle Kernfunktionen bleiben verfügbar."
-              : ""}
-          </p>
-          <small>
-            Browserdaten nicht löschen. Sichere deine Daten regelmäßig;
-            Cloud-Synchronisierung folgt optional.
-          </small>
-        </div>
-        <div className="cloud-actions">
-          <button disabled={!state} onClick={() => download(state)}>
-            Sicherung herunterladen
+      <details
+        id="local-data-tools"
+        className="local-tools"
+        onKeyDown={(e) => {
+          if (e.key === "Escape") e.currentTarget.open = false;
+        }}
+      >
+        <summary
+          aria-label="Lokale Daten und Sicherung"
+          title="Lokale Daten, Sicherung und Installation"
+        >
+          <Icon name="shield" />
+          <span>Dieses Gerät</span>
+        </summary>
+        <aside className="cloud-bar" aria-label="Lokaler Modus">
+          <div>
+            <strong>Ciao! · Ohne Anmeldung</strong>
+            <p>
+              Deine Pläne und Profile bleiben auf diesem Gerät. Auch Tagebuch,
+              Fotos, Backläufe, Rezepte, Pizzaabende und Einkaufslisten werden
+              lokal gespeichert.
+              {offline
+                ? " Du bist offline. Alle Kernfunktionen bleiben verfügbar."
+                : ""}
+            </p>
+            <small>
+              Browserdaten nicht löschen. Sichere deine Daten regelmäßig;
+              Cloud-Synchronisierung folgt optional.
+            </small>
+          </div>
+          <div id="pwa-install-slot" />
+          <div className="cloud-actions">
+            <button disabled={!state} onClick={() => download(state)}>
+              Sicherung herunterladen
+            </button>
+            <label className="backup-import">
+              Sicherung hinzufügen
+              <input
+                type="file"
+                accept="application/json,.json"
+                disabled={!state}
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  e.target.value = "";
+                  if (!file) return;
+                  try {
+                    if (file.size > 50000000)
+                      throw Error("Sicherung ist größer als 50 MB.");
+                    await repo.importBackup(JSON.parse(await file.text()));
+                    setEpoch((n) => n + 1);
+                    setNotice(
+                      "Sicherung als Kopien hinzugefügt. Importierte Teigpläne findest du unter den Profilen.",
+                    );
+                    setError("");
+                  } catch (err) {
+                    setError(
+                      err instanceof Error
+                        ? err.message
+                        : "Import fehlgeschlagen.",
+                    );
+                  }
+                }}
+              />
+            </label>
+          </div>
+          <button
+            className="local-tools-close"
+            type="button"
+            onClick={() => {
+              const details = document.getElementById(
+                "local-data-tools",
+              ) as HTMLDetailsElement;
+              details.open = false;
+              details.querySelector("summary")?.focus();
+            }}
+          >
+            Schließen
           </button>
-          <label className="backup-import">
-            Sicherung hinzufügen
-            <input
-              type="file"
-              accept="application/json,.json"
-              disabled={!state}
-              onChange={async (e) => {
-                const file = e.target.files?.[0];
-                e.target.value = "";
-                if (!file) return;
-                try {
-                  if (file.size > 50000000)
-                    throw Error("Sicherung ist größer als 50 MB.");
-                  await repo.importBackup(JSON.parse(await file.text()));
-                  setEpoch((n) => n + 1);
-                  setNotice(
-                    "Sicherung als Kopien hinzugefügt. Importierte Teigpläne findest du unter den Profilen.",
-                  );
-                  setError("");
-                } catch (err) {
-                  setError(
-                    err instanceof Error
-                      ? err.message
-                      : "Import fehlgeschlagen.",
-                  );
-                }
-              }}
-            />
-          </label>
-        </div>
-      </aside>
+        </aside>
+      </details>
       {error && (
         <div role="alert" className="field-error">
           {error}

@@ -10,7 +10,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: "prompt",
-      includeAssets: ["favicon.svg", "apple-touch-icon.png"],
+      includeAssets: ["favicon.svg", "apple-touch-icon.png", "fonts/Playball-OFL.txt"],
       manifest: {
         id: "/ciao-pizza/",
         name: "Ciao! – Dein Pizza-Assistent",
@@ -44,7 +44,7 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ["**/*.{js,css,html,svg,png,woff2}"],
+        globPatterns: ["**/*.{js,css,html,svg,png,woff2,webp}"],
         navigateFallback: "/ciao-pizza/index.html",
         navigateFallbackAllowlist: [/^\/ciao-pizza\//],
         cleanupOutdatedCaches: true,

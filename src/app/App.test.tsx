@@ -31,7 +31,7 @@ beforeEach(() => {
 describe("application routes", () => {
   it("shows all eleven modules and navigates to a placeholder", async () => {
     render(<App />);
-    await screen.findByRole("heading", { level: 1, name: /Ein guter Tag/ });
+    await screen.findByRole("heading", { level: 1, name: /Benvenuto/ });
     const navigation = screen.getByRole("navigation", {
       name: "Hauptnavigation",
     });
@@ -66,7 +66,7 @@ describe("application routes", () => {
   });
   it("opens and closes the complete mobile navigation", async () => {
     render(<App />);
-    await screen.findByRole("heading", { level: 1, name: /Ein guter Tag/ });
+    await screen.findByRole("heading", { level: 1, name: /Benvenuto/ });
     fireEvent.click(
       within(
         screen.getByRole("navigation", { name: "Schnellnavigation" }),
@@ -77,11 +77,16 @@ describe("application routes", () => {
         screen.getByRole("navigation", { name: "Alle Module" }),
       ).getAllByRole("link"),
     ).toHaveLength(11);
-    fireEvent.keyDown(screen.getByRole("navigation", { name: "Alle Module" }), {
+    fireEvent.keyDown(window, {
       key: "Escape",
     });
     expect(
       screen.queryByRole("navigation", { name: "Alle Module" }),
     ).not.toBeInTheDocument();
+    expect(
+      within(screen.getByRole("banner")).getByRole("button", {
+        name: "Alle Module öffnen",
+      }),
+    ).toHaveFocus();
   });
 });
