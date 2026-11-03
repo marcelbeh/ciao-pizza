@@ -19,12 +19,29 @@ vi.mock("../infrastructure/supabase/client", () => ({
   },
 }));
 beforeEach(() => {
+  vi.stubEnv("VITE_AUTH_MODE", "cloud");
   mocks.session.mockResolvedValue({ data: { session: null }, error: null });
   mocks.send.mockResolvedValue({ error: null });
   mocks.verify.mockResolvedValue({ error: null });
   vi.clearAllMocks();
 });
 describe("private account entry", () => {
+  it("opens the local app without requesting authentication", async () => {
+    vi.stubEnv("VITE_AUTH_MODE", "local");
+    render(
+      <CloudWorkspace>
+        <div>Lokaler Pizza-Pilot</div>
+      </CloudWorkspace>,
+    );
+    expect(screen.getByText("Lokaler Pizza-Pilot")).toBeInTheDocument();
+    expect(
+      screen.getByText(/Deine Pläne und Profile bleiben auf diesem Gerät/),
+    ).toBeInTheDocument();
+    expect(mocks.session).not.toHaveBeenCalled();
+    expect(
+      screen.queryByRole("button", { name: "Anmeldecode senden" }),
+    ).not.toBeInTheDocument();
+  });
   it("keeps app contents hidden and verifies the code against the address it was sent to", async () => {
     render(
       <CloudWorkspace>
