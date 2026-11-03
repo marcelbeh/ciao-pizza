@@ -17,6 +17,7 @@ interface Workspace {
   ready: boolean;
   error: string;
   saving: boolean;
+  storageMode: "local" | "cloud";
   retry(): void;
   setActive(plan: DoughPlan): void;
   saveProfile(name: string, id?: string): void;
@@ -27,9 +28,13 @@ const Context = createContext<Workspace | null>(null);
 export function DoughProvider({
   children,
   repository = doughRepository,
+  storageMode = "local",
+  onSavingChange,
 }: {
   children: ReactNode;
   repository?: Repository;
+  storageMode?: "local" | "cloud";
+  onSavingChange?: (saving: boolean) => void;
 }) {
   const [state, setState] = useState<DoughState>({
     version: 1,
@@ -43,6 +48,9 @@ export function DoughProvider({
   const [attempt, setAttempt] = useState(0);
   const queue = useRef(Promise.resolve());
   const revision = useRef(0);
+  useEffect(() => {
+    onSavingChange?.(saving);
+  }, [saving, onSavingChange]);
   useEffect(() => {
     let cancelled = false;
     setReady(false);
@@ -97,6 +105,7 @@ export function DoughProvider({
     ready,
     error,
     saving,
+    storageMode,
     retry() {
       if (ready) persist(current.current);
       else setAttempt((n) => n + 1);
@@ -170,7 +179,9 @@ export function StorageStatus() {
           {workspace.saving
             ? "Wird lokal gespeichert …"
             : workspace.state.active
-              ? "Lokal gespeichert · auf diesem Gerät"
+              ? workspace.storageMode === "cloud"
+                ? "Im Konto-Cache gesichert · Cloudstatus oben beachten"
+                : "Lokal gespeichert · auf diesem Gerät"
               : "Noch kein aktiver Plan · Entwurf wird erst beim Übernehmen gespeichert"}
         </span>
       ) : (

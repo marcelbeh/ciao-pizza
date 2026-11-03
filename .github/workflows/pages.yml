@@ -1,0 +1,55 @@
+name: GitHub Pages — manuell freigegebener Livegang
+on:
+  workflow_dispatch:
+    inputs:
+      freigabe:
+        description: "Nur nach ausdrücklicher Freigabe: FREIGEGEBEN eingeben"
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: github-pages-production
+  cancel-in-progress: false
+jobs:
+  build:
+    if: github.ref == 'refs/heads/main' && inputs.freigabe == 'FREIGEGEBEN'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pages: read
+    env:
+      VITE_AUTH_MODE: local
+      VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL || secrets.VITE_SUPABASE_URL }}
+      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY || secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: node scripts/check-release-config.mjs
+      - run: npm ci
+      - run: npm run verify:cloud
+        if: env.VITE_AUTH_MODE != 'local'
+      - run: npm run check
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Veröffentlichen
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -2,6 +2,15 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { App } from "./App";
 import { modules } from "../modules/registry";
+import type { ReactNode } from "react";
+vi.mock("./CloudWorkspace", async () => {
+  const { DoughProvider } = await import("./DoughProvider");
+  return {
+    CloudWorkspace: ({ children }: { children: ReactNode }) => (
+      <DoughProvider>{children}</DoughProvider>
+    ),
+  };
+});
 vi.mock("virtual:pwa-register/react", () => ({
   useRegisterSW: () => ({
     needRefresh: [false, vi.fn()],

@@ -1,0 +1,161 @@
+.account-frame {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 28px 20px;
+  background: var(--color-cream);
+}
+.account-card {
+  width: 100%;
+  max-width: 520px;
+  padding: 32px;
+  background: #fffdf7;
+  border: 1px solid #e4dfd1;
+  border-radius: 8px;
+}
+.account-card .brand {
+  display: block;
+  font-size: 62px;
+  margin-bottom: 24px;
+  padding: 0;
+}
+.account-card h1 {
+  font-size: 36px;
+  line-height: 1.2;
+  margin-bottom: 20px;
+}
+.account-card p {
+  font-size: 14px;
+  line-height: 1.8;
+  color: #5b6452;
+  margin-bottom: 18px;
+}
+.account-card .eyebrow {
+  font-size: 10px;
+  color: var(--color-basil);
+}
+.account-card form {
+  display: grid;
+  gap: 12px;
+  margin: 24px 0;
+}
+.account-card label {
+  font-size: 13px;
+  color: #35492e;
+  font-weight: 600;
+}
+.account-card input {
+  width: 100%;
+  min-width: 0;
+  min-height: 48px;
+  font: inherit;
+  font-size: 16px;
+  padding: 12px;
+  border: 1px solid #cfcfbe;
+  border-radius: 5px;
+  background: #fffefb;
+}
+.account-card input:focus-visible {
+  outline: 2px solid var(--color-basil);
+  outline-offset: 2px;
+}
+.account-card .account-fine,
+.account-fine {
+  font-size: 11px;
+  line-height: 1.7;
+  color: #676f5c;
+}
+.account-message {
+  padding: 14px;
+  border-left: 3px solid var(--color-gold);
+  background: #f7f1e1;
+}
+.cloud-bar {
+  padding: 16px 22px;
+  border-bottom: 1px solid #d9dfcd;
+  background: #edf2e7;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  align-items: center;
+  font-size: 12px;
+  color: #2c482b;
+}
+.cloud-bar strong {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.cloud-bar p {
+  line-height: 1.7;
+  margin: 4px 0;
+}
+.cloud-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-left: auto;
+}
+.cloud-actions button {
+  background: transparent;
+  color: var(--color-basil);
+  font-size: 11px;
+  text-decoration: underline;
+  min-height: 44px;
+  padding: 8px 10px;
+}
+.cloud-detail {
+  width: 100%;
+  padding-top: 12px;
+  border-top: 1px solid #d5d8c4;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.cloud-detail p {
+  flex: 1;
+  min-width: 220px;
+}
+.cloud-detail .button {
+  font-size: 11px;
+}
+.cloud-error,
+.cloud-conflict {
+  background: #fcf0e5;
+  border-color: #d9ba8b;
+  color: #764727;
+}
+.cloud-offline,
+.cloud-pending {
+  background: #f7f1e1;
+}
+.cloud-bar > p[role="alert"] {
+  width: 100%;
+  color: #a12d20;
+}
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+@media (max-width: 540px) {
+  .account-card {
+    padding: 25px;
+  }
+  .account-card h1 {
+    font-size: 31px;
+  }
+  .cloud-actions {
+    margin-left: 0;
+  }
+  .cloud-bar {
+    padding: 14px 20px;
+  }
+  .cloud-bar > div:first-child {
+    width: 100%;
+  }
+}
+/* On the account screen, install/update controls must not cover the login form. */
+.account-frame { min-height: calc(100dvh - 100px); }
+.account-frame ~ .pwa-area { position: relative; right: auto; bottom: auto; max-width: 520px; margin: 0 auto 24px; padding: 0 20px calc(12px + env(safe-area-inset-bottom)); z-index: auto; }
+.account-frame ~ .pwa-area .install-link { margin-inline: auto; }
+.account-frame ~ .pwa-area .pwa-toast { max-width: 100%; }
