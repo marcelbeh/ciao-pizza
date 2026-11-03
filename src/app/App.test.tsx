@@ -26,7 +26,7 @@ describe("application routes", () => {
       await screen.findByRole("heading", { level: 1, name: "Teigstudio" }),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/fachlichen Funktionen folgen/),
+      await screen.findByRole("heading", { name: "Stil & Menge" }),
     ).toBeInTheDocument();
   });
   it.each(modules.slice(1))("loads direct hash route $path", async (module) => {
