@@ -26,6 +26,9 @@ export function ModuleCard({
             "pizzaabend-planer",
             "rezeptbibliothek",
             "einkaufsliste",
+            "backcoach",
+            "teig-doc",
+            "pizza-tagebuch",
           ].includes(module.id)
             ? "Öffnen"
             : "In Vorbereitung"}
