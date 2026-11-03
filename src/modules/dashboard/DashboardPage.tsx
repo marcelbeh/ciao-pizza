@@ -22,7 +22,7 @@ export default function DashboardPage() {
           </h2>
           <p>
             Ein Ort für deine Ideen, dein Wissen und die Freude am Selbermachen.
-            Deine neue Pizza-Werkstatt nimmt Form an.
+            Plane deinen Teig, sammle Rezepte und bereite deinen nächsten Pizzaabend vor.
           </p>
           <Link className="button button-cream" to="/pizza-pilot">
             Pizza-Pilot entdecken <Icon name="arrow" />
@@ -102,7 +102,7 @@ export default function DashboardPage() {
           <p className="eyebrow">DEINE PIZZA-WERKSTATT</p>
           <h2>Alles an seinem Platz.</h2>
         </div>
-        <span className="phase-badge">P0 · Das Fundament</span>
+        <span className="phase-badge">P3 · Planen & genießen</span>
       </div>
       <div className="module-grid">
         {modules.slice(1).map((module, index) => (

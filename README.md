@@ -1,107 +1,59 @@
-> **Aktueller Livegang:** Ohne Mail-Anmeldung im lokalen Modus. Pizza-Pilot, Teigstudio und Profile funktionieren auf dem jeweiligen Gerät. Konten und Cloud-Synchronisierung sind vorbereitet und vorerst deaktiviert. [Details](docs/LOCAL-LAUNCH.md).
-
 # Ciao! 2.0
 
-Ein intelligenter Pizza-Assistent im Classico-Design. React, TypeScript, Vite,
-Tailwind CSS, React Router und PWA. Pizza-Pilot und Teigstudio sind funktionsfähig;
-die übrigen neun Bereiche behalten ihre Navigation und Platzhalter.
-Keine Dateien aus `PizzaDoughCalculator` übernommen.
+Pizza-Pilot, professionelles Teigstudio, Rezeptbibliothek, Pizzaabend-Planer und Einkaufsliste im Ciao!-Classico-Design. React, TypeScript, Vite, Tailwind CSS, React Router und installierbare PWA. Keine Dateien aus `PizzaDoughCalculator` übernommen.
 
 ## Entwickeln und prüfen
 
-Node.js ab 22.12 (empfohlen: Node 24 LTS), npm.
+Node.js ab 22.12 (empfohlen Node 24 LTS), npm. Für die Kernfunktionen sind **keine Zugangsdaten** nötig.
 
 ```sh
 npm ci
-# .env.example nach .env.local kopieren und die zwei öffentlichen Werte setzen
 npm run dev
 npm run typecheck
 npm test
 npm run build
 npm run preview
 npm run check
-# Mit gesetzten öffentlichen Umgebungsvariablen: reale Verbindung/Anonymzugriff prüfen
-npm run verify:cloud
-# Alternativ lokal mit der ignorierten Konfigurationsdatei:
-node --env-file=.env.local scripts/check-supabase.mjs
 ```
 
-Entwicklung: `http://localhost:5173/ciao-pizza/`, Produktionsvorschau:
-`http://localhost:4173/ciao-pizza/`. `npm run test:watch` startet gezielte Tests im
-Watch-Modus. Service Worker nur im Produktionsbuild.
+Entwicklung: `http://localhost:5173/ciao-pizza/`, Produktionsvorschau: `http://localhost:4173/ciao-pizza/`. `npm run test:watch` für gezielte Tests. Service Worker nur im Produktionsbuild.
 
 ## Aktueller Stand
 
-- **Pizza-Pilot:** sechs Schritte von Stil und Gerät über Mengen und Termin bis
-  zur Teigführung und vollständigen Rezeptübersicht; Übergabe an das Teigstudio.
-- **Teigstudio:** Zutaten aus vollständiger Massenbilanz, Teiglings-/Mehlmodus,
-  editierbare Bäckerprozente, Frisch-/Instanthefe, Temperaturen und Gar-/Ofenzeiten.
-- **Eigene Profile:** speichern, laden, bearbeiten/umbenennen und löschen.
-- **Supabase:** private Anmeldung per E-Mail-Code, zentrale dauerhafte Speicherung,
-  kontogetrennter IndexedDB-Cache, sicherer Erstimport, Versionskonflikte,
-  Originalarchive und portable JSON-Sicherungen.
-- **Rezeptbibliothek und Einstellungen:** noch keine eigenen Fachoberflächen.
-  Die Cloud-Datenstruktur bewahrt Rezeptdatensätze und Einstellungen bereits bei
-  Teigänderungen mit. Keine zusätzliche Neuentwicklung dieser Module.
-- **GitHub Pages:** `/ciao-pizza/` und Hash-Routing bleiben erhalten. Ein manueller,
-  explizit freizugebender Actions-Workflow ist vorbereitet, noch nicht ausgeführt.
+- **Pizza-Pilot und Teigstudio:** vollständige Teigplanung, Massenbilanz, Profile, Temperaturen und geschätzte Garzeiten. [Fachannahmen](docs/P1-DOUGH.md).
+- **Pizzaabend:** Termin, Gäste, Reserve, Sortenverteilung, gespeicherte Rezeptkopien und Teigbedarf; Übergabe an den bestehenden Pizza-Piloten.
+- **Rezeptbibliothek:** fünf geschützte Originalrezepte; eigene Rezepte erstellen, bearbeiten, duplizieren, löschen; Stil-/Belagfilter und Mengenskalierung.
+- **Einkaufsliste:** Teig und Beläge zusammenrechnen, kompatible Einheiten vereinheitlichen, Vorräte abziehen, eigene Artikel bearbeiten und abhaken. Neuberechnung erhält bewusste manuelle Änderungen.
+- **Local First:** IndexedDB ist die dauerhafte Datenquelle. Alle Kernfunktionen ohne Anmeldung, auch offline nach erstem vollständigem Laden der PWA. Gemeinsame Sicherung und ergänzender Import ohne Überschreiben.
+- **Supabase:** SDK, Migrationen, RLS und bisherige Auth-/Sync-Implementierung bleiben vorbereitet. Kein Account-Gate, keine anonymen Konten, keine laufende Synchronisierung und kein SMTP nötig. Eine spätere Synchronisierung muss das gesamte lokale V2-Dokument unterstützen, bevor sie aktiviert wird.
+- **Weitere Module:** Reife-Monitor, Backcoach, Tagebuch, Teig-Doc und Academy bleiben Platzhalter. Ein eigenständiges P2 war im Ausgangsstand nicht vorhanden. Lokaler Datenplatz für spätere Reifeprozesse ist vorbereitet.
 
-[Fachannahmen und P1-Bedienung](docs/P1-DOUGH.md) ·
-[Einrichtung und Livegang für den Betreiber](docs/LIVEGANG.md) ·
-[aktueller Prüfbericht](docs/CLOUD-VERIFICATION.md)
+[P3-Bedienung, Datenmodell und Grenzen](docs/P3-LOCAL-FIRST.md). Die älteren Cloud-/Livegang-Dokumente beschreiben die vorbereitete optionale Cloud-Implementierung, nicht den aktiven Produktmodus.
 
 ## Architektur
 
 ```text
-src/
-  app/                  App-Shell, Auth-Gate, gemeinsamer Teigplan
-  components/           Geteilte Classico-UI und Rezepteditor
-  core/dough/           Reine Berechnung und Validierung
-  core/cloud/           Versioniertes Datenformat, sichere Zusammenführung
-  core/storage/         Bestehender Speichervertrag
-  infrastructure/
-    storage/            IndexedDB-Adapter und bisheriges P1-Importformat
-    supabase/           SDK, Remote-Zugriff, Synchronisierung und Offline-Cache
-    pwa/                Installation und bestätigte Updates
-  modules/              Elf eigenständige Route-Einstiege
-supabase/
-  migrations/           Versionierte, bereits angewendete Datenbankmigration
-  tests/                Reproduzierbarer RLS-Test mit Rollback
-scripts/                Release-Konfiguration und reale Verbindungsprüfung
+src/app/                  App-Shell, LocalWorkspace, bestehender DoughProvider
+src/components/           Classico-UI und geteilte Eingabefelder
+src/core/dough/           Bestehende reine Teigberechnung
+src/core/planning/        Rezepte, Abendplanung, Einkauf und Validierung
+src/core/cloud/           Vorbereitete Cloud-Verträge
+src/core/storage/         Speichervertrag
+src/infrastructure/storage/  Native IndexedDB, atomarer LocalRepository
+src/infrastructure/supabase/ Vorbereiteter optionaler Cloud-Zugriff
+src/infrastructure/pwa/   Installation, bestätigte Updates
+src/modules/              Elf eigenständige Route-Einstiege
+supabase/                 Versionierte Migrationen und RLS-Tests
 ```
 
-Der Teigrechner bleibt unabhängig von React und Supabase. Bestehende P1-Daten
-werden als atomarer, versionierter Workspace gespeichert. So können aktiver Plan,
-Profile, Rezepte und Einstellungen nicht durch einen Teilfehler auseinanderlaufen.
-RLS isoliert jede Zeile nach Benutzer-ID. Der transaktionale Commit verwendet
-`SECURITY INVOKER`, Versionsprüfung und idempotente Mutations-IDs.
+Der lokale Workspace `ciao-workspace:v2` hält Teigpläne, Profile, eigene Rezepte, Pizzaabende, Einkaufslisten, Einstellungen und spätere Reifeprozesse zusammen. Änderungen erfolgen in atomaren IndexedDB-Transaktionen; unabhängige Module überschreiben einander nicht. P1-Altbestände werden einmalig kopiert, Originaldaten bleiben erhalten. Ungültige Daten werden mit sichtbarem Fehler abgewiesen.
 
-## Daten, Offline und Sicherheit
+## Offline, Sicherung und Veröffentlichung
 
-Für Anmeldung und ersten Datenabruf ist Internet erforderlich. Bei bestehender
-Sitzung bleibt ein geladener Konto-Cache offline bearbeitbar; neue Änderungen
-werden nach Verbindungsrückkehr synchronisiert. Pro Konto ist in einem Browser
-nur ein bearbeitender Tab erlaubt. Andere Geräte werden durch die Cloud-Version
-abgesichert. Bei Konflikten bleiben beide Stände erhalten, bis sie ausdrücklich
-zusammengeführt werden. Alle Originale werden dabei privat archiviert.
+Browserdaten können vom Benutzer oder Betriebssystem gelöscht werden. Regelmäßig „Sicherung herunterladen“ verwenden. „Sicherung hinzufügen“ importiert Kopien; der aktive Teigplan bleibt unverändert. Daten sind an Browser, Gerät und Origin gebunden. Keine automatische Geräte-Synchronisierung.
 
-Lokale P1-Daten werden nach Anmeldung über „Lokale Daten in dieses Konto
-übernehmen“ importiert. Das lokale Original wird nicht gelöscht. Daten auf einer
-anderen Browser-Origin müssen zunächst dort importiert/synchronisiert oder als
-JSON-Sicherung übertragen werden. Siehe die konkrete Anleitung in LIVEGANG.md.
+GitHub Pages verwendet `/ciao-pizza/`, Hash-Routing und einen Service Worker mit allen gebauten App-Modulen. Offline-Nutzung setzt einen erfolgreichen ersten Online-Besuch und die Aktivierung des Service Workers voraus. Updates werden angekündigt. Private API-Antworten werden nicht gecacht.
 
-`VITE_*`-Werte sind immer öffentlich. Nur die Projekt-URL und einen
-`sb_publishable_…`-Key verwenden. Keine Datenbankpasswörter, Secret-/Service-Role-Keys
-oder SMTP-Zugangsdaten ins Frontend/Repository eintragen. `.env.local` ist ignoriert.
-Auth- und Daten-API-Antworten werden nicht durch den Service Worker gecacht.
-Browserdaten sind kein Backup; wichtige Stände über „Sicherung herunterladen“ sichern.
+Der manuelle Workflow `.github/workflows/pages.yml` veröffentlicht ausschließlich `main` nach Eingabe `FREIGEGEBEN`. Build und Tests laufen erneut vor dem Deployment. Push/Merge allein veröffentlicht nichts. Für P3 hat der Auftraggeber den Livegang nach erfolgreichen Prüfungen ausdrücklich erlaubt.
 
-## Designsystem
-
-Classico bleibt unverändert: Basilikumgrün `#1B5E20`, Pomodororot `#D32F2F`,
-Creme `#F9F5EA`, Gold `#D4A038` und Dunkelgrau `#1F1F1F`. Systemschriften,
-mobile Navigation mit Safe Areas, eigene SVGs, native Formularfelder und reduzierte
-Bewegung. Anmeldung und Sync-Hinweise ergänzen diese Gestaltung.
-
-**Kein automatischer Livegang durch Push oder Merge.** Deployment ausschließlich
-nach ausdrücklicher Freigabe über den manuellen Workflow auf `main`.
+Für spätere Cloud-Arbeiten ausschließlich öffentliche `VITE_SUPABASE_URL` und `VITE_SUPABASE_PUBLISHABLE_KEY` verwenden. Keine Passwörter, Secret-/Service-Role-Keys oder SMTP-Zugangsdaten ins Frontend oder Repository. `.env.local` ist ignoriert. Cloud-Prüfung optional: `npm run verify:cloud` mit konfigurierten öffentlichen Werten.

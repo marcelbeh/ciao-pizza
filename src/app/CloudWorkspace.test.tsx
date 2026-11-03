@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { CloudWorkspace } from "./CloudWorkspace";
+import { CloudWorkspace, AuthenticatedWorkspace } from "./CloudWorkspace";
 const mocks = vi.hoisted(() => ({
   send: vi.fn(),
   verify: vi.fn(),
@@ -33,7 +33,7 @@ describe("private account entry", () => {
         <div>Lokaler Pizza-Pilot</div>
       </CloudWorkspace>,
     );
-    expect(screen.getByText("Lokaler Pizza-Pilot")).toBeInTheDocument();
+    expect(await screen.findByText("Lokaler Pizza-Pilot")).toBeInTheDocument();
     expect(
       screen.getByText(/Deine Pläne und Profile bleiben auf diesem Gerät/),
     ).toBeInTheDocument();
@@ -44,9 +44,9 @@ describe("private account entry", () => {
   });
   it("keeps app contents hidden and verifies the code against the address it was sent to", async () => {
     render(
-      <CloudWorkspace>
+      <AuthenticatedWorkspace>
         <div>Private Teigpläne</div>
-      </CloudWorkspace>,
+      </AuthenticatedWorkspace>,
     );
     expect(
       await screen.findByRole("heading", { name: "Deine Pizza. Dein Konto." }),
@@ -85,9 +85,9 @@ describe("private account entry", () => {
   it("reports mail-service errors without pretending a code was sent", async () => {
     mocks.send.mockResolvedValue({ error: new Error("SMTP unavailable") });
     render(
-      <CloudWorkspace>
+      <AuthenticatedWorkspace>
         <div>Private Teigpläne</div>
-      </CloudWorkspace>,
+      </AuthenticatedWorkspace>,
     );
     fireEvent.change(await screen.findByLabelText("E-Mail-Adresse"), {
       target: { value: "person@example.com" },

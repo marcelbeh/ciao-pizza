@@ -20,7 +20,13 @@ export function ModuleCard({
       <p>{module.description}</p>
       <span className="card-bottom">
         <span>
-          {module.id === "pizza-pilot" || module.id === "teigstudio"
+          {[
+            "pizza-pilot",
+            "teigstudio",
+            "pizzaabend-planer",
+            "rezeptbibliothek",
+            "einkaufsliste",
+          ].includes(module.id)
             ? "Öffnen"
             : "In Vorbereitung"}
         </span>
