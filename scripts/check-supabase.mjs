@@ -1,5 +1,11 @@
 import "./check-release-config.mjs";
 import { createClient } from "@supabase/supabase-js";
+if (process.env.VITE_AUTH_MODE === "local") {
+  console.log(
+    "Cloud im lokalen Modus deaktiviert; keine Verbindung erforderlich.",
+  );
+  process.exit(0);
+}
 const url = process.env.VITE_SUPABASE_URL.trim();
 const key = process.env.VITE_SUPABASE_PUBLISHABLE_KEY.trim();
 const client = createClient(url, key, {

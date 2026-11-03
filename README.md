@@ -1,3 +1,5 @@
+> **Aktueller Livegang:** Ohne Mail-Anmeldung im lokalen Modus. Pizza-Pilot, Teigstudio und Profile funktionieren auf dem jeweiligen Gerät. Konten und Cloud-Synchronisierung sind vorbereitet und vorerst deaktiviert. [Details](docs/LOCAL-LAUNCH.md).
+
 # Ciao! 2.0
 
 Ein intelligenter Pizza-Assistent im Classico-Design. React, TypeScript, Vite,
