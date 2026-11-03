@@ -29,13 +29,21 @@ beforeEach(() => {
   window.location.hash = "/";
 });
 describe("application routes", () => {
-  it("shows all eleven modules and navigates to a placeholder", async () => {
+  it("keeps Academy subordinate and preserves module navigation", async () => {
     render(<App />);
     await screen.findByRole("heading", { level: 1, name: /Benvenuto/ });
     const navigation = screen.getByRole("navigation", {
       name: "Hauptnavigation",
     });
     expect(within(navigation).getAllByRole("link")).toHaveLength(11);
+    expect(
+      within(navigation)
+        .getByRole("link", { name: "Pizza-Academy" })
+        .closest("details"),
+    ).not.toHaveAttribute("open");
+    expect(
+      screen.queryByRole("link", { name: /Zur Pizza-Academy/ }),
+    ).not.toBeInTheDocument();
     fireEvent.click(
       within(navigation).getByRole("link", { name: "Teigstudio" }),
     );

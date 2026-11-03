@@ -129,19 +129,28 @@ function Shell() {
         </Link>
         <p className="nav-label">DEINE WERKSTATT</p>
         <nav aria-label="Hauptnavigation">
-          {modules.map((module) => (
-            <NavLink
-              key={module.id}
-              to={module.path}
-              end
-              className={({ isActive }) =>
-                `nav-item ${isActive ? "active" : ""}`
-              }
-            >
-              <Icon name={module.icon} />
-              <span>{module.title}</span>
+          {modules
+            .filter((module) => module.id !== "pizza-academy")
+            .map((module) => (
+              <NavLink
+                key={module.id}
+                to={module.path}
+                end
+                className={({ isActive }) =>
+                  `nav-item ${isActive ? "active" : ""}`
+                }
+              >
+                <Icon name={module.icon} />
+                <span>{module.title}</span>
+              </NavLink>
+            ))}
+          <details className="academy-submenu">
+            <summary>Wissen & Hilfe</summary>
+            <NavLink className="nav-item" to="/pizza-academy">
+              <Icon name="academy" />
+              <span>Pizza-Academy</span>
             </NavLink>
-          ))}
+          </details>
         </nav>
         <div className="sidebar-footer">
           <span className="tricolore" />

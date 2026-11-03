@@ -1,0 +1,49 @@
+.academy {
+  min-width: 0;
+}
+.academy-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+}
+.academy-grid .dough-panel {
+  margin-bottom: 0;
+}
+.academy a {
+  overflow-wrap: anywhere;
+  text-underline-offset: 0.2em;
+}
+.academy-grid h2 {
+  font-size: 1.2rem;
+}
+.academy-article {
+  max-width: 760px;
+  margin-inline: auto;
+}
+.academy-article h2:focus,
+.academy-article h3:focus {
+  outline: 2px solid var(--color-basil);
+  outline-offset: 5px;
+}
+.academy-article h3 {
+  scroll-margin-top: 110px;
+  margin-top: 30px;
+}
+.academy-article p {
+  line-height: 1.75;
+}
+.academy-article nav {
+  padding: 8px 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+.academy-article li + li {
+  margin-top: 10px;
+}
+.academy-sources {
+  border-top: 1px solid var(--line);
+  margin-top: 30px;
+}
+.academy-sources small {
+  color: var(--color-muted);
+}

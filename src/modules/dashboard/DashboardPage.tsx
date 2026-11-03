@@ -166,15 +166,6 @@ export default function DashboardPage() {
             return <ModuleCard key={id} module={module} index={index + 1} />;
           })}
         </div>
-        <aside className="academy-note">
-          <Icon name="academy" />
-          <div>
-            <strong>Gutes Handwerk beginnt mit Wissen.</strong>
-            <Link to="/pizza-academy">
-              Zur Pizza-Academy <span>· In Vorbereitung</span>
-            </Link>
-          </div>
-        </aside>
       </div>
     </div>
   );
