@@ -33,9 +33,9 @@ it("plans an evening offline, saves its snapshot, generates shopping and retains
   });
   fireEvent.click(screen.getByRole("button", { name: "Pizzaabend speichern" }));
   await screen.findByText("Lokal gespeichert");
-  fireEvent.click(
-    screen.getByRole("button", { name: "Einkaufsliste erstellen" }),
-  );
+  const createShopping = screen.getByRole("button", { name: "Einkaufsliste erstellen" });
+  await waitFor(() => expect(createShopping).toBeEnabled());
+  fireEvent.click(createShopping);
   await screen.findByRole("heading", { name: "Einkaufsliste", level: 1 });
   expect(
     await screen.findByRole("heading", {
