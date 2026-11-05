@@ -1,66 +1,43 @@
-# Ciao! 2.0
+# FORNO. by Marcel
 
-Pizza-Pilot, professionelles Teigstudio, Rezeptbibliothek, Pizzaabend-Planer und Einkaufsliste, interaktiver Backcoach, Teig-Doc und Pizza-Tagebuch im Ciao!-Classico-Design. React, TypeScript, Vite, Tailwind CSS, React Router und installierbare PWA. Keine Dateien aus `PizzaDoughCalculator` übernommen.
+Privater, offline-fähiger Pizzarechner im Midnight-Rock-Design. React, TypeScript, Vite und installierbare PWA; ohne Konto oder externe API. P1 umfasst Dashboard, Teigrechner und Floating Dock. Zeitplan (P2) und Pizzaabend/Belagrezepte (P3) sind als kommende Bereiche gekennzeichnet.
 
-**P5 in Vorbereitung:** neues referenzbasiertes Classico-Branding und Dashboard; [Design, Assets und Prüfung](docs/P5-CLASSICO.md). Kein automatischer Livegang.
+## Entwickeln
 
-## Entwickeln und prüfen
-
-Node.js ab 22.12 (empfohlen Node 24 LTS), npm. Für die Kernfunktionen sind **keine Zugangsdaten** nötig.
+Node.js >=22.12 (empfohlen 24 LTS), npm:
 
 ```sh
 npm ci
 npm run dev
-npm run verify:branding
-npm run typecheck
 npm test
+npm run typecheck
 npm run build
 npm run preview
-npm run check
 ```
 
-Entwicklung: `http://localhost:5173/ciao-pizza/`, Produktionsvorschau: `http://localhost:4173/ciao-pizza/`. `npm run test:watch` für gezielte Tests. Service Worker nur im Produktionsbuild.
+`npm test` führt ausschließlich die gezielten Berechnungs- und Datenerhaltungstests aus. `npm run check` kombiniert diese mit Typecheck und Build. Basispfad bleibt `/ciao-pizza/`; Navigation per Hash. Der Pages-Workflow bleibt ausschließlich manuell auf `main` mit `FREIGEGEBEN`. Ein Push oder PR veröffentlicht nichts.
 
-## Aktueller Stand
+## P1
 
-- **Pizza-Pilot und Teigstudio:** vollständige Teigplanung, Massenbilanz, Profile, Temperaturen und geschätzte Garzeiten. [Fachannahmen](docs/P1-DOUGH.md).
-- **Pizzaabend:** Termin, Gäste, Reserve, Sortenverteilung, gespeicherte Rezeptkopien und Teigbedarf; Übergabe an den bestehenden Pizza-Piloten.
-- **Rezeptbibliothek:** fünf geschützte Originalrezepte; eigene Rezepte erstellen, bearbeiten, duplizieren, löschen; Stil-/Belagfilter und Mengenskalierung.
-- **Einkaufsliste:** Teig und Beläge zusammenrechnen, kompatible Einheiten vereinheitlichen, Vorräte abziehen, eigene Artikel bearbeiten und abhaken. Neuberechnung erhält bewusste manuelle Änderungen.
-- **Backcoach:** geführter Backlauf mit Geräte-/Stilrichtwerten, Zeitstempel-Timern, Drehhinweisen, manuell bestätigtem Fortschritt je Pizza und optionalem Vollbild.
-- **Teig-Doc:** lokale, nachvollziehbare Diagnoseregeln mit Plan- und Messwerten, Sofortmaßnahmen und gespeichertem Verlauf. Keine KI-API.
-- **Pizza-Tagebuch:** Rezeptkopien, echte Messwerte, Bewertungen, Notizen und begrenzte lokale Fotos; Vergleich, wiederkehrende markierte Probleme und Speichern gelungener Rezepturen.
-- **Local First:** IndexedDB ist die dauerhafte Datenquelle. Alle Kernfunktionen ohne Anmeldung, auch offline nach erstem vollständigem Laden der PWA. Gemeinsame Sicherung und ergänzender Import ohne Überschreiben.
-- **Supabase:** SDK, Migrationen, RLS und bisherige Auth-/Sync-Implementierung bleiben vorbereitet. Kein Account-Gate, keine anonymen Konten, keine laufende Synchronisierung und kein SMTP nötig. Eine spätere Synchronisierung muss das gesamte lokale V2-Dokument unterstützen, bevor sie aktiviert wird.
-- **Weitere Module:** Reife-Monitor und Academy bleiben Platzhalter. Ein eigenständiges P2 war im Ausgangsstand nicht vorhanden. Lokaler Datenplatz für spätere Reifeprozesse ist vorbereitet.
+- Sofortige Mengenberechnung mit acht Pizzen à 280 g, 66 % Hydration, 3 % Salz, 0,1 % Trockenhefe und Caputo Pizzeria 00 als Ausgangswerten.
+- Mehl = Gesamtteig / (1 + Hydration/100 + Salz/100 + Trockenhefe/100). Der vorhandene Berechnungskern bleibt erhalten. Zwischenwerte werden nicht gerundet.
+- Automatisches lokales Speichern gültiger Änderungen; Fehler werden sichtbar angezeigt. Ungültige Eingaben überschreiben keine gespeicherten Werte.
+- Dashboard zeigt den zuletzt gespeicherten, gültigen alten Pizzaabend mit Backtermin in dessen Zeitzone, Pizzaanzahl und Teiglingsgewicht. Ohne Abend erscheint der Einstieg zum Rechner. Kein spekulativer nächster Arbeitsschritt.
+- Typografische FORNO.-Wortmarke als bewusster Fallback: Das Originalmotiv liegt nicht vor. Spätere Einbindung über `Wordmark` in `src/app/App.tsx`; anschließend App-Icons austauschen.
+- Barlow Condensed Bold, Inter und IBM Plex Mono werden lokal ausgeliefert und offline gecacht. Freie SIL-OFL-Lizenzen liegen unter `public/fonts/`.
 
-[P3-Bedienung, Datenmodell und Grenzen](docs/P3-LOCAL-FIRST.md) · [P4-Bedienung, Richtwerte, Fotos und Prüfungen](docs/P4-BAKING.md). Die älteren Cloud-/Livegang-Dokumente beschreiben die vorbereitete optionale Cloud-Implementierung, nicht den aktiven Produktmodus.
+## Daten bleiben erhalten
 
-## Architektur
+Die IndexedDB-Datenbank heißt weiterhin **`ciao-pizza`**, Version 1, Object Store `key-value`. Origin und Pages-Pfad bleiben gleich. FORNO. löscht oder überschreibt keine alten Datensätze.
 
-```text
-src/app/                  App-Shell, LocalWorkspace, bestehender DoughProvider
-src/components/           Classico-UI und geteilte Eingabefelder
-src/core/dough/           Bestehende reine Teigberechnung
-src/core/planning/        Rezepte, Abendplanung, Einkauf und Validierung
-src/core/baking/          Backcoach, Diagnoseregeln, Tagebuch und Auswertung
-src/core/cloud/           Vorbereitete Cloud-Verträge
-src/core/storage/         Speichervertrag
-src/infrastructure/storage/  Native IndexedDB, atomarer LocalRepository
-src/infrastructure/supabase/ Vorbereiteter optionaler Cloud-Zugriff
-src/infrastructure/pwa/   Installation, bestätigte Updates
-src/modules/              Elf eigenständige Route-Einstiege
-supabase/                 Versionierte Migrationen und RLS-Tests
-```
+`forno:calculator:v1` enthält ausschließlich die neue Rezeptur. `ciao-workspace:v2`, `dough-workspace:v1` und vorhandene Cloud-Caches bleiben unverändert. Persönliche Belagrezepte, Profile, Abende, Listen, Tagebuch und Fotos bleiben gespeichert, auch wenn die alten Ansichten entfernt wurden. Unter „Daten & Offline“ lässt sich eine JSON-Sicherung **aller** Einträge des Object Stores herunterladen. Der P1-Export ist ein Datenarchiv; Importoberfläche und Belagrezeptverwaltung sind nicht Teil von P1. Browserdaten nicht ohne Sicherung löschen.
 
-Der lokale Workspace `ciao-workspace:v2` hält Teigpläne, Profile, eigene Rezepte, Pizzaabende, Einkaufslisten, Einstellungen und spätere Reifeprozesse zusammen. P4 ergänzt rückwärtskompatibel den optionalen Bereich `baking` (Version 1) mit Backläufen, Diagnosen und Tagebuch einschließlich Fotos. Änderungen erfolgen in atomaren IndexedDB-Transaktionen; unabhängige Module überschreiben einander nicht. P1-Altbestände werden einmalig kopiert, Originaldaten bleiben erhalten. Ungültige Daten werden mit sichtbarem Fehler abgewiesen.
+Eine passende aktive alte Rezeptur wird lesend als Kopie übernommen: Mengenbasis Teiglinge, kein Öl/Zucker, manuell gewählte Hefe, gültige P1-Werte. Frischhefe wird mit der bisherigen 3:1-Konvention in Trockenhefe umgerechnet. Andere alte Rezepturen bleiben unverändert erhalten; der neue Rechner startet dann mit den Standardwerten. Neue FORNO.-Einstellungen haben Vorrang. Unbekannte/beschädigte FORNO.-Versionen werden mit Fehler abgewiesen, statt sie zu ersetzen.
 
-## Offline, Sicherung und Veröffentlichung
+Entfernt wurden Auth-/Sync-Clients, Cloud-Konfiguration, Academy, Teig-Doc, Tagebuch, Backcoach, Rezept-/Planungs-/Einkaufs-UIs, komplexe Navigation und Classico-Assets. Im Ausgangsstand gab es keine Gemini-/Premium-Implementierung. Historische SQL-Dateien unter `supabase/` bleiben als Schemahistorie erhalten und werden von der App weder eingebunden noch ausgeführt. Der Cloud-Dienst selbst wurde nicht verändert.
 
-Browserdaten können vom Benutzer oder Betriebssystem gelöscht werden. Regelmäßig „Sicherung herunterladen“ verwenden. „Sicherung hinzufügen“ importiert Kopien; der aktive Teigplan bleibt unverändert. Daten sind an Browser, Gerät und Origin gebunden. Keine automatische Geräte-Synchronisierung.
+## Offline und Prüfung
 
-GitHub Pages verwendet `/ciao-pizza/`, Hash-Routing und einen Service Worker mit allen gebauten App-Modulen. Offline-Nutzung setzt einen erfolgreichen ersten Online-Besuch und die Aktivierung des Service Workers voraus. Updates werden angekündigt. Private API-Antworten werden nicht gecacht.
+Nach dem ersten vollständigen Online-Laden und der Service-Worker-Aktivierung sind Rechner, Navigation, lokale Schriften und Daten offline verfügbar. Updates erfordern einen bewussten Klick; während Speichern oder ungültigen Eingaben ist die Aktualisierung gesperrt. Installation auf dem iPhone über Safari → Teilen → Zum Home-Bildschirm.
 
-Der manuelle Workflow `.github/workflows/pages.yml` veröffentlicht ausschließlich `main` nach Eingabe `FREIGEGEBEN`. Build und Tests laufen erneut vor dem Deployment. Push/Merge allein veröffentlicht nichts. P5 wird ausschließlich als Pull Request vorbereitet; Merge und Veröffentlichung benötigen die ausdrückliche Freigabe.
-
-Für spätere Cloud-Arbeiten ausschließlich öffentliche `VITE_SUPABASE_URL` und `VITE_SUPABASE_PUBLISHABLE_KEY` verwenden. Keine Passwörter, Secret-/Service-Role-Keys oder SMTP-Zugangsdaten ins Frontend oder Repository. `.env.local` ist ignoriert. Cloud-Prüfung optional: `npm run verify:cloud` mit konfigurierten öffentlichen Werten.
+Abnahme und bekannte Grenzen: [P1-Prüfprotokoll](docs/P1-FORNO.md).

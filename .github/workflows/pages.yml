@@ -1,4 +1,4 @@
-name: GitHub Pages — manuell freigegebener Livegang
+name: FORNO. — manueller GitHub-Pages-Livegang
 on:
   workflow_dispatch:
     inputs:
@@ -19,20 +19,13 @@ jobs:
     permissions:
       contents: read
       pages: read
-    env:
-      VITE_AUTH_MODE: local
-      VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL || secrets.VITE_SUPABASE_URL }}
-      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY || secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: npm
-      - run: node scripts/check-release-config.mjs
       - run: npm ci
-      - run: npm run verify:cloud
-        if: env.VITE_AUTH_MODE != 'local'
       - run: npm run check
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v4

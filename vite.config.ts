@@ -1,27 +1,25 @@
 import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
-import tailwindcss from "@tailwindcss/vite";
 import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig({
   base: "/ciao-pizza/",
   plugins: [
     react(),
-    tailwindcss(),
     VitePWA({
       registerType: "prompt",
-      includeAssets: ["favicon.svg", "apple-touch-icon.png", "fonts/Playball-OFL.txt"],
+      includeAssets: ["favicon.svg", "apple-touch-icon.png", "fonts/*-OFL.txt"],
       manifest: {
         id: "/ciao-pizza/",
-        name: "Ciao! – Dein Pizza-Assistent",
-        short_name: "Ciao!",
-        description: "Deine Werkstatt für große Pizza-Momente.",
+        name: "FORNO. by Marcel",
+        short_name: "FORNO.",
+        description: "Dein privater Offline-Pizzarechner.",
         lang: "de",
         start_url: "/ciao-pizza/",
         scope: "/ciao-pizza/",
         display: "standalone",
-        background_color: "#F9F5EA",
-        theme_color: "#1B5E20",
+        background_color: "#101820",
+        theme_color: "#101820",
         icons: [
           {
             src: "icons/icon-192.png",
@@ -44,7 +42,7 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ["**/*.{js,css,html,svg,png,woff2,webp}"],
+        globPatterns: ["**/*.{js,css,html,svg,png,woff2,ttf,webp}"],
         navigateFallback: "/ciao-pizza/index.html",
         navigateFallbackAllowlist: [/^\/ciao-pizza\//],
         cleanupOutdatedCaches: true,
