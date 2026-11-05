@@ -23,7 +23,7 @@ npm run preview
 - Mehl = Gesamtteig / (1 + Hydration/100 + Salz/100 + Trockenhefe/100). Der vorhandene Berechnungskern bleibt erhalten. Zwischenwerte werden nicht gerundet.
 - Automatisches lokales Speichern gültiger Änderungen; Fehler werden sichtbar angezeigt. Ungültige Eingaben überschreiben keine gespeicherten Werte.
 - Dashboard zeigt den zuletzt gespeicherten, gültigen alten Pizzaabend mit Backtermin in dessen Zeitzone, Pizzaanzahl und Teiglingsgewicht. Ohne Abend erscheint der Einstieg zum Rechner. Kein spekulativer nächster Arbeitsschritt.
-- Typografische FORNO.-Wortmarke als bewusster Fallback: Das Originalmotiv liegt nicht vor. Spätere Einbindung über `Wordmark` in `src/app/App.tsx`; anschließend App-Icons austauschen.
+- Vollständiges Original-Logo im Dashboard; reduzierte typografische Wortmarke auf Unterseiten. Vereinfachte Motiv-Icons und iPhone-Startbilder: [Branding und Quelldateien](docs/BRANDING.md).
 - Barlow Condensed Bold, Inter und IBM Plex Mono werden lokal ausgeliefert und offline gecacht. Freie SIL-OFL-Lizenzen liegen unter `public/fonts/`.
 
 ## Daten bleiben erhalten

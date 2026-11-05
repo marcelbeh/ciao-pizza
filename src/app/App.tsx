@@ -17,17 +17,23 @@ const toDraft = (f: Formula): Draft => Object.fromEntries(Object.keys(ranges).ma
 const parse = (text: string) => /^\d+(?:[.,]\d+)?$/.test(text.trim()) ? Number(text.trim().replace(",", ".")) : NaN;
 
 function Wordmark() {
-  // Replace this component with the original artwork when Marcel supplies it.
   return <span className="wordmark">FORNO<span>.</span><small>by Marcel</small></span>;
 }
 function Dashboard({ evening }: { evening: EveningSummary | null }) {
   return <>
-    <section className="hero">
+    <section className="hero hero-branded">
+      <img className="dashboard-logo" src={`${import.meta.env.BASE_URL}brand/forno-logo-960.webp`}
+        srcSet={`${import.meta.env.BASE_URL}brand/forno-logo-480.webp 480w, ${import.meta.env.BASE_URL}brand/forno-logo-960.webp 960w`}
+        sizes="(min-width: 600px) 280px, (max-height: 740px) 32svh, 300px"
+        alt="FORNO. by Marcel – mit E-Gitarre, Pizzaofen und Burnhard-Grill"
+        width="1254" height="1254" fetchPriority="high" decoding="async" />
+      <div className="hero-copy">
       <div className="hero-top"><span className="eyebrow">PRIVATE PIZZA WORKSHOP</span><Icon name="flame" /></div>
       <h1>DEIN TEIG.<br /><span>DEIN RIFF.</span></h1>
       <p>Gutes Mehl. Dein Handwerk.<br />Der Rest ist Rock ’n’ Roll.</p>
       <Link className="button primary" to="/teig">An den Teig <Icon name="arrow" /></Link>
       <span className="hero-index" aria-hidden="true">01 / THE DOUGH SESSION</span>
+      </div>
     </section>
     {evening ? <section className="card evening-card">
       <p className="eyebrow">LETZTER GESPEICHERTER PIZZAABEND</p><h2>{evening.name}</h2>

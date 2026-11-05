@@ -8,7 +8,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: "prompt",
-      includeAssets: ["favicon.svg", "apple-touch-icon.png", "fonts/*-OFL.txt"],
+      includeAssets: ["favicon-forno-32.png", "favicon-forno-64.png", "apple-touch-icon-forno.png", "fonts/*-OFL.txt"],
       manifest: {
         id: "/ciao-pizza/",
         name: "FORNO. by Marcel",
@@ -22,19 +22,19 @@ export default defineConfig({
         theme_color: "#101820",
         icons: [
           {
-            src: "icons/icon-192.png",
+            src: "icons/forno-192.png",
             sizes: "192x192",
             type: "image/png",
             purpose: "any",
           },
           {
-            src: "icons/icon-512.png",
+            src: "icons/forno-512.png",
             sizes: "512x512",
             type: "image/png",
             purpose: "any",
           },
           {
-            src: "icons/icon-maskable-512.png",
+            src: "icons/forno-maskable-512.png",
             sizes: "512x512",
             type: "image/png",
             purpose: "maskable",
@@ -42,7 +42,7 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ["**/*.{js,css,html,svg,png,woff2,ttf,webp}"],
+        globPatterns: ["**/*.{js,css,html,svg,png,jpg,woff2,ttf,webp}"],
         navigateFallback: "/ciao-pizza/index.html",
         navigateFallbackAllowlist: [/^\/ciao-pizza\//],
         cleanupOutdatedCaches: true,
