@@ -2,7 +2,7 @@
 
 ## Umfang
 
-Dashboard, Floating Dock mit Teig/Zeitplan/Pizzaabend, validierter Sofortrechner, lokale Speicherung, Sicherung bisheriger Daten, Midnight-Rock-Tokens und typografisches Branding. Keine TM5-Chargen, detaillierte Zeitplanung, Belagverwaltung, KI, Accounts oder Cloud-Synchronisierung. Das Original-Logo wurde nicht gefunden; es wird ausschließlich eine typografische Ersatzwortmarke verwendet.
+Dashboard, Floating Dock mit Teig/Zeitplan/Pizzaabend, validierter Sofortrechner, lokale Speicherung, Sicherung bisheriger Daten, gemeinsame Design-Tokens und typografisches Branding. Keine TM5-Chargen, detaillierte Zeitplanung, Belagverwaltung, KI, Accounts oder Cloud-Synchronisierung. Der aktuelle visuelle Stand verwendet bewusst eine reine Inter-Wortmarke; siehe [Designsystem](BRANDING.md).
 
 Das Dashboard verwendet nur gespeicherte Daten. Es erfindet keinen Abend aus dem standardmäßig erzeugten Backdatum eines alten aktiven Teigplans. Alte Backtermine erscheinen in der gespeicherten Zeitzone. Ein nächster Arbeitsschritt wird ohne belastbare Zeitplanung nicht angezeigt.
 
@@ -18,6 +18,6 @@ Die bestehenden Funktionen `calculateDough`, `validatePlan` und `convertYeast` b
 - `npm run typecheck`: TypeScript-Prüfung.
 - `npm run build`: Produktionsbuild und Service Worker mit lokalen Schriften und Seiten; Pages-Basispfad `/ciao-pizza/` unverändert.
 
-Der lokale Vorschauversuch mit `npm run preview -- --host 127.0.0.1 --port 4173` scheitert in dieser Umgebung mit `listen EPERM: operation not permitted 127.0.0.1:4173`. Daher keine interaktive Browser-, iPhone- oder echte Offline-Abnahme in dieser Sitzung. Der Vorschauversuch wird nicht wiederholt. Mobile Layouts, Safe-Area, Touch-Größen und reduzierte Bewegung sind implementiert; die visuelle Geräteprüfung bleibt offen.
+Der aktuelle UI-Relaunch startet die lokale Vorschau erfolgreich. Die visuelle Browserprüfung bleibt wegen Umgebungsfehlern offen; Details stehen im [Designsystem](BRANDING.md).
 
 Kein Merge, kein Deployment und kein gestarteter Pages-Workflow.
