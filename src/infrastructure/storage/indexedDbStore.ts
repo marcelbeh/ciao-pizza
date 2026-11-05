@@ -22,7 +22,7 @@ export function createIndexedDbStore(name = "ciao-pizza"): KeyValueStore {
         request.onblocked = () =>
           reject(
             new Error(
-              "Speicheraktualisierung blockiert. Bitte weitere Ciao!-Tabs schließen.",
+              "Speicheraktualisierung blockiert. Bitte weitere FORNO.-Tabs schließen.",
             ),
           );
         request.onsuccess = () => {
@@ -63,6 +63,23 @@ export function createIndexedDbStore(name = "ciao-pizza"): KeyValueStore {
     });
   }
   return {
+    async entries(): Promise<Record<string, unknown>> {
+      const db = await open();
+      return new Promise((resolve, reject) => {
+        const transaction = db.transaction(STORE, "readonly");
+        const request = transaction.objectStore(STORE).openCursor();
+        const values: Record<string, unknown> = Object.create(null);
+        request.onsuccess = () => {
+          const cursor = request.result;
+          if (cursor) {
+            values[String(cursor.key)] = cursor.value;
+            cursor.continue();
+          }
+        };
+        transaction.oncomplete = () => resolve(values);
+        transaction.onerror = transaction.onabort = () => reject(transaction.error ?? new Error("Sicherung fehlgeschlagen."));
+      });
+    },
     async update<T>(
       key: string,
       change: (previous: T | undefined) => T,
