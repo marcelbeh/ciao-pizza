@@ -28,3 +28,13 @@ Zeitplan, Pizzaabend-Verwaltung und Rezeptansicht waren bisher nicht implementie
 App-ID, GitHub-Pages-Basispfad, Update-Bestätigung und Offline-Verhalten bleiben erhalten. Browser- und Manifestfarbe sind an das neue Schwarz angepasst. Keine Änderungen an Supabase, Cloud-Diensten oder Nutzerdaten.
 
 Prüfungen und verbleibende visuelle Abnahmen: [CINEMATIC-UI-CHECK.md](CINEMATIC-UI-CHECK.md).
+
+## Aktuelles App-Symbol: Pizzaofen
+
+Die App-Icons verwenden jetzt eine aus dem freigegebenen Header-Logo abgeleitete Ofen-Grafik (`docs/brand/forno-app-icon.png`) statt des früheren F.-Monogramms. Das Header-Logo selbst bleibt unverändert. Die Auslieferungsdateien sind deckende 8-Bit-RGB-PNGs ohne Transparenz oder eingebauten weißen Rahmen; die Maskable-Datei besitzt zusätzliche Sicherheitsränder. Dateien tragen neue `oven-v1`-URLs. Zusätzlich liegt eine identische 180-px-Datei unter dem konventionellen Safari-Pfad `apple-touch-icon.png`.
+
+Reproduktion nur der Icons: `node scripts/build-brand-assets.mjs --icons-only`. Startbilder und sonstige UI werden dabei nicht geändert. Manifest-ID, Pages-Pfad, Berechnungen und Datenspeicherung bleiben unverändert.
+
+Ein weißer äußerer Rand war im bisherigen Icon-Bitmap nicht enthalten. Die alte Datei war ein 16-Bit-PNG; die neue Auslieferung verwendet kompatible 8-Bit-PNGs. Ob Safari/Shortcuts ein altes oder abgeleitetes Icon benutzt, lässt sich aus dem Screenshot allein nicht sicher bestimmen. Bereits installierte Icons werden von iOS verwaltet; neue URLs können deren sofortige Aktualisierung nicht erzwingen. Vor einem eventuellen Entfernen und erneuten Hinzufügen der installierten App zuerst die lokale Datensicherung herunterladen. Keine Safari-/Website-Daten löschen.
+
+Prüfung: Typecheck, Produktionsbuild, Abmessungen, PNG-IHDR (8 Bit/RGB), deckende dunkle Ecken, Maskable-Sicherheitskreis sowie Manifest-/HTML-/Precache-Verweise. Kein physischer iPhone-Test.
