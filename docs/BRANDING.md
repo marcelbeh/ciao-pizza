@@ -1,25 +1,30 @@
-# FORNO. — Modern Italian Premium
+# FORNO. — Premium Cinematic UI
 
-Das Design verwendet ausschließlich Inter, eine reduzierte Wortmarke und typografische F.-Icons. Alte Bildmotive, Sprüche, Industrial-Schriften, Verläufe, Schatten und ungenutzte Stilvarianten wurden entfernt. Es gibt keine zusätzliche UI-Bibliothek oder neue App-Abhängigkeit.
+## Verbindliche Referenz und Logo
 
-## Gemeinsame Tokens
+Die vom Nutzer bereitgestellte Dashboard-Referenz bestimmt Hierarchie, Farben und Oberflächen: schwarzer Stein, warmes Orange/Kupfer, Creme, Teigfotografie, Serifentitel, drei Rezepturwerte, zwei Hauptkarten und eine schwebende Fünfernavigation.
 
-`src/styles.css` definiert die sieben Farben zentral: Hintergrund `#151A1B`, Karten `#22292A`, erhöhte Flächen `#2C3435`, Text `#F5F1E9`, Sekundärtext `#A8B0AC`, Terrakotta `#D97952`, Rahmen `#394140`. Fehler werden durch Text, ARIA-Zustand und Terrakotta hervorgehoben, ohne eine weitere Farbpalette einzuführen.
+**Die Original-Logodatei aus Variante 1 fehlt weiterhin.** Der Nutzer hat ein hochauflösendes Bild angekündigt; es lag bei Erstellung dieses Standes noch nicht vor. Deshalb bleibt die bisherige schlichte Textwortmarke erhalten. Es wurde kein Ersatz-Ofenlogo erfunden. Handschriftlicher Schriftzug, gemauerter Ofen und Original-Logo im Header sind noch nicht abgenommen. Die bestehenden PWA-Icons und Startbilder bleiben bis zur Lieferung des Originals erhalten.
 
-Abstände folgen einem 8-Pixel-Raster. Karten verwenden 16 px Radius und 24 px Innenabstand (16 px bei sehr kleinen Displays). Inter mit tabellarischen Ziffern stellt Eingaben und Mengen dar. Touch-Ziele sind mindestens 48 px hoch. Safe-Areas, sichtbare Fokuszustände und reduzierte Bewegung bleiben berücksichtigt.
+## Gemeinsames Design
 
-Alle vorhandenen Seiten nutzen `PageHeading`, dieselbe Karte, Buttons und Eingabefelder. Auf größeren Displays stehen Rezeptur und Zutaten nebeneinander. Die einzige Hauptnavigation ist die dezente untere Navigation; das Wortzeichen führt zur Übersicht.
+`src/styles.css` enthält die gemeinsamen Tokens für Hintergrund `#090908`, Oberflächen `#191713`/`#24201b`, Creme `#f5efdf`, Sekundärtext `#c2baaa`, Orange `#ffa04f` und Kupfer `#a96c3d`. Lokales Inter dient als UI-Schrift; Serifentitel und Mengen verwenden vorhandene Systemschriften (Iowan/Palatino/Georgia). Keine zusätzlichen Schriftdateien oder UI-Abhängigkeiten.
 
-## Vorhandene Daten, unveränderte Funktionen
+Karten, Buttons, Eingaben, Fokusmarkierungen und Statusanzeigen werden seitenübergreifend verwendet. Karten erhalten zurückhaltende Lichtkanten und warme Schatten. Die Navigation enthält Home, Teig, Zeitplan, Pizzaabend und Rezepte; Einstellungen sind im Header erreichbar. Safe-Areas und Platz unter dem Inhalt schützen die untere Navigation. Animiert werden nur kurze Hover-/Druckzustände; `prefers-reduced-motion` deaktiviert diese.
 
-Das Dashboard zeigt die bereits geladenen Teigeinstellungen und einen vorhandenen Pizzaabend. Der Rechner bleibt unverändert bedienbar, einschließlich Validierung, Hefegenauigkeit und automatischer Speicherung. Zeitplan und Pizzaabend bleiben vorbereitete Seiten; ohne Zeitplandaten wird kein nächster Zeitpunkt berechnet oder vorgetäuscht. Keine Änderung an Berechnungskern, Repository, Datenmodell, gespeicherten Schlüsseln oder bisherigen Nutzerdaten.
+## Lokale Bilddateien
 
-## PWA und Assets
+- `src/assets/dough-scene.webp`: 1400 × 933, ca. 129 KB.
+- `src/assets/timer-scene.webp`: 800 × 533, ca. 34 KB.
 
-Inter bleibt lokal unter SIL OFL eingebunden. App-/Touch-/Maskable-Icons und neun iPhone-Portrait-Startbilder verwenden die neue Wortmarke und Farbpalette. Neue Dateinamen vermeiden alte Motiv-URLs. App-ID, Pages-Basispfad und Offline-Verhalten bleiben gleich.
+Beide Motive wurden für diese Oberfläche generiert und anschließend als WebP optimiert. Sie sind Annäherungen an die Bildwelt, keine Originalausschnitte des Mockups und keine Logodateien. Es gibt keine Bildabrufe bei Drittanbietern zur Laufzeit. Vite erzeugt versionierte Asset-URLs; der bestehende Service Worker nimmt WebP bereits in den Offline-Cache auf.
 
-`node scripts/build-brand-assets.mjs` erzeugt die bereits eingecheckten Assets optional neu (ImageMagick 7 erforderlich). Farben werden direkt aus den CSS-Tokens gelesen; das Skript ist keine zusätzliche Build-Abhängigkeit. Andere Startbildgrößen und Ausrichtungen verwenden den nativen PWA-Startbildschirm. Bereits installierte iPhone-Icons werden nach iOS-Regeln aktualisiert.
+## Daten und Funktionsumfang
 
-Prüfung: vorhandene gezielte Berechnungs-/Speichertests, Typecheck und Produktionsbuild. Kein automatischer Merge oder Deployment.
+Berechnungskern, Repository, IndexedDB-Daten, Speicher-Keys und Sicherungsformat sind unverändert. Dashboard-Werte stammen aus den gespeicherten Einstellungen. Bearbeiten und Zutaten führen in den bestehenden Rechner; gültige Eingaben werden weiterhin automatisch gespeichert. Ein vorhandener Pizzaabend wird nur lesend angezeigt.
 
-Die lokale Produktionsvorschau startet. Der zusätzliche Chromium-Versuch endet in dieser Umgebung ohne Screenshot (nicht schreibbarer Font-Cache und Zertifikatsfehler im Browser-Log). Daher keine behauptete visuelle iPhone-/Desktop-Abnahme; diese bleibt im Review offen. Der Versuch wird nicht wiederholt.
+Zeitplan, Pizzaabend-Verwaltung und Rezeptansicht waren bisher nicht implementiert und bleiben ausdrücklich „In Vorbereitung“. Reife-Monitor und Journal sind nicht anklickbare, entsprechend beschriftete Vorschaufelder. Es werden keine Zeitpunkte, Erinnerungen oder Rezepte erfunden. Die Einstellungen bündeln die vorhandene vollständige JSON-Sicherung und Offline-/Installationsinformationen; sie behaupten keine Wiederherstellungsfunktion.
+
+App-ID, GitHub-Pages-Basispfad, Update-Bestätigung und Offline-Verhalten bleiben erhalten. Browser- und Manifestfarbe sind an das neue Schwarz angepasst. Keine Änderungen an Supabase, Cloud-Diensten oder Nutzerdaten.
+
+Prüfungen und verbleibende visuelle Abnahmen: [CINEMATIC-UI-CHECK.md](CINEMATIC-UI-CHECK.md).
