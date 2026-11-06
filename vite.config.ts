@@ -1,10 +1,21 @@
 import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
+import { readFileSync } from "node:fs";
 
 export default defineConfig({
   base: "/ciao-pizza/",
   plugins: [
+    {
+      name: "forno-theme-before-paint",
+      transformIndexHtml: {
+        order: "pre",
+        handler(html) {
+          const bootstrap = readFileSync(new URL("./public/theme-init.js", import.meta.url), "utf8");
+          return html.replace("<!-- forno-theme-bootstrap -->", `<script>${bootstrap}</script>`);
+        },
+      },
+    },
     react(),
     VitePWA({
       registerType: "prompt",
@@ -18,8 +29,8 @@ export default defineConfig({
         start_url: "/ciao-pizza/",
         scope: "/ciao-pizza/",
         display: "standalone",
-        background_color: "#090908",
-        theme_color: "#090908",
+        background_color: "#F9F6F1",
+        theme_color: "#F9F6F1",
         icons: [
           {
             src: "icons/forno-oven-v1-192.png",

@@ -1,6 +1,8 @@
 # FORNO. by Marcel
 
-Privater, offline-fähiger Pizzarechner im Design „Modern Italian Premium“. React, TypeScript, Vite und installierbare PWA; ohne Konto oder externe API. P1 umfasst Dashboard, Teigrechner und dezente Bottom-Navigation. P2 ergänzt den lokalen Zeitplan. Pizzaabend/Belagrezepte (P3) bleiben vorbereitet.
+Privater, offline-fähiger Pizzarechner im Fresh-Food-Design mit Hell-, Dunkel- und Systemmodus. React, TypeScript, Vite und installierbare PWA; ohne Konto oder externe API. P1 umfasst Dashboard, Teigrechner und dezente Bottom-Navigation. P2 ergänzt den lokalen Zeitplan. Pizzaabend/Belagrezepte (P3) bleiben vorbereitet.
+
+[Fresh-Food-Design, Theme-Verhalten und Prüfungen](docs/FRESH-FOOD.md)
 
 ## Entwickeln
 

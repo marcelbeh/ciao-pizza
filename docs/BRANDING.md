@@ -1,3 +1,7 @@
+# Aktueller Stand: Fresh Food
+
+Die aktuelle Oberfläche und Theme-Funktion sind in [FRESH-FOOD.md](FRESH-FOOD.md) dokumentiert. Die folgenden Abschnitte dokumentieren frühere Branding-Schritte und die weiterhin verwendeten Ofen-Icons.
+
 # FORNO. — Premium Cinematic UI
 
 ## Verbindliche Referenz und Logo

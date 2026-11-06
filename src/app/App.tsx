@@ -8,6 +8,7 @@ import { PwaNotice } from "../infrastructure/pwa/PwaNotice";
 import { PageHeading } from "../components/PageHeading";
 import { SchedulePage, formatScheduleTime } from "./SchedulePage";
 import { nextScheduleSteps, type SchedulePlan } from "../core/schedule/plan";
+import { ThemeSwitch } from "../components/ThemeSwitch";
 
 const repository = createFornoRepository(createIndexedDbStore());
 const number = (n: number, digits = 0) => new Intl.NumberFormat("de-DE", {
@@ -26,7 +27,8 @@ function FeatureCard({ to, icon, title, description, scene }: {
   to: string; icon: "clock" | "pizza"; title: string; description: string; scene: string;
 }) {
   return <Link to={to} className={`card feature-card ${scene}`}>
-    <Icon name={icon} /><div><h2>{title}</h2><p>{description}</p>
+    <img className="feature-photo" src={`${import.meta.env.BASE_URL}food/pizza.webp`} alt="" width="710" height="800" loading="lazy" />
+    <div className="feature-copy"><h2><Icon name={icon} />{title}</h2><p>{description}</p>
       <span className="feature-status">In Vorbereitung</span></div><Icon name="chevron" />
   </Link>;
 }
@@ -60,7 +62,8 @@ function Dashboard({ evening, formula, schedule, scheduleError, now }: {
         <Link className="button primary calculator-cta" to="/teig"><Icon name="calculator" />Zum Teigrechner <Icon name="arrow" /></Link>
       </section>
       <Link to="/zeitplan" className="card feature-card time-scene">
-        <Icon name="clock" /><div><h2>Zeitplan</h2>
+        <img className="feature-photo" src={`${import.meta.env.BASE_URL}food/dough.webp`} alt="" width="710" height="800" loading="lazy" />
+        <div className="feature-copy"><h2><Icon name="clock" />Zeitplan</h2>
           <p>{scheduleError ? "Gespeicherten Zeitplan prüfen." : next.length ? next.map(step => step.label).join(" / ")
             : schedule ? "Backtermin erreicht. Zeitplan bei Bedarf aktualisieren." : "Backtermin und Teigphasen festlegen."}</p>
           <span className="feature-status">{next.length ? `Geplant: ${formatScheduleTime(next[0].at)}` : scheduleError ? "Hinweis öffnen" : schedule ? "Zeitplan öffnen" : "Jetzt planen"}</span>
@@ -73,8 +76,8 @@ function Dashboard({ evening, formula, schedule, scheduleError, now }: {
       <div className="quick-grid">
         <Link className="card quick-card" to="/rezepte"><Icon name="book" /><span>Rezepte</span><small>In Vorbereitung</small></Link>
         <Link className="card quick-card" to="/teig#zutaten"><Icon name="sprout" /><span>Zutaten</span></Link>
-        <div className="card quick-card unavailable"><Icon name="evening" /><span>Reife-Monitor</span><small>In Vorbereitung</small></div>
-        <div className="card quick-card unavailable"><Icon name="journal" /><span>Mein Journal</span><small>In Vorbereitung</small></div>
+        <Link to="/reife-monitor" className="card quick-card"><Icon name="evening" /><span>Reife-Monitor</span><small>In Vorbereitung</small></Link>
+        <Link to="/journal" className="card quick-card"><Icon name="journal" /><span>Mein Journal</span><small>In Vorbereitung</small></Link>
       </div>
     </section>
     {evening && <section className="card saved-evening"><div className="card-heading"><h2>Dein gespeicherter Pizzaabend</h2></div>
@@ -146,10 +149,12 @@ function Calculator({ formula, save, status, invalidChanged }: {
     <p className={`save-status ${status.includes("fehlgeschlagen") ? "error" : "muted"}`} role="status">{status}</p>
   </>;
 }
-function Placeholder({ kind, evening }: { kind: "evening" | "recipes"; evening?: EveningSummary | null }) {
+function Placeholder({ kind, evening }: { kind: "evening" | "recipes" | "monitor" | "journal"; evening?: EveningSummary | null }) {
   const content = {
     evening: { title: "Pizzaabend", subtitle: "Die besten Abende beginnen mit Pizza.", heading: "Ein Tisch. Gute Freunde. Deine Pizza.", text: "Die Verwaltung von Pizzaabenden und Belagrezepten ist noch nicht verfügbar. Deine bisherigen Daten bleiben erhalten.", icon: "pizza" },
     recipes: { title: "Rezepte", subtitle: "Ein Stück Italien für deinen Tisch.", heading: "Platz für deine Lieblingspizza.", text: "Eine Rezeptansicht ist in dieser App-Version noch nicht verfügbar. Bereits gespeicherte persönliche Rezepte bleiben erhalten und sind in deiner Datensicherung enthalten.", icon: "book" },
+    monitor: { title: "Reife-Monitor", subtitle: "Deinen Teig im Blick behalten.", heading: "In Vorbereitung", text: "Ein Reife-Monitor ist noch nicht verfügbar. Deine geplanten Phasen findest du bereits im Zeitplan.", icon: "evening" },
+    journal: { title: "Mein Journal", subtitle: "Platz für deine Pizza-Erfahrungen.", heading: "In Vorbereitung", text: "Eine Journalansicht ist noch nicht verfügbar. Bisherige persönliche Daten bleiben erhalten und sind in deiner Sicherung enthalten.", icon: "journal" },
   } as const;
   const c = content[kind];
   return <>
@@ -163,7 +168,9 @@ function Placeholder({ kind, evening }: { kind: "evening" | "recipes"; evening?:
 }
 function Settings({ hasLegacy, busy, backup }: { hasLegacy: boolean; busy: boolean; backup: () => Promise<void> }) {
   return <><PageHeading title="Einstellungen" description="Deine Daten. Dein Gerät. Deine Pizzaplanung." />
-    <div className="settings-grid"><section className="card settings-card"><div className="card-heading"><Icon name="download" /><h2>Daten & Sicherung</h2></div>
+    <div className="settings-grid"><section className="card settings-card theme-settings"><div className="card-heading"><h2>Darstellung</h2></div>
+      <p className="muted">Hell, dunkel oder automatisch passend zu deinem Gerät. Deine Auswahl bleibt auf diesem Gerät gespeichert.</p><ThemeSwitch />
+    </section><section className="card settings-card"><div className="card-heading"><Icon name="download" /><h2>Daten & Sicherung</h2></div>
       <p>Deine Daten bleiben in diesem Browser. Sichere sie regelmäßig, bevor du Browserdaten löschst.</p>
       <p className="muted">Die vollständige Sicherung enthält auch bisherige persönliche Rezepte, Profile und Pizzaabende. Eine Wiederherstellung ist in dieser App-Version nicht verfügbar.</p>
       {hasLegacy && <p className="muted">Bisherige Daten sind vorhanden. Alte Rezepturen, die nicht dargestellt werden können, bleiben unverändert erhalten.</p>}
@@ -206,7 +213,7 @@ function Workspace({ repo }: { repo: FornoRepository }) {
     return () => { active = false; };
   }, [repo]);
   useEffect(() => {
-    const titles: Record<string, string> = { "/": "Home", "/teig": "Teig", "/zeitplan": "Zeitplan", "/pizzaabend": "Pizzaabend", "/rezepte": "Rezepte", "/einstellungen": "Einstellungen" };
+    const titles: Record<string, string> = { "/": "Home", "/teig": "Teig", "/zeitplan": "Zeitplan", "/pizzaabend": "Pizzaabend", "/rezepte": "Rezepte", "/einstellungen": "Einstellungen", "/reife-monitor": "Reife-Monitor", "/journal": "Mein Journal" };
     document.title = `${titles[location.pathname] ?? "Seite nicht gefunden"} · FORNO. by Marcel`;
     const target = location.hash === "#zutaten" ? document.getElementById("zutaten") : null;
     (target ?? main.current)?.focus();
@@ -244,7 +251,7 @@ function Workspace({ repo }: { repo: FornoRepository }) {
   }
   return <div className="app-shell">
     <a className="skip-link" href="#content" onClick={e => { e.preventDefault(); main.current?.focus(); }}>Zum Inhalt</a>
-    <header className="app-header"><Link to="/" aria-label="FORNO. Home"><Wordmark /></Link><Link className="settings-link" to="/einstellungen" aria-label="Einstellungen"><Icon name="settings" /></Link></header>
+    <header className="app-header"><Link className="brand-link" to="/" aria-label="FORNO. Home"><Wordmark /></Link><ThemeSwitch /><Link className="settings-link" to="/einstellungen" aria-label="Einstellungen"><Icon name="settings" /></Link></header>
     <main id="content" className="app-content" ref={main} tabIndex={-1}>
       {error && <div className="card error" role="alert"><p>{error}</p>
         <button onClick={() => window.location.reload()}>Erneut laden</button></div>}
@@ -254,6 +261,8 @@ function Workspace({ repo }: { repo: FornoRepository }) {
         <Route path="/zeitplan" element={<SchedulePage saved={data.schedule} loadError={data.scheduleError} save={saveTimePlan} busy={busy} now={now} editingChanged={setInvalid} />} />
         <Route path="/pizzaabend" element={<Placeholder kind="evening" evening={data.evening} />} />
         <Route path="/rezepte" element={<Placeholder kind="recipes" />} />
+        <Route path="/reife-monitor" element={<Placeholder kind="monitor" />} />
+        <Route path="/journal" element={<Placeholder kind="journal" />} />
         <Route path="/einstellungen" element={<Settings hasLegacy={data.hasLegacy} busy={busy} backup={backup} />} />
         <Route path="*" element={<><PageHeading title="Seite nicht gefunden" description="Diese Adresse ist nicht verfügbar." /><Link className="button" to="/">Zum Dashboard</Link></>} />
       </Routes>}
