@@ -22,37 +22,54 @@ function Wordmark() {
 function PageHeading({ title, description }: { title: string; description: string }) {
   return <div className="page-heading"><h1>{title}</h1><p className="muted">{description}</p></div>;
 }
+function FeatureCard({ to, icon, title, description, scene }: {
+  to: string; icon: "clock" | "pizza"; title: string; description: string; scene: string;
+}) {
+  return <Link to={to} className={`card feature-card ${scene}`}>
+    <Icon name={icon} /><div><h2>{title}</h2><p>{description}</p>
+      <span className="feature-status">In Vorbereitung</span></div><Icon name="chevron" />
+  </Link>;
+}
+function EveningDetails({ evening }: { evening: EveningSummary }) {
+  return <div className="evening-details"><h3>{evening.name}</h3>
+    <p className="date-line"><Icon name="evening" />{new Intl.DateTimeFormat("de-DE", {
+      dateStyle: "medium", timeStyle: "short", timeZone: evening.timeZone,
+    }).format(new Date(evening.bakeAt))}</p>
+    <p className="muted">{number(evening.count)} Pizzen · {number(evening.ballGrams, 1)} g pro Teigling</p>
+  </div>;
+}
 function Dashboard({ evening, formula }: { evening: EveningSummary | null; formula: Formula }) {
   return <>
-    <PageHeading title="Deine Pizzaplanung" description="Teig, Zeit und ein gemeinsamer Abend. Alles an einem Ort." />
+    <div className="welcome page-heading"><p className="eyebrow">Buongiorno, Marcel!</p>
+      <h1>Deine Pizzaplanung<span className="accent-dot">.</span></h1>
+      <p className="welcome-copy">Teig, Zeitplan, Rezepte und dein<br className="mobile-break" /> perfekter Pizzaabend – alles an einem Ort.</p>
+      <span className="flourish" aria-hidden="true" /></div>
     <div className="dashboard-grid">
-    <section className="card plan-summary" aria-labelledby="current-plan-title">
-      <div className="card-heading"><h2 id="current-plan-title">Aktuelle Teigplanung</h2></div>
-      <dl className="plan-values">
-        <div><dt>Pizzen</dt><dd>{number(formula.count)}</dd></div>
-        <div><dt>Pro Teigling</dt><dd>{number(formula.ballGrams, Number.isInteger(formula.ballGrams) ? 0 : 1)} <span>g</span></dd></div>
-        <div><dt>Hydration</dt><dd>{number(formula.hydration, 1)} <span>%</span></dd></div>
-      </dl>
-      <p className="flour-note">{formula.flourProfile}</p>
-      <Link className="button primary" to="/teig">Zum Teigrechner <Icon name="arrow" /></Link>
-    </section>
-    <section className="card" aria-labelledby="next-step-title">
-      <div className="card-heading"><h2 id="next-step-title">Nächster Schritt</h2></div>
-      <p>Noch kein Zeitplan vorhanden.</p>
-      <p className="muted">Die detaillierte Zeitplanung ist noch in Vorbereitung.</p>
-    </section>
-    <section className="card evening-card" aria-labelledby="evening-title">
-      <div className="card-heading"><h2 id="evening-title">Pizzaabend</h2></div>
-      {evening ? <>
-      <h3>{evening.name}</h3>
-      <p className="date-line"><Icon name="evening" />{new Intl.DateTimeFormat("de-DE", {
-        dateStyle: "medium", timeStyle: "short", timeZone: evening.timeZone,
-      }).format(new Date(evening.bakeAt))}</p>
-      <p className="muted">{number(evening.count)} Pizzen · {number(evening.ballGrams, 1)} g pro Teigling</p>
-      </> : <><p>Noch kein Pizzaabend gespeichert.</p><p className="muted">Hier findest du später deinen Abend und deine persönlichen Rezepte.</p></>}
-      <Link className="text-link" to="/pizzaabend">Zum Pizzaabend <Icon name="arrow" /></Link>
-    </section>
+      <section className="card plan-summary" aria-labelledby="current-plan-title">
+        <div className="card-heading"><h2 id="current-plan-title"><Icon name="dough" />Aktuelle Teigplanung</h2>
+          <Link className="edit-link" to="/teig"><Icon name="edit" /><span>Bearbeiten</span></Link></div>
+        <dl className="plan-values">
+          <div><dt>Pizzen</dt><dd>{number(formula.count)}</dd></div>
+          <div><dt>pro Teigling</dt><dd>{number(formula.ballGrams, Number.isInteger(formula.ballGrams) ? 0 : 1)}<span>g</span></dd></div>
+          <div><dt>Hydration</dt><dd>{number(formula.hydration, Number.isInteger(formula.hydration) ? 0 : 1)}<span>%</span></dd></div>
+        </dl>
+        <p className="flour-note"><Icon name="wheat" />{formula.flourProfile}</p>
+        <Link className="button primary calculator-cta" to="/teig"><Icon name="calculator" />Zum Teigrechner <Icon name="arrow" /></Link>
+      </section>
+      <FeatureCard to="/zeitplan" icon="clock" title="Zeitplan" description="Teigzeiten, Reife und Backfenster." scene="time-scene" />
+      <FeatureCard to="/pizzaabend" icon="pizza" title="Pizzaabend" description="Dein nächster gemeinsamer Abend." scene="evening-scene" />
     </div>
+    <section className="quick-section" aria-labelledby="quick-title">
+      <h2 className="section-label" id="quick-title">Schnellzugriff<span /></h2>
+      <div className="quick-grid">
+        <Link className="card quick-card" to="/rezepte"><Icon name="book" /><span>Rezepte</span><small>In Vorbereitung</small></Link>
+        <Link className="card quick-card" to="/teig#zutaten"><Icon name="sprout" /><span>Zutaten</span></Link>
+        <div className="card quick-card unavailable"><Icon name="evening" /><span>Reife-Monitor</span><small>In Vorbereitung</small></div>
+        <div className="card quick-card unavailable"><Icon name="journal" /><span>Mein Journal</span><small>In Vorbereitung</small></div>
+      </div>
+    </section>
+    {evening && <section className="card saved-evening"><div className="card-heading"><h2>Dein gespeicherter Pizzaabend</h2></div>
+      <EveningDetails evening={evening} /><Link className="text-link" to="/pizzaabend">Zum Pizzaabend <Icon name="arrow" /></Link></section>}
   </>;
 }
 
@@ -107,7 +124,7 @@ function Calculator({ formula, save, status, invalidChanged }: {
         <p className="muted">Beide Anteile beziehen sich auf die Mehlmenge.</p><div className="quantity-grid">{field("salt", "%")}{field("yeastPercent", "%")}</div>
       </details>
     </section>
-    <section className="card ingredients" aria-label="Deine Zutaten">
+    <section className="card ingredients" id="zutaten" tabIndex={-1} aria-label="Deine Zutaten">
       <div className="card-heading"><h2>Zutaten</h2></div>
       {result ? <><dl>{([ ["Mehl", result.ingredients.flour, 1], ["Wasser", result.ingredients.water, 1],
         ["Salz", result.ingredients.salt, 2], ["Trockenhefe", result.ingredients.yeast, 2] ] as const).map(([label, amount, digits]) =>
@@ -120,17 +137,34 @@ function Calculator({ formula, save, status, invalidChanged }: {
     <p className={`save-status ${status.includes("fehlgeschlagen") ? "error" : "muted"}`} role="status">{status}</p>
   </>;
 }
-function Placeholder({ evening = false }: { evening?: boolean }) {
+function Placeholder({ kind, evening }: { kind: "time" | "evening" | "recipes"; evening?: EveningSummary | null }) {
+  const content = {
+    time: { title: "Zeitplan", subtitle: "Guter Teig braucht seine Zeit.", heading: "Vom ersten Kneten bis zum letzten Bissen.", text: "Die detaillierte Zeitplanung ist noch nicht verfügbar. Deine Rezeptur kannst du bereits im Teigrechner abstimmen.", icon: "clock" },
+    evening: { title: "Pizzaabend", subtitle: "Die besten Abende beginnen mit Pizza.", heading: "Ein Tisch. Gute Freunde. Deine Pizza.", text: "Die Verwaltung von Pizzaabenden und Belagrezepten ist noch nicht verfügbar. Deine bisherigen Daten bleiben erhalten.", icon: "pizza" },
+    recipes: { title: "Rezepte", subtitle: "Ein Stück Italien für deinen Tisch.", heading: "Platz für deine Lieblingspizza.", text: "Eine Rezeptansicht ist in dieser App-Version noch nicht verfügbar. Bereits gespeicherte persönliche Rezepte bleiben erhalten und sind in deiner Datensicherung enthalten.", icon: "book" },
+  } as const;
+  const c = content[kind];
   return <>
-    <PageHeading title={evening ? "Pizzaabend" : "Zeitplan"} description={evening
-      ? "Deine Planung für einen gemeinsamen Abend." : "Von der Teigzubereitung bis zum Backtermin."} />
-    <section className="card coming-soon"><span className="availability">In Vorbereitung</span>
-      <h2>{evening ? "Abende und Rezepte" : "Deine nächsten Schritte"}</h2>
-      <p className="muted">{evening ? "Die Verwaltung von Pizzaabenden und Belagrezepten ist noch nicht verfügbar. Deine bisherigen Daten bleiben erhalten."
-        : "Die detaillierte Zeitplanung ist noch nicht verfügbar. Du kannst bereits die Rezeptur für deinen Teig einstellen."}</p>
-      <Link to="/teig" className="button">Zum Teigrechner <Icon name="arrow" /></Link>
+    <PageHeading title={c.title} description={c.subtitle} />
+    <section className={`card coming-soon ${kind}-scene`}><div className="feature-emblem"><Icon name={c.icon} /></div>
+      <span className="availability">In Vorbereitung</span><h2>{c.heading}</h2><p className="muted">{c.text}</p>
+      <Link to="/teig" className="button primary">Zum Teigrechner <Icon name="arrow" /></Link>
     </section>
+    {evening && <section className="card saved-evening"><div className="card-heading"><h2>Bereits gespeichert</h2></div><EveningDetails evening={evening} /></section>}
   </>;
+}
+function Settings({ hasLegacy, busy, backup }: { hasLegacy: boolean; busy: boolean; backup: () => Promise<void> }) {
+  return <><PageHeading title="Einstellungen" description="Deine Daten. Dein Gerät. Deine Pizzaplanung." />
+    <div className="settings-grid"><section className="card settings-card"><div className="card-heading"><Icon name="download" /><h2>Daten & Sicherung</h2></div>
+      <p>Deine Daten bleiben in diesem Browser. Sichere sie regelmäßig, bevor du Browserdaten löschst.</p>
+      <p className="muted">Die vollständige Sicherung enthält auch bisherige persönliche Rezepte, Profile und Pizzaabende. Eine Wiederherstellung ist in dieser App-Version nicht verfügbar.</p>
+      {hasLegacy && <p className="muted">Bisherige Daten sind vorhanden. Alte Rezepturen, die nicht dargestellt werden können, bleiben unverändert erhalten.</p>}
+      <button className="button primary" onClick={() => void backup()} disabled={busy}><Icon name="download" />Sicherung herunterladen</button>
+    </section><section className="card settings-card"><div className="card-heading"><Icon name="phone" /><h2>Immer dabei</h2></div>
+      <p>Nach dem ersten vollständigen Laden ist FORNO. auch offline nutzbar.</p>
+      <p className="muted">Auf dem iPhone: Safari öffnen → Teilen → Zum Home-Bildschirm. Die App speichert deine gültigen Teigeingaben automatisch auf diesem Gerät.</p>
+      <span className="local-label"><span aria-hidden="true" />Lokal. Ohne Konto.</span>
+    </section></div></>;
 }
 
 class ErrorBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
@@ -157,11 +191,13 @@ function Workspace({ repo }: { repo: FornoRepository }) {
     return () => { active = false; };
   }, [repo]);
   useEffect(() => {
-    const titles: Record<string, string> = { "/": "Dashboard", "/teig": "Teig", "/zeitplan": "Zeitplan", "/pizzaabend": "Pizzaabend" };
+    const titles: Record<string, string> = { "/": "Home", "/teig": "Teig", "/zeitplan": "Zeitplan", "/pizzaabend": "Pizzaabend", "/rezepte": "Rezepte", "/einstellungen": "Einstellungen" };
     document.title = `${titles[location.pathname] ?? "Seite nicht gefunden"} · FORNO. by Marcel`;
-    main.current?.focus();
-    window.scrollTo({ top: 0, behavior: "instant" });
-  }, [location.pathname]);
+    const target = location.hash === "#zutaten" ? document.getElementById("zutaten") : null;
+    (target ?? main.current)?.focus();
+    if (target) target.scrollIntoView({ block: "start" });
+    else window.scrollTo({ top: 0, behavior: "instant" });
+  }, [location.pathname, location.hash, !!data]);
   function save(formula: Formula) {
     if (!data) return;
     setData({ ...data, formula });
@@ -181,29 +217,27 @@ function Workspace({ repo }: { repo: FornoRepository }) {
   }
   return <div className="app-shell">
     <a className="skip-link" href="#content" onClick={e => { e.preventDefault(); main.current?.focus(); }}>Zum Inhalt</a>
-    <header className="app-header"><Link to="/" aria-label="FORNO. Dashboard"><Wordmark /></Link></header>
+    <header className="app-header"><Link to="/" aria-label="FORNO. Home"><Wordmark /></Link><Link className="settings-link" to="/einstellungen" aria-label="Einstellungen"><Icon name="settings" /></Link></header>
     <main id="content" className="app-content" ref={main} tabIndex={-1}>
       {error && <div className="card error" role="alert"><p>{error}</p>
         <button onClick={() => window.location.reload()}>Erneut laden</button></div>}
       {!data ? !error && <p role="status">Deine Daten werden geladen …</p> : <Routes>
         <Route path="/" element={<Dashboard evening={data.evening} formula={data.formula} />} />
         <Route path="/teig" element={<Calculator formula={data.formula} save={save} status={status} invalidChanged={setInvalid} />} />
-        <Route path="/zeitplan" element={<Placeholder />} />
-        <Route path="/pizzaabend" element={<Placeholder evening />} />
+        <Route path="/zeitplan" element={<Placeholder kind="time" />} />
+        <Route path="/pizzaabend" element={<Placeholder kind="evening" evening={data.evening} />} />
+        <Route path="/rezepte" element={<Placeholder kind="recipes" />} />
+        <Route path="/einstellungen" element={<Settings hasLegacy={data.hasLegacy} busy={busy} backup={backup} />} />
         <Route path="*" element={<><PageHeading title="Seite nicht gefunden" description="Diese Adresse ist nicht verfügbar." /><Link className="button" to="/">Zum Dashboard</Link></>} />
       </Routes>}
-      <footer className="app-footer"><p>Lokal gespeichert. Ohne Konto.</p>
-        <details><summary>Daten & Offline</summary>
-          <p>Deine Daten bleiben in diesem Browser. Sichere sie regelmäßig, bevor du Browserdaten löschst. Die Sicherung enthält auch bisherige persönliche Rezepte, Profile und Pizzaabende.</p>
-          {data?.hasLegacy && <p>Vorhandene Daten erkannt. Nicht darstellbare alte Rezepturen werden nicht verändert. Ohne passende Übernahme startet FORNO. mit den Standardwerten.</p>}
-          <button onClick={() => void backup()} disabled={busy}>Sicherung herunterladen</button>
-          <p>Nach dem ersten vollständigen Laden ist die App offline nutzbar. Auf dem iPhone: Safari → Teilen → Zum Home-Bildschirm.</p>
-        </details><PwaNotice busy={busy || invalid} />
+      <footer className="app-footer"><p><span className="local-dot" aria-hidden="true" />Lokal gespeichert. Mit Liebe gemacht.</p>
+        <Link to="/einstellungen" className="text-link">Daten & Offline <Icon name="chevron" /></Link><PwaNotice busy={busy || invalid} />
+        {!data && error && <button onClick={() => void backup()} disabled={busy}>Sicherung herunterladen</button>}
       </footer>
     </main>
     <nav className="floating-dock" aria-label="Hauptnavigation">
-      {([ ["/teig", "Teig", "dough"], ["/zeitplan", "Zeitplan", "clock"], ["/pizzaabend", "Pizzaabend", "evening"] ] as const).map(([to, label, icon]) =>
-        <NavLink key={to} to={to}><Icon name={icon} /><span>{label}</span></NavLink>)}
+      {([ ["/", "Home", "home"], ["/teig", "Teig", "dough"], ["/zeitplan", "Zeitplan", "clock"], ["/pizzaabend", "Pizzaabend", "pizza"], ["/rezepte", "Rezepte", "book"] ] as const).map(([to, label, icon]) =>
+        <NavLink key={to} to={to} end><Icon name={icon} /><span>{label}</span></NavLink>)}
     </nav>
   </div>;
 }
