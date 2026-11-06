@@ -17,7 +17,7 @@ const toDraft = (f: Formula): Draft => Object.fromEntries(Object.keys(ranges).ma
 const parse = (text: string) => /^\d+(?:[.,]\d+)?$/.test(text.trim()) ? Number(text.trim().replace(",", ".")) : NaN;
 
 function Wordmark() {
-  return <span className="wordmark">FORNO<span>.</span><small>by Marcel</small></span>;
+  return <img className="wordmark" src={`${import.meta.env.BASE_URL}brand/forno-header.png`} alt="" width={576} height={192} />;
 }
 function PageHeading({ title, description }: { title: string; description: string }) {
   return <div className="page-heading"><h1>{title}</h1><p className="muted">{description}</p></div>;

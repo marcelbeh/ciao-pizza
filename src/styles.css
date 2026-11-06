@@ -74,10 +74,7 @@ button:disabled { opacity: .6; cursor: wait; }
 }
 .app-header { display: flex; align-items: center; justify-content: space-between; padding: calc(28px + env(safe-area-inset-top)) max(24px, env(safe-area-inset-right)) 24px max(24px, env(safe-area-inset-left)); }
 .app-header > a { display: inline-flex; align-items: center; min-height: 48px; }
-/* Existing plain wordmark retained until the original oven-logo asset is supplied. */
-.wordmark { font-size: 37px; font-weight: 650; line-height: 1; letter-spacing: -.065em; }
-.wordmark > span { color: var(--accent); }
-.wordmark small { display: block; margin-top: 9px; font-size: 9px; font-weight: 400; line-height: 1.4; letter-spacing: .34em; text-transform: uppercase; color: var(--text-secondary); }
+.wordmark { display: block; width: clamp(148px, 32vw, 240px); height: auto; }
 .settings-link { justify-content: center; width: 49px; height: 49px; border-radius: 50%; border: 1px solid #6a5137; background: linear-gradient(135deg, #28221be6, #0e0e0ccc); box-shadow: inset 0 1px 2px #e2bd7b33, 0 4px 12px #0008; }
 .settings-link svg { width: 25px; height: 25px; }
 .settings-link:hover { color: var(--accent); border-color: var(--accent); }
@@ -267,8 +264,6 @@ summary { min-height: 48px; padding: var(--space-1) 0; font-size: var(--text-lab
 @media (min-width: 720px) {
   .app-header { padding: calc(34px + env(safe-area-inset-top)) 48px 28px; }
   .app-content { padding-inline: 48px; }
-  .wordmark { font-size: 45px; }
-  .wordmark small { font-size: 10px; }
   .welcome { margin-top: 17px; margin-bottom: 30px; }
   .welcome .eyebrow { font-size: 13px; }
   .welcome-copy { font-size: 16px; }
