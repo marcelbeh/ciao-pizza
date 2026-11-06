@@ -1,14 +1,25 @@
-# FORNO. — Original-Logo
+# FORNO. — Modern Italian Premium
 
-`brand/forno-original.jpg` ist die unveränderte, von Marcel bereitgestellte Vorlage (1254 × 1254). Das komplette Motiv einschließlich Schriftzug wird im Dashboard verwendet. Zwei WebP-Auslieferungsgrößen reduzieren das Datenvolumen. Seitenverhältnis 1:1 und `object-fit: contain` erhalten das ganze Bild; die mobile Breite ist zusätzlich durch die Bildschirmhöhe begrenzt. Ab 600 px stehen Logo und bestehender Hero-Text nebeneinander. Unterseiten behalten die kompakte Wortmarke.
+Das Design verwendet ausschließlich Inter, eine reduzierte Wortmarke und typografische F.-Icons. Alte Bildmotive, Sprüche, Industrial-Schriften, Verläufe, Schatten und ungenutzte Stilvarianten wurden entfernt. Es gibt keine zusätzliche UI-Bibliothek oder neue App-Abhängigkeit.
 
-`brand/forno-icon-source.png` ist eine aus der Vorlage generierte, vereinfachte Icon-Variante: Gitarre, brennender Steinofen und Gasgrill als kontrastreiche Formen. Kleinschrift, Essen und Textur entfallen. Sie ersetzt ausschließlich die bisherigen Platzhalter-Icons, nicht das Original-Logo. Motiv und freie Ränder bleiben in allen Rastergrößen erhalten; das Maskable-Icon behält die Sicherheitsränder.
+## Gemeinsame Tokens
 
-Dateien unter `public/` sind fertig generierte Auslieferungs-Assets. Optional reproduzierbar mit `node scripts/build-brand-assets.mjs` (ImageMagick 7 erforderlich; keine zusätzliche App-/Build-Abhängigkeit). Das Skript skaliert/komponiert nur die beiden bestehenden Quelldateien.
+`src/styles.css` definiert die sieben Farben zentral: Hintergrund `#151A1B`, Karten `#22292A`, erhöhte Flächen `#2C3435`, Text `#F5F1E9`, Sekundärtext `#A8B0AC`, Terrakotta `#D97952`, Rahmen `#394140`. Fehler werden durch Text, ARIA-Zustand und Terrakotta hervorgehoben, ohne eine weitere Farbpalette einzuführen.
 
-- PWA: 192/512 px sowie separates 512-px-Maskable-Icon, bisherige App-ID und `/ciao-pizza/` unverändert.
-- iPhone: 180-px-Touch-Icon und neun Portrait-Startbildgrößen mit vollständigem Logo auf `#101820`; Zuordnung über Displaygröße und Pixeldichte. Andere Größen/Ausrichtungen verwenden den nativen Startbildschirm. Android verwendet Manifest-Icon und Midnight-Hintergrund.
-- Favicon: 32/64 px. Neue Dateinamen verhindern die Wiederverwendung alter Icon-URLs; bei bereits installierten iPhone-Apps bestimmt iOS den Zeitpunkt der Icon-Aktualisierung.
-- Offline: Logo, Icons und Startbilder im vorhandenen Service-Worker-Precache. Unveränderte Midnight-Tokens und unverändertes Floating Dock.
+Abstände folgen einem 8-Pixel-Raster. Karten verwenden 16 px Radius und 24 px Innenabstand (16 px bei sehr kleinen Displays). Inter mit tabellarischen Ziffern stellt Eingaben und Mengen dar. Touch-Ziele sind mindestens 48 px hoch. Safe-Areas, sichtbare Fokuszustände und reduzierte Bewegung bleiben berücksichtigt.
 
-Prüfung: Typecheck und Produktionsbuild, Abmessungen und referenzierte Assets sowie Precache-Einträge. Kein physischer iPhone-/Splashscreen-Test. Keine Änderungen an Berechnungen, Datenspeicherung oder anderen Funktionen. Kein automatischer Merge oder Deploy.
+Alle vorhandenen Seiten nutzen `PageHeading`, dieselbe Karte, Buttons und Eingabefelder. Auf größeren Displays stehen Rezeptur und Zutaten nebeneinander. Die einzige Hauptnavigation ist die dezente untere Navigation; das Wortzeichen führt zur Übersicht.
+
+## Vorhandene Daten, unveränderte Funktionen
+
+Das Dashboard zeigt die bereits geladenen Teigeinstellungen und einen vorhandenen Pizzaabend. Der Rechner bleibt unverändert bedienbar, einschließlich Validierung, Hefegenauigkeit und automatischer Speicherung. Zeitplan und Pizzaabend bleiben vorbereitete Seiten; ohne Zeitplandaten wird kein nächster Zeitpunkt berechnet oder vorgetäuscht. Keine Änderung an Berechnungskern, Repository, Datenmodell, gespeicherten Schlüsseln oder bisherigen Nutzerdaten.
+
+## PWA und Assets
+
+Inter bleibt lokal unter SIL OFL eingebunden. App-/Touch-/Maskable-Icons und neun iPhone-Portrait-Startbilder verwenden die neue Wortmarke und Farbpalette. Neue Dateinamen vermeiden alte Motiv-URLs. App-ID, Pages-Basispfad und Offline-Verhalten bleiben gleich.
+
+`node scripts/build-brand-assets.mjs` erzeugt die bereits eingecheckten Assets optional neu (ImageMagick 7 erforderlich). Farben werden direkt aus den CSS-Tokens gelesen; das Skript ist keine zusätzliche Build-Abhängigkeit. Andere Startbildgrößen und Ausrichtungen verwenden den nativen PWA-Startbildschirm. Bereits installierte iPhone-Icons werden nach iOS-Regeln aktualisiert.
+
+Prüfung: vorhandene gezielte Berechnungs-/Speichertests, Typecheck und Produktionsbuild. Kein automatischer Merge oder Deployment.
+
+Die lokale Produktionsvorschau startet. Der zusätzliche Chromium-Versuch endet in dieser Umgebung ohne Screenshot (nicht schreibbarer Font-Cache und Zertifikatsfehler im Browser-Log). Daher keine behauptete visuelle iPhone-/Desktop-Abnahme; diese bleibt im Review offen. Der Versuch wird nicht wiederholt.

@@ -1,6 +1,6 @@
 # FORNO. by Marcel
 
-Privater, offline-fähiger Pizzarechner im Midnight-Rock-Design. React, TypeScript, Vite und installierbare PWA; ohne Konto oder externe API. P1 umfasst Dashboard, Teigrechner und Floating Dock. Zeitplan (P2) und Pizzaabend/Belagrezepte (P3) sind als kommende Bereiche gekennzeichnet.
+Privater, offline-fähiger Pizzarechner im Design „Modern Italian Premium“. React, TypeScript, Vite und installierbare PWA; ohne Konto oder externe API. P1 umfasst Dashboard, Teigrechner und dezente Bottom-Navigation. Zeitplan (P2) und Pizzaabend/Belagrezepte (P3) sind als kommende Bereiche gekennzeichnet.
 
 ## Entwickeln
 
@@ -22,9 +22,9 @@ npm run preview
 - Sofortige Mengenberechnung mit acht Pizzen à 280 g, 66 % Hydration, 3 % Salz, 0,1 % Trockenhefe und Caputo Pizzeria 00 als Ausgangswerten.
 - Mehl = Gesamtteig / (1 + Hydration/100 + Salz/100 + Trockenhefe/100). Der vorhandene Berechnungskern bleibt erhalten. Zwischenwerte werden nicht gerundet.
 - Automatisches lokales Speichern gültiger Änderungen; Fehler werden sichtbar angezeigt. Ungültige Eingaben überschreiben keine gespeicherten Werte.
-- Dashboard zeigt den zuletzt gespeicherten, gültigen alten Pizzaabend mit Backtermin in dessen Zeitzone, Pizzaanzahl und Teiglingsgewicht. Ohne Abend erscheint der Einstieg zum Rechner. Kein spekulativer nächster Arbeitsschritt.
-- Vollständiges Original-Logo im Dashboard; reduzierte typografische Wortmarke auf Unterseiten. Vereinfachte Motiv-Icons und iPhone-Startbilder: [Branding und Quelldateien](docs/BRANDING.md).
-- Barlow Condensed Bold, Inter und IBM Plex Mono werden lokal ausgeliefert und offline gecacht. Freie SIL-OFL-Lizenzen liegen unter `public/fonts/`.
+- Dashboard zeigt die aktuellen Teigeinstellungen und einen vorhandenen Pizzaabend mit Backtermin in dessen Zeitzone. Der Teigrechner und die vorbereitete Pizzaabend-Seite sind direkt erreichbar. Ohne Zeitplandaten werden keine nächsten Zeitpunkte erfunden.
+- Einheitliche Inter-Wortmarke, Terrakotta-Akzent und typografische PWA-Icons. Keine Gitarrenmotive, dekorativen Bilder oder Schatten: [Designsystem](docs/BRANDING.md).
+- Inter ist die einzige Schriftfamilie. Sie wird lokal ausgeliefert und offline gecacht; SIL-OFL-Lizenz unter `public/fonts/`.
 
 ## Daten bleiben erhalten
 
