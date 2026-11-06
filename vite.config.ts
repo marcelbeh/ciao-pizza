@@ -8,7 +8,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: "prompt",
-      includeAssets: ["favicon-premium-32.png", "favicon-premium-64.png", "apple-touch-icon-premium.png", "fonts/*-OFL.txt"],
+      includeAssets: ["favicon-oven-v1-32.png", "favicon-oven-v1-64.png", "apple-touch-icon-oven-v1.png", "fonts/*-OFL.txt"],
       manifest: {
         id: "/ciao-pizza/",
         name: "FORNO. by Marcel",
@@ -22,19 +22,19 @@ export default defineConfig({
         theme_color: "#090908",
         icons: [
           {
-            src: "icons/forno-premium-192.png",
+            src: "icons/forno-oven-v1-192.png",
             sizes: "192x192",
             type: "image/png",
             purpose: "any",
           },
           {
-            src: "icons/forno-premium-512.png",
+            src: "icons/forno-oven-v1-512.png",
             sizes: "512x512",
             type: "image/png",
             purpose: "any",
           },
           {
-            src: "icons/forno-premium-maskable-512.png",
+            src: "icons/forno-oven-v1-maskable-512.png",
             sizes: "512x512",
             type: "image/png",
             purpose: "maskable",
