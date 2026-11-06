@@ -1,16 +1,13 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { PageHeading } from "../components/PageHeading";
+import { ScheduleTimeline } from "./ScheduleTimeline";
+export { formatScheduleTime } from "./ScheduleTimeline";
 import { toLocalInput } from "../core/dough/calculations";
 import {
   calculateSchedule, createSchedule, nextScheduleSteps, parseBakeInput, scheduleIssues,
   scheduleRanges, scheduleWarning, type ScheduleNumber, type SchedulePlan,
 } from "../core/schedule/plan";
 
-export function formatScheduleTime(iso: string) {
-  return new Intl.DateTimeFormat("de-DE", {
-    day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", timeZoneName: "short",
-  }).format(new Date(iso));
-}
 const labels: Record<ScheduleNumber, string> = {
   bulkHours: "Stockgare im Raum", coldHours: "Kühlschrankphase", ballHours: "Stückgare im Raum",
   mixMinutes: "Mischen und Kneten", preheatMinutes: "Ofen vorheizen", roomC: "Raumtemperatur", fridgeC: "Kühlschranktemperatur",
@@ -115,10 +112,7 @@ export function SchedulePage({ saved, loadError, save, busy, now, editingChanged
           <div className="card-heading"><h2 id="schedule-preview-title">{dirty ? "Vorschau deiner Schritte" : "Deine geplanten Schritte"}</h2></div>
           {valid ? <>
             {warning && <p className="schedule-warning" role="status">{warning}</p>}
-            <ol className="schedule-steps">{steps.map(step => <li key={step.id} className={next.some(item => item.id === step.id) ? "next-step" : ""}>
-              <time dateTime={step.at}>{formatScheduleTime(step.at)}</time><h3>{step.label}</h3>
-              {step.endsAt && <p className="muted">Bis {formatScheduleTime(step.endsAt)}{step.temperatureC !== undefined ? ` · ${step.temperatureC} °C` : ""}</p>}
-            </li>)}</ol>
+            <ScheduleTimeline steps={steps} next={next} />
             <p className="field-hint">Vorheizen kann sich mit der Gare überschneiden. Geplante Zeiten bestätigen keine tatsächlich ausgeführten Arbeitsschritte.</p>
           </> : <p role="status" className="muted">Bitte korrigiere die markierten Eingaben, um den Zeitplan zu sehen.</p>}
         </section>

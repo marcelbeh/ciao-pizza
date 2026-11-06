@@ -11,7 +11,7 @@
     "typecheck": "tsc --noEmit",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "vitest run src/app/App.test.tsx src/core/dough/forno.test.ts src/infrastructure/storage/fornoRepository.test.ts src/core/schedule/plan.test.ts src/infrastructure/storage/scheduleRepository.test.ts",
+    "test": "vitest run src/app/App.test.tsx src/core/dough/forno.test.ts src/infrastructure/storage/fornoRepository.test.ts src/core/schedule/plan.test.ts src/infrastructure/storage/scheduleRepository.test.ts src/app/ScheduleTimeline.test.tsx",
     "check": "npm run test && npm run typecheck && npm run build"
   },
   "dependencies": {

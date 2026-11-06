@@ -27,3 +27,9 @@ Die bestehende vollständige JSON-Sicherung enthält den neuen Zeitplan auch im 
 Gezielte Tests für kalte/direkte Planung, Vorheiz-Überlappung, gleiche Startzeiten, ungültige Eingaben, UTC-/Sommerzeitverhalten, Speicherung/Wiederherstellung, unveränderte Altbestände, unbekannte Versionen, vollständige Sicherung und UI-Schreibfehler. Die bisherigen Rechner-/Navigationsprüfungen laufen mit. Typecheck und Produktionsbuild ergänzen die Checks.
 
 Design und Header aus dem aktuellen `main` bleiben bestehen. Die Zeitplanseite und ihre Logik sind im bestehenden App-Bundle und dadurch im bisherigen Service-Worker-Precache enthalten; keine neuen Pakete, APIs oder Konten. Eine physische iPhone-/Offline-Geräteabnahme ist nicht enthalten. Kein automatischer Merge oder Deployment.
+
+## Darstellung als Zeitstrahl
+
+Die Schritte stehen auf einem vertikalen Zeitstrahl mit durchgehender Linie und Ereignismarkierungen. Tagesabschnitte nennen den ausgeschriebenen Wochentag sowie Datum und Jahr. Die Gruppierung folgt dem lokalen Kalendertag des Geräts. Uhrzeit, Dauer, Temperatur und Endzeit bleiben an der jeweiligen Phase; Endzeiten und die Dashboard-Zusammenfassung nennen ebenfalls den Wochentag. Gleichzeitige Schritte bleiben unter demselben Tag und werden beide als nächste Schritte markiert. Die Abstände dienen der Lesbarkeit und sind keine maßstäbliche Zeitachse.
+
+Diese Änderung betrifft nur die Darstellung. Berechnung, Reihenfolge, gespeicherte Zeitpunkte und Speicherschlüssel bleiben unverändert. Zusätzliche gezielte UI-Tests prüfen Tagesgruppierung, Wochentage, gleichzeitige Schritte und Endzeiten über Mitternacht.
