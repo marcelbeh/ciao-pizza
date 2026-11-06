@@ -1,6 +1,6 @@
 # FORNO. by Marcel
 
-Privater, offline-fähiger Pizzarechner im Design „Modern Italian Premium“. React, TypeScript, Vite und installierbare PWA; ohne Konto oder externe API. P1 umfasst Dashboard, Teigrechner und dezente Bottom-Navigation. Zeitplan (P2) und Pizzaabend/Belagrezepte (P3) sind als kommende Bereiche gekennzeichnet.
+Privater, offline-fähiger Pizzarechner im Design „Modern Italian Premium“. React, TypeScript, Vite und installierbare PWA; ohne Konto oder externe API. P1 umfasst Dashboard, Teigrechner und dezente Bottom-Navigation. P2 ergänzt den lokalen Zeitplan. Pizzaabend/Belagrezepte (P3) bleiben vorbereitet.
 
 ## Entwickeln
 
@@ -15,7 +15,7 @@ npm run build
 npm run preview
 ```
 
-`npm test` führt ausschließlich die gezielten Berechnungs- und Datenerhaltungstests aus. `npm run check` kombiniert diese mit Typecheck und Build. Basispfad bleibt `/ciao-pizza/`; Navigation per Hash. Der Pages-Workflow bleibt ausschließlich manuell auf `main` mit `FREIGEGEBEN`. Ein Push oder PR veröffentlicht nichts.
+`npm test` führt die relevanten Rechner-, Zeitplan-, Speicher- und UI-Tests aus. `npm run check` kombiniert diese mit Typecheck und Build. Basispfad bleibt `/ciao-pizza/`; Navigation per Hash. Der Pages-Workflow bleibt ausschließlich manuell auf `main` mit `FREIGEGEBEN`. Ein Push oder PR veröffentlicht nichts.
 
 ## P1
 
@@ -25,6 +25,10 @@ npm run preview
 - Dashboard zeigt die aktuellen Teigeinstellungen und einen vorhandenen Pizzaabend mit Backtermin in dessen Zeitzone. Der Teigrechner und die vorbereitete Pizzaabend-Seite sind direkt erreichbar. Ohne Zeitplandaten werden keine nächsten Zeitpunkte erfunden.
 - Einheitliche Inter-Wortmarke, Terrakotta-Akzent und typografische PWA-Icons. Keine Gitarrenmotive, dekorativen Bilder oder Schatten: [Designsystem](docs/BRANDING.md).
 - Inter ist die einzige Schriftfamilie. Sie wird lokal ausgeliefert und offline gecacht; SIL-OFL-Lizenz unter `public/fonts/`.
+
+## P2 · Zeitplan
+
+Backtermin, Raum-/Kühlschrankphasen und daraus rückwärts berechnete Arbeitsschritte. Vorschau mit ausdrücklichem Speichern; nächster geplanter Schritt im Dashboard. Keine automatische Gärprognose oder Anpassung der Hefemenge. [Bedienung, Grenzen und Datenerhalt](docs/P2-SCHEDULE.md).
 
 ## Daten bleiben erhalten
 

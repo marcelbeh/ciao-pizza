@@ -335,3 +335,30 @@ summary { min-height: 48px; padding: var(--space-1) 0; font-size: var(--text-lab
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
+
+/* P2 uses the existing cards and controls, scoped to the time planner. */
+.schedule-date, .schedule-method { display: grid; gap: var(--space-1); min-width: 0; font-size: var(--text-label); color: var(--text-secondary); }
+.schedule-date input, .schedule-method select {
+  display: block; width: 100%; min-width: 0; max-width: 100%; min-height: 48px;
+  padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--radius-control);
+  background: var(--surface-raised); color: var(--text); font: inherit;
+}
+.schedule-date input::-webkit-date-and-time-value { text-align: left; }
+.schedule-method { margin-top: var(--space-3); }
+.schedule-fields { display: grid; gap: var(--space-2); margin-top: var(--space-3); }
+.field-hint { margin-top: var(--space-1); font-size: var(--text-small); line-height: 1.5; color: var(--text-secondary); }
+.schedule-form > .button { width: 100%; margin-top: var(--space-3); }
+.schedule-form .error { font-size: var(--text-label); margin-top: var(--space-1); }
+.schedule-form .precision-note { margin-top: var(--space-3); }
+.schedule-warning { padding: var(--space-2); margin-bottom: var(--space-3); border: 1px solid var(--accent); border-radius: var(--radius-control); font-size: var(--text-label); }
+.schedule-steps { list-style: none; padding: 0; margin: 0; }
+.schedule-steps li { border-left: 2px solid var(--border); padding: var(--space-2); margin-bottom: var(--space-2); min-width: 0; }
+.schedule-steps li:last-child { margin-bottom: 0; }
+.schedule-steps li.next-step { border-color: var(--accent); background: var(--surface-raised); border-radius: 0 var(--radius-control) var(--radius-control) 0; }
+.schedule-steps time { display: block; margin-bottom: var(--space-1); color: var(--accent); font-size: var(--text-label); font-variant-numeric: tabular-nums; }
+.schedule-steps h3 { font-family: inherit; font-size: var(--text-body); font-weight: 600; }
+.schedule-steps p { margin-top: var(--space-1); font-size: var(--text-small); }
+@media (min-width: 520px) {
+  .schedule-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.feature-card.time-scene .feature-status { font-size: var(--text-small); overflow-wrap: anywhere; }

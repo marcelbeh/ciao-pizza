@@ -5,6 +5,9 @@ import { calculateFormula, formulaIssues, ranges, type Formula, type NumericFiel
 import { createFornoRepository, type FornoRepository, type EveningSummary } from "../infrastructure/storage/fornoRepository";
 import { createIndexedDbStore } from "../infrastructure/storage/indexedDbStore";
 import { PwaNotice } from "../infrastructure/pwa/PwaNotice";
+import { PageHeading } from "../components/PageHeading";
+import { SchedulePage, formatScheduleTime } from "./SchedulePage";
+import { nextScheduleSteps, type SchedulePlan } from "../core/schedule/plan";
 
 const repository = createFornoRepository(createIndexedDbStore());
 const number = (n: number, digits = 0) => new Intl.NumberFormat("de-DE", {
@@ -18,9 +21,6 @@ const parse = (text: string) => /^\d+(?:[.,]\d+)?$/.test(text.trim()) ? Number(t
 
 function Wordmark() {
   return <img className="wordmark" src={`${import.meta.env.BASE_URL}brand/forno-header.png`} alt="" width={576} height={192} />;
-}
-function PageHeading({ title, description }: { title: string; description: string }) {
-  return <div className="page-heading"><h1>{title}</h1><p className="muted">{description}</p></div>;
 }
 function FeatureCard({ to, icon, title, description, scene }: {
   to: string; icon: "clock" | "pizza"; title: string; description: string; scene: string;
@@ -38,7 +38,10 @@ function EveningDetails({ evening }: { evening: EveningSummary }) {
     <p className="muted">{number(evening.count)} Pizzen · {number(evening.ballGrams, 1)} g pro Teigling</p>
   </div>;
 }
-function Dashboard({ evening, formula }: { evening: EveningSummary | null; formula: Formula }) {
+function Dashboard({ evening, formula, schedule, scheduleError, now }: {
+  evening: EveningSummary | null; formula: Formula; schedule: SchedulePlan | null; scheduleError: string; now: number;
+}) {
+  const next = schedule ? nextScheduleSteps(schedule, now) : [];
   return <>
     <div className="welcome page-heading"><p className="eyebrow">Buongiorno, Marcel!</p>
       <h1>Deine Pizzaplanung<span className="accent-dot">.</span></h1>
@@ -56,7 +59,13 @@ function Dashboard({ evening, formula }: { evening: EveningSummary | null; formu
         <p className="flour-note"><Icon name="wheat" />{formula.flourProfile}</p>
         <Link className="button primary calculator-cta" to="/teig"><Icon name="calculator" />Zum Teigrechner <Icon name="arrow" /></Link>
       </section>
-      <FeatureCard to="/zeitplan" icon="clock" title="Zeitplan" description="Teigzeiten, Reife und Backfenster." scene="time-scene" />
+      <Link to="/zeitplan" className="card feature-card time-scene">
+        <Icon name="clock" /><div><h2>Zeitplan</h2>
+          <p>{scheduleError ? "Gespeicherten Zeitplan prüfen." : next.length ? next.map(step => step.label).join(" / ")
+            : schedule ? "Backtermin erreicht. Zeitplan bei Bedarf aktualisieren." : "Backtermin und Teigphasen festlegen."}</p>
+          <span className="feature-status">{next.length ? `Geplant: ${formatScheduleTime(next[0].at)}` : scheduleError ? "Hinweis öffnen" : schedule ? "Zeitplan öffnen" : "Jetzt planen"}</span>
+        </div><Icon name="chevron" />
+      </Link>
       <FeatureCard to="/pizzaabend" icon="pizza" title="Pizzaabend" description="Dein nächster gemeinsamer Abend." scene="evening-scene" />
     </div>
     <section className="quick-section" aria-labelledby="quick-title">
@@ -137,9 +146,8 @@ function Calculator({ formula, save, status, invalidChanged }: {
     <p className={`save-status ${status.includes("fehlgeschlagen") ? "error" : "muted"}`} role="status">{status}</p>
   </>;
 }
-function Placeholder({ kind, evening }: { kind: "time" | "evening" | "recipes"; evening?: EveningSummary | null }) {
+function Placeholder({ kind, evening }: { kind: "evening" | "recipes"; evening?: EveningSummary | null }) {
   const content = {
-    time: { title: "Zeitplan", subtitle: "Guter Teig braucht seine Zeit.", heading: "Vom ersten Kneten bis zum letzten Bissen.", text: "Die detaillierte Zeitplanung ist noch nicht verfügbar. Deine Rezeptur kannst du bereits im Teigrechner abstimmen.", icon: "clock" },
     evening: { title: "Pizzaabend", subtitle: "Die besten Abende beginnen mit Pizza.", heading: "Ein Tisch. Gute Freunde. Deine Pizza.", text: "Die Verwaltung von Pizzaabenden und Belagrezepten ist noch nicht verfügbar. Deine bisherigen Daten bleiben erhalten.", icon: "pizza" },
     recipes: { title: "Rezepte", subtitle: "Ein Stück Italien für deinen Tisch.", heading: "Platz für deine Lieblingspizza.", text: "Eine Rezeptansicht ist in dieser App-Version noch nicht verfügbar. Bereits gespeicherte persönliche Rezepte bleiben erhalten und sind in deiner Datensicherung enthalten.", icon: "book" },
   } as const;
@@ -180,10 +188,17 @@ function Workspace({ repo }: { repo: FornoRepository }) {
   const [status, setStatus] = useState("Auf diesem Gerät gespeichert.");
   const [busy, setBusy] = useState(false);
   const [invalid, setInvalid] = useState(false);
+  const [now, setNow] = useState(Date.now);
   const queue = useRef(Promise.resolve());
   const revision = useRef(0);
   const location = useLocation();
   const main = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const update = () => setNow(Date.now());
+    const interval = window.setInterval(update, 60000);
+    document.addEventListener("visibilitychange", update);
+    return () => { window.clearInterval(interval); document.removeEventListener("visibilitychange", update); };
+  }, []);
   useEffect(() => {
     let active = true;
     void repo.load().then(value => { if (active) { setData(value); setStatus(value.copied ? "Bisherige Rezeptur als Kopie übernommen." : "Wird bei Änderungen automatisch gespeichert."); } })
@@ -200,12 +215,24 @@ function Workspace({ repo }: { repo: FornoRepository }) {
   }, [location.pathname, location.hash, !!data]);
   function save(formula: Formula) {
     if (!data) return;
-    setData({ ...data, formula });
+    setData(previous => previous ? { ...previous, formula } : previous);
     setBusy(true); setStatus("Wird gespeichert …");
     const current = ++revision.current;
     queue.current = queue.current.catch(() => {}).then(() => repo.save(formula)).then(() => {
       if (revision.current === current) { setBusy(false); setStatus("Auf diesem Gerät gespeichert."); }
     }, () => { if (revision.current === current) { setBusy(false); setStatus("Speichern fehlgeschlagen. Änderung erneut versuchen; Browser-Speicher prüfen."); } });
+  }
+  async function saveTimePlan(plan: SchedulePlan) {
+    setBusy(true);
+    const current = ++revision.current;
+    const task = queue.current.catch(() => {}).then(() => repo.saveSchedule(plan));
+    queue.current = task.then(() => {}, () => {});
+    try {
+      await task;
+      setData(previous => previous ? { ...previous, schedule: plan, scheduleError: "" } : previous);
+      setNow(Date.now());
+      if (revision.current === current) setStatus("Auf diesem Gerät gespeichert.");
+    } finally { if (revision.current === current) setBusy(false); }
   }
   async function backup() {
     try {
@@ -222,9 +249,9 @@ function Workspace({ repo }: { repo: FornoRepository }) {
       {error && <div className="card error" role="alert"><p>{error}</p>
         <button onClick={() => window.location.reload()}>Erneut laden</button></div>}
       {!data ? !error && <p role="status">Deine Daten werden geladen …</p> : <Routes>
-        <Route path="/" element={<Dashboard evening={data.evening} formula={data.formula} />} />
+        <Route path="/" element={<Dashboard evening={data.evening} formula={data.formula} schedule={data.schedule} scheduleError={data.scheduleError} now={now} />} />
         <Route path="/teig" element={<Calculator formula={data.formula} save={save} status={status} invalidChanged={setInvalid} />} />
-        <Route path="/zeitplan" element={<Placeholder kind="time" />} />
+        <Route path="/zeitplan" element={<SchedulePage saved={data.schedule} loadError={data.scheduleError} save={saveTimePlan} busy={busy} now={now} editingChanged={setInvalid} />} />
         <Route path="/pizzaabend" element={<Placeholder kind="evening" evening={data.evening} />} />
         <Route path="/rezepte" element={<Placeholder kind="recipes" />} />
         <Route path="/einstellungen" element={<Settings hasLegacy={data.hasLegacy} busy={busy} backup={backup} />} />
