@@ -1,5 +1,6 @@
 import type { KeyValueStore } from '../../core/storage/KeyValueStore';
 import { assertEvening, assertPizzaNight, assertRecipe, emptyPizzaNight, type PizzaEvening, type PizzaNightState, type ToppingRecipe } from '../../core/pizzaNight/model';
+import { withStandardRecipes } from '../../core/pizzaNight/standardRecipes';
 export const PIZZA_NIGHT_KEY = 'forno:pizza-night:v1';
 export const PIZZA_NIGHT_ERROR = 'Pizzaabend- und Rezeptdaten sind nicht lesbar oder haben eine unbekannte Version. Sie wurden nicht überschrieben. Bearbeiten ist gesperrt; bitte unter Einstellungen eine vollständige Sicherung herunterladen.';
 const conflict = () => { throw Error('Die Daten wurden inzwischen geändert. Bitte Entwurf sichern und die Seite neu laden.'); };
@@ -8,17 +9,29 @@ export function createPizzaNightRepository(store: KeyValueStore) {
     if (!store.update) throw Error('Atomarer Speicherzugriff nicht verfügbar. Es wurde nichts gespeichert.');
     return store.update<PizzaNightState>(PIZZA_NIGHT_KEY, previous => {
       if (previous !== undefined) assertPizzaNight(previous);
-      const state = previous === undefined ? emptyPizzaNight() : structuredClone(previous);
+      const state = previous === undefined ? withStandardRecipes(emptyPizzaNight()) : structuredClone(previous);
       edit(state); assertPizzaNight(state); return state;
     });
   }
   return {
     async load(): Promise<{ pizzaNight: PizzaNightState | null; pizzaNightError: string }> {
+      let initializing = false;
       try {
         const raw = await store.get(PIZZA_NIGHT_KEY);
-        if (raw === undefined) return { pizzaNight: emptyPizzaNight(), pizzaNightError: '' };
+        if (raw === undefined) {
+          initializing = true;
+          if (!store.update) throw Error('Atomarer Speicherzugriff nicht verfügbar.');
+          const pizzaNight = await store.update<PizzaNightState>(PIZZA_NIGHT_KEY, previous => {
+            if (previous !== undefined) { assertPizzaNight(previous); return previous; }
+            const state = withStandardRecipes(emptyPizzaNight()); assertPizzaNight(state); return state;
+          });
+          return { pizzaNight, pizzaNightError: '' };
+        }
         assertPizzaNight(raw); return { pizzaNight: raw, pizzaNightError: '' };
-      } catch { return { pizzaNight: null, pizzaNightError: PIZZA_NIGHT_ERROR }; }
+      } catch { return { pizzaNight: null, pizzaNightError: initializing ? 'Die Standardpizzen konnten nicht initialisiert werden. Es wurde kein Erfolg bestätigt. Bitte den lokalen Speicher prüfen und erneut laden; vorhandene Daten bleiben erhalten.' : PIZZA_NIGHT_ERROR }; }
+    },
+    addStandardRecipes() {
+      return change(state => { Object.assign(state, withStandardRecipes(state)); });
     },
     async saveRecipe(recipe: ToppingRecipe, expected: ToppingRecipe | null) {
       assertRecipe(recipe);

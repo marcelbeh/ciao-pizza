@@ -65,6 +65,11 @@ export function RecipesPage(props: Common) {
     try { await run(() => repository.deleteRecipe(recipe)); setSelected(null); setNotice('Rezept gelöscht.'); }
     catch (e) { setError(saveFailure(e)); }
   }
+  async function addStandards() {
+    setError(''); setNotice('');
+    try { await run(() => repository.addStandardRecipes()); setNotice('Standardpizzen ergänzt. Bestehende Rezepte bleiben unverändert.'); }
+    catch (e) { setError(saveFailure(e)); }
+  }
   return <><PageHeading title="Rezepte" description="Deine Belagrezepte. Lokal auf diesem Gerät." />
     <LegacyNotice hasLegacy={hasLegacy} />
     {loadError || !saved ? <LoadFailure message={loadError || 'Daten konnten nicht geladen werden.'} /> : <>
@@ -73,6 +78,9 @@ export function RecipesPage(props: Common) {
       }} /> : <div className="p3-layout">
         <section className="card p3-panel"><div className="card-heading"><h2>Deine Belagrezepte</h2></div>
           <button className="primary" disabled={busy || saved.recipes.length >= pizzaLimits.recipes} onClick={() => { setEditing({ original: null }); setNotice(''); setError(''); }}>Rezept anlegen</button>
+          {saved.standardRecipesVersion === undefined && <div className="p3-actions">
+            <button disabled={busy} onClick={() => void addStandards()}>Standardpizzen ergänzen</button>
+          </div>}
           {!saved.recipes.length ? <p>Noch keine Belagrezepte. Lege dein erstes Rezept an.</p> : <ul className="p3-list">{saved.recipes.map(recipe => <li key={recipe.id}>
             <button className="p3-list-button" aria-pressed={selected === recipe.id} disabled={busy} onClick={() => { setSelected(recipe.id); setNotice(''); setError(''); }}>{recipe.name}<Icon name="chevron" /></button>
           </li>)}</ul>}
