@@ -10,6 +10,7 @@ import { SchedulePage, formatScheduleTime } from "./SchedulePage";
 import { nextScheduleSteps, type SchedulePlan } from "../core/schedule/plan";
 import { RecipesPage, PizzaEveningPage } from "./PizzaNightPages";
 import { pizzaCount, type PizzaNightState } from "../core/pizzaNight/model";
+import { ThermomixBatches } from "../components/ThermomixBatches";
 import { ThemeSwitch } from "../components/ThemeSwitch";
 
 const repository = createFornoRepository(createIndexedDbStore());
@@ -147,6 +148,7 @@ function Calculator({ formula, save, status, invalidChanged }: {
         : <p role="status" className="error">Bitte korrigiere die markierten Eingaben. Es werden keine ungültigen Mengen berechnet oder gespeichert.</p>}
     </section>
     </div>
+    {result && <ThermomixBatches ingredients={result.ingredients} />}
     <p className={`save-status ${status.includes("fehlgeschlagen") ? "error" : "muted"}`} role="status">{status}</p>
   </>;
 }

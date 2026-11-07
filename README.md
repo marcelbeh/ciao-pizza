@@ -22,6 +22,7 @@ npm run preview
 ## P1
 
 - Sofortige Mengenberechnung mit acht Pizzen à 280 g, 66 % Hydration, 3 % Salz, 0,1 % Trockenhefe und Caputo Pizzeria 00 als Ausgangswerten.
+- Thermomix-Chargen: maximal 400 g Mehl pro Charge, gleichmäßig aufgeteilt; Mehl + Wasser jeweils 30 Sekunden Teigstufe, anschließend Salz und Trockenhefe per Hand einarbeiten und mehrere Chargen zusammenführen. [Ablauf und Berechnung](docs/THERMOMIX.md).
 - Mehl = Gesamtteig / (1 + Hydration/100 + Salz/100 + Trockenhefe/100). Der vorhandene Berechnungskern bleibt erhalten. Zwischenwerte werden nicht gerundet.
 - Automatisches lokales Speichern gültiger Änderungen; Fehler werden sichtbar angezeigt. Ungültige Eingaben überschreiben keine gespeicherten Werte.
 - Dashboard zeigt die aktuellen Teigeinstellungen und den aktuellen Pizzaabend mit Pizzaanzahl und gespeichertem P2-Backtermin. Ein lesbarer alter Abend bleibt separat als „Bisheriger Pizzaabend“ sichtbar. Ohne Zeitplandaten werden keine nächsten Zeitpunkte erfunden.
@@ -30,7 +31,7 @@ npm run preview
 
 ## P2 · Zeitplan
 
-Backtermin, Raum-/Kühlschrankphasen und daraus rückwärts berechnete Arbeitsschritte. Die bewusst auswählbare Vorlage „Teichner · 48 Stunden“ ergänzt 24 h kalte Stockgare, 20 h kalte Stückgare und 4 h Akklimatisierung, mit zusätzlicher Knetzeit und parallelem Vorheizen. Gespeicherte ältere Pläne behalten ihre bisherige Bedeutung. Vorschau mit ausdrücklichem Speichern; nächster geplanter Schritt im Dashboard. Keine automatische Gärprognose oder Anpassung der Hefemenge. [Bedienung, Grenzen und Datenerhalt](docs/P2-SCHEDULE.md).
+Backtermin, Raum-/Kühlschrankphasen und daraus rückwärts berechnete Arbeitsschritte. Für neue Planungen gibt es ausschließlich „Teichner · 48 Stunden“ mit 24 h kalte Stockgare, 20 h kalte Stückgare und 4 h Akklimatisierung, mit zusätzlicher Knetzeit und parallelem Vorheizen. Gespeicherte ältere Pläne bleiben lesbar und werden erst auf ausdrücklichen Wunsch umgestellt. Vorschau mit ausdrücklichem Speichern; nächster geplanter Schritt im Dashboard. Keine automatische Gärprognose oder Anpassung der Hefemenge. [Bedienung, Grenzen und Datenerhalt](docs/P2-SCHEDULE.md).
 
 ## P3 · Pizzaabend und Belagrezepte
 

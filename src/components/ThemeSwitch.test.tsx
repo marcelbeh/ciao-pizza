@@ -106,7 +106,7 @@ describe("Theme changes preserve app state", () => {
     const t = bootstrap({ doc: document }); window.fornoTheme = t.api;
     const db = createIndexedDbStore(`theme-schedule-${crypto.randomUUID()}`); const repo = createFornoRepository(db);
     window.location.hash = "#/zeitplan"; render(<App repo={repo} />);
-    const input = await screen.findByRole("textbox", { name: /^Stockgare im Raum/ });
+    const input = await screen.findByRole("textbox", { name: /^Stockgare im Kühlschrank/ });
     fireEvent.change(input, { target: { value: "3,5" } });
     fireEvent.click(screen.getByRole("button", { name: "Dunkel" }));
     expect(input).toHaveValue("3,5"); expect(screen.getByRole("list", { name: "Zeitstrahl nach Tagen" })).toBeVisible();
