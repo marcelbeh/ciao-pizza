@@ -21,9 +21,10 @@ const toDraft = (f: Formula): Draft => Object.fromEntries(Object.keys(ranges).ma
 const parse = (text: string) => /^\d+(?:[.,]\d+)?$/.test(text.trim()) ? Number(text.trim().replace(",", ".")) : NaN;
 
 function Wordmark() {
-  const source = `${import.meta.env.BASE_URL}brand/forno-header.png`;
-  return <span className="wordmark"><img src={source} alt="" width={576} height={192} />
-    <img className="wordmark-ink" src={source} alt="" width={576} height={192} aria-hidden="true" /></span>;
+  return <span className="wordmark">
+    <img className="brand-light" src={`${import.meta.env.BASE_URL}brand/forno-light.png`} alt="" width={942} height={258} />
+    <img className="brand-dark" src={`${import.meta.env.BASE_URL}brand/forno-dark.png`} alt="" width={942} height={258} />
+  </span>;
 }
 function FeatureCard({ to, icon, title, description, scene }: {
   to: string; icon: "clock" | "pizza"; title: string; description: string; scene: string;

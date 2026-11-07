@@ -1,6 +1,14 @@
-# Aktueller Stand: Fresh Food
+# Aktuelle verbindliche Marke
 
-Die aktuelle Oberfläche und Theme-Funktion sind in [FRESH-FOOD.md](FRESH-FOOD.md) dokumentiert. Die folgenden Abschnitte dokumentieren frühere Branding-Schritte und die weiterhin verwendeten Ofen-Icons.
+Das neu gelieferte transparente Logo liegt unverändert als Quelle unter
+`docs/brand/forno-supplied-logo.png`. Daraus erzeugt `node scripts/build-brand-assets.mjs`
+die proportionalen Light-/Dark-Headerlogos und die `brand-v2`-Icons. Dunkle Schrift wird
+für Dark Mode aufgehellt; Ofen, Flamme, Punkt und Trikolore bleiben erhalten. Die App-Icons
+verwenden ausschließlich den illustrierten Ofen auf Creme, mit zusätzlichem Maskable-Sicherheitsrand.
+Alle vorherigen fotografischen Logo- und Icon-Dateien wurden aus `public` entfernt.
+
+Visuelle Abnahme, Screenshots und verbleibende Unterschiede: [Finaler Abgleich](visual-brand/README.md).
+Die folgenden Abschnitte sind ausschließlich historische Dokumentation früherer Markenstände.
 
 # FORNO. — Premium Cinematic UI
 

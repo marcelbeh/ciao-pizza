@@ -20,6 +20,11 @@ const path=require('node:path');const output=process.env.FORNO_VISUAL_OUTPUT||pa
   }
   if(width===1280)await page.screenshot({path:`${output}/after-${theme}-desktop.png`});
   assert(await page.locator('.feature-photo').evaluateAll(images=>images.every(i=>i.complete&&i.naturalWidth>0)));
+  assert(await page.locator(`.brand-${theme}`).evaluate(i=>i.complete&&i.naturalWidth===942));
+  assert(await page.locator(`.brand-${theme}`).isVisible());
+  assert(await page.locator('.app-shell').evaluate(el=>getComputedStyle(el,'::before').pointerEvents==='none'));
+  assert((await page.locator('.app-shell').evaluate(el=>getComputedStyle(el,'::before').backgroundImage)).includes('/ciao-pizza/food/header-pizza.webp'));
+
   if(width===390&&height===780){
    for(const route of ['teig','zeitplan','pizzaabend','rezepte','einstellungen','reife-monitor','journal']){
     await page.goto(`${base}#/${route}`,{waitUntil:'networkidle'});await page.locator('main h1').waitFor();
@@ -38,6 +43,17 @@ const path=require('node:path');const output=process.env.FORNO_VISUAL_OUTPUT||pa
   }
   await context.close();
  }
+ const offline=await browser.newContext({viewport:{width:390,height:780}});
+ const offlinePage=await offline.newPage();await offlinePage.goto(base,{waitUntil:'networkidle'});
+ await offlinePage.evaluate(()=>navigator.serviceWorker.ready);
+ await offlinePage.reload({waitUntil:'networkidle'});
+ await offline.setOffline(true);await offlinePage.reload({waitUntil:'networkidle'});
+ await offlinePage.getByRole('heading',{name:'Aktuelle Teigplanung'}).waitFor();
+ assert(await offlinePage.locator('.brand-light').evaluate(i=>i.complete&&i.naturalWidth>0));
+ assert(await offlinePage.locator('.feature-photo').evaluateAll(images=>images.every(i=>i.complete&&i.naturalWidth>0)));
+ // Fetch inside the controlled page confirms the local decorative asset is cached offline.
+ assert(await offlinePage.evaluate(async()=> (await fetch(new URL('food/header-pizza.webp',location.href))).ok));
+ await offline.close();report.checks.push('Offline reload retains dashboard, new logo, food photos and header decoration');
  const comparable=report.metrics.filter(x=>x.width===390&&x.height===780);
  assert.deepEqual(comparable[0].metrics,comparable[1].metrics);
  report.checks.push('Light/Dark dimensions identical; main cards and quick access visible above dock at 390x664 and 390x780');
