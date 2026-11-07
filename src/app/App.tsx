@@ -1,5 +1,5 @@
 import { Component, useEffect, useRef, useState, type ReactNode } from "react";
-import { HashRouter, Link, NavLink, Route, Routes, useLocation } from "react-router-dom";
+import { createHashRouter, RouterProvider, Link, NavLink, Route, Routes, useLocation } from "react-router-dom";
 import { Icon } from "../components/Icon";
 import { calculateFormula, formulaIssues, ranges, type Formula, type NumericField } from "../core/dough/forno";
 import { createFornoRepository, type FornoRepository, type EveningSummary } from "../infrastructure/storage/fornoRepository";
@@ -8,6 +8,8 @@ import { PwaNotice } from "../infrastructure/pwa/PwaNotice";
 import { PageHeading } from "../components/PageHeading";
 import { SchedulePage, formatScheduleTime } from "./SchedulePage";
 import { nextScheduleSteps, type SchedulePlan } from "../core/schedule/plan";
+import { RecipesPage, PizzaEveningPage } from "./PizzaNightPages";
+import { pizzaCount, type PizzaNightState } from "../core/pizzaNight/model";
 import { ThemeSwitch } from "../components/ThemeSwitch";
 
 const repository = createFornoRepository(createIndexedDbStore());
@@ -26,15 +28,6 @@ function Wordmark() {
     <img className="brand-dark" src={`${import.meta.env.BASE_URL}brand/forno-dark.png`} alt="" width={942} height={258} />
   </span>;
 }
-function FeatureCard({ to, icon, title, description, scene }: {
-  to: string; icon: "clock" | "pizza"; title: string; description: string; scene: string;
-}) {
-  return <Link to={to} className={`card feature-card ${scene}`}>
-    <img className="feature-photo" src={`${import.meta.env.BASE_URL}food/pizza.webp`} alt="" width="710" height="800" loading="lazy" />
-    <div className="feature-copy"><h2><Icon name={icon} />{title}</h2><p>{description}</p>
-      <span className="feature-status">In Vorbereitung</span></div><Icon name="chevron" />
-  </Link>;
-}
 function EveningDetails({ evening }: { evening: EveningSummary }) {
   return <div className="evening-details"><h3>{evening.name}</h3>
     <p className="date-line"><Icon name="evening" />{new Intl.DateTimeFormat("de-DE", {
@@ -43,8 +36,8 @@ function EveningDetails({ evening }: { evening: EveningSummary }) {
     <p className="muted">{number(evening.count)} Pizzen · {number(evening.ballGrams, 1)} g pro Teigling</p>
   </div>;
 }
-function Dashboard({ evening, formula, schedule, scheduleError, now }: {
-  evening: EveningSummary | null; formula: Formula; schedule: SchedulePlan | null; scheduleError: string; now: number;
+function Dashboard({ evening, formula, schedule, scheduleError, now, pizzaNight, pizzaNightError }: {
+  evening: EveningSummary | null; formula: Formula; schedule: SchedulePlan | null; scheduleError: string; now: number; pizzaNight: PizzaNightState | null; pizzaNightError: string;
 }) {
   const next = schedule ? nextScheduleSteps(schedule, now) : [];
   return <>
@@ -72,19 +65,24 @@ function Dashboard({ evening, formula, schedule, scheduleError, now }: {
           <span className="feature-status">{next.length ? `Geplant: ${formatScheduleTime(next[0].at)}` : scheduleError ? "Hinweis öffnen" : schedule ? "Zeitplan öffnen" : "Jetzt planen"}</span>
         </div><Icon name="chevron" />
       </Link>
-      <FeatureCard to="/pizzaabend" icon="pizza" title="Pizzaabend" description="Dein nächster gemeinsamer Abend." scene="evening-scene" />
+      <Link to="/pizzaabend" className={`card feature-card evening-scene ${pizzaNight?.evening || pizzaNightError ? "has-current-evening" : ""}`}>
+        <img className="feature-photo" src={`${import.meta.env.BASE_URL}food/pizza.webp`} alt="" width="710" height="800" loading="lazy" />
+        <div className="feature-copy"><h2><Icon name="pizza" />Pizzaabend</h2>
+          {pizzaNightError ? <p className="error">Lokale Daten prüfen.</p> : pizzaNight?.evening ? <p>{pizzaNight.evening.name} · {pizzaCount(pizzaNight.evening)} Pizzen<br />
+            {scheduleError ? "Zeitplan nicht lesbar – bitte prüfen." : schedule ? formatScheduleTime(schedule.bakeAt) : "Noch kein Backtermin"}</p> : <span className="feature-status">Pizzaabend planen</span>}
+        </div></Link>
     </div>
     <section className="quick-section" aria-labelledby="quick-title">
       <h2 className="section-label" id="quick-title">Schnellzugriff<span /></h2>
       <div className="quick-grid">
-        <Link className="card quick-card" to="/rezepte"><Icon name="book" /><span>Rezepte</span><small>In Vorbereitung</small></Link>
+        <Link className="card quick-card" to="/rezepte"><Icon name="book" /><span>Rezepte</span></Link>
         <Link className="card quick-card" to="/teig#zutaten"><Icon name="sprout" /><span>Zutaten</span></Link>
         <Link to="/reife-monitor" className="card quick-card"><Icon name="trend" /><span>Reife-Monitor</span><small>In Vorbereitung</small></Link>
         <Link to="/journal" className="card quick-card"><Icon name="journal" /><span>Mein Journal</span><small>In Vorbereitung</small></Link>
       </div>
     </section>
-    {evening && <section className="card saved-evening"><div className="card-heading"><h2>Dein gespeicherter Pizzaabend</h2></div>
-      <EveningDetails evening={evening} /><Link className="text-link" to="/pizzaabend">Zum Pizzaabend <Icon name="arrow" /></Link></section>}
+    {evening && <section className="card saved-evening"><div className="card-heading"><h2>Bisheriger Pizzaabend</h2></div>
+      <EveningDetails evening={evening} /><p className="field-hint">Bisherige Daten bleiben erhalten und sind in deiner Sicherung enthalten. Dieser Abend kann hier noch nicht bearbeitet werden.</p><Link className="text-link" to="/pizzaabend">Zum Pizzaabend <Icon name="arrow" /></Link></section>}
   </>;
 }
 
@@ -152,10 +150,8 @@ function Calculator({ formula, save, status, invalidChanged }: {
     <p className={`save-status ${status.includes("fehlgeschlagen") ? "error" : "muted"}`} role="status">{status}</p>
   </>;
 }
-function Placeholder({ kind, evening }: { kind: "evening" | "recipes" | "monitor" | "journal"; evening?: EveningSummary | null }) {
+function Placeholder({ kind }: { kind: "monitor" | "journal" }) {
   const content = {
-    evening: { title: "Pizzaabend", subtitle: "Die besten Abende beginnen mit Pizza.", heading: "Ein Tisch. Gute Freunde. Deine Pizza.", text: "Die Verwaltung von Pizzaabenden und Belagrezepten ist noch nicht verfügbar. Deine bisherigen Daten bleiben erhalten.", icon: "pizza" },
-    recipes: { title: "Rezepte", subtitle: "Ein Stück Italien für deinen Tisch.", heading: "Platz für deine Lieblingspizza.", text: "Eine Rezeptansicht ist in dieser App-Version noch nicht verfügbar. Bereits gespeicherte persönliche Rezepte bleiben erhalten und sind in deiner Datensicherung enthalten.", icon: "book" },
     monitor: { title: "Reife-Monitor", subtitle: "Deinen Teig im Blick behalten.", heading: "In Vorbereitung", text: "Ein Reife-Monitor ist noch nicht verfügbar. Deine geplanten Phasen findest du bereits im Zeitplan.", icon: "evening" },
     journal: { title: "Mein Journal", subtitle: "Platz für deine Pizza-Erfahrungen.", heading: "In Vorbereitung", text: "Eine Journalansicht ist noch nicht verfügbar. Bisherige persönliche Daten bleiben erhalten und sind in deiner Sicherung enthalten.", icon: "journal" },
   } as const;
@@ -166,7 +162,6 @@ function Placeholder({ kind, evening }: { kind: "evening" | "recipes" | "monitor
       <span className="availability">In Vorbereitung</span><h2>{c.heading}</h2><p className="muted">{c.text}</p>
       <Link to="/teig" className="button primary">Zum Teigrechner <Icon name="arrow" /></Link>
     </section>
-    {evening && <section className="card saved-evening"><div className="card-heading"><h2>Bereits gespeichert</h2></div><EveningDetails evening={evening} /></section>}
   </>;
 }
 function Settings({ hasLegacy, busy, backup }: { hasLegacy: boolean; busy: boolean; backup: () => Promise<void> }) {
@@ -244,6 +239,17 @@ function Workspace({ repo }: { repo: FornoRepository }) {
       if (revision.current === current) setStatus("Auf diesem Gerät gespeichert.");
     } finally { if (revision.current === current) setBusy(false); }
   }
+  async function runPizza(task: () => Promise<PizzaNightState>) {
+    if (!data || data.pizzaNightError) throw Error("Pizzaabend-/Rezeptdaten sind schreibgeschützt.");
+    setBusy(true);
+    const current = ++revision.current;
+    const operation = queue.current.catch(() => {}).then(task);
+    queue.current = operation.then(() => {}, () => {});
+    try {
+      const pizzaNight = await operation;
+      setData(previous => previous ? { ...previous, pizzaNight, pizzaNightError: "" } : previous);
+    } finally { if (revision.current === current) setBusy(false); }
+  }
   async function backup() {
     try {
       await queue.current;
@@ -259,11 +265,13 @@ function Workspace({ repo }: { repo: FornoRepository }) {
       {error && <div className="card error" role="alert"><p>{error}</p>
         <button onClick={() => window.location.reload()}>Erneut laden</button></div>}
       {!data ? !error && <p role="status">Deine Daten werden geladen …</p> : <Routes>
-        <Route path="/" element={<Dashboard evening={data.evening} formula={data.formula} schedule={data.schedule} scheduleError={data.scheduleError} now={now} />} />
+        <Route path="/" element={<Dashboard evening={data.evening} formula={data.formula} schedule={data.schedule} scheduleError={data.scheduleError} now={now} pizzaNight={data.pizzaNight} pizzaNightError={data.pizzaNightError} />} />
         <Route path="/teig" element={<Calculator formula={data.formula} save={save} status={status} invalidChanged={setInvalid} />} />
         <Route path="/zeitplan" element={<SchedulePage saved={data.schedule} loadError={data.scheduleError} save={saveTimePlan} busy={busy} now={now} editingChanged={setInvalid} />} />
-        <Route path="/pizzaabend" element={<Placeholder kind="evening" evening={data.evening} />} />
-        <Route path="/rezepte" element={<Placeholder kind="recipes" />} />
+        <Route path="/pizzaabend" element={<PizzaEveningPage saved={data.pizzaNight} loadError={data.pizzaNightError} repository={repo.pizzaNight} busy={busy} run={runPizza} editingChanged={setInvalid} hasLegacy={data.hasLegacy}
+          doughCount={data.formula.count} schedule={data.schedule} scheduleError={data.scheduleError}
+          legacyEvening={data.evening && <section className="card saved-evening"><h2>Bisheriger Pizzaabend</h2><EveningDetails evening={data.evening} /><p className="field-hint">Dieser bisherige Abend bleibt unverändert erhalten und ist in deiner Sicherung enthalten. Er kann hier noch nicht bearbeitet werden.</p></section>} />} />
+        <Route path="/rezepte" element={<RecipesPage saved={data.pizzaNight} loadError={data.pizzaNightError} repository={repo.pizzaNight} busy={busy} run={runPizza} editingChanged={setInvalid} hasLegacy={data.hasLegacy} />} />
         <Route path="/reife-monitor" element={<Placeholder kind="monitor" />} />
         <Route path="/journal" element={<Placeholder kind="journal" />} />
         <Route path="/einstellungen" element={<Settings hasLegacy={data.hasLegacy} busy={busy} backup={backup} />} />
@@ -281,5 +289,11 @@ function Workspace({ repo }: { repo: FornoRepository }) {
   </div>;
 }
 export function App({ repo = repository }: { repo?: FornoRepository }) {
-  return <ErrorBoundary><HashRouter><Workspace repo={repo} /></HashRouter></ErrorBoundary>;
+  const [router, setRouter] = useState<ReturnType<typeof createHashRouter> | null>(null);
+  useEffect(() => {
+    const next = createHashRouter([{ path: "*", element: <Workspace repo={repo} /> }]);
+    setRouter(next);
+    return () => next.dispose();
+  }, [repo]);
+  return <ErrorBoundary>{router ? <RouterProvider router={router} /> : <p role="status">FORNO. wird geladen …</p>}</ErrorBoundary>;
 }

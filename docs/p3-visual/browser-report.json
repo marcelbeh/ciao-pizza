@@ -1,0 +1,12 @@
+{
+  "browser": "155.0.8059.79",
+  "capturedAt": "2026-11-07T13:06:32.436Z",
+  "checks": [
+    "iPhone: browser Back and links confirm discard; recipe and evening CRUD; source edits/deletion preserve snapshots; quantities leave P1/P2/legacy/unknown data unchanged; offline reload and save; full downloaded backup matches all entries",
+    "Offline recipe create/reload/delete and evening delete; declining delete preserves the evening",
+    "390px light: recipe details, evening display/editor without overflow; theme switch keeps draft",
+    "390px dark: recipe details, evening display/editor without overflow; theme switch keeps draft",
+    "1280px light: recipe details, evening display/editor without overflow; theme switch keeps draft",
+    "1280px dark: recipe details, evening display/editor without overflow; theme switch keeps draft"
+  ]
+}

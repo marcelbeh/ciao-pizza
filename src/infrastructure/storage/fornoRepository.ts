@@ -3,6 +3,7 @@ import { defaults, formulaIssues, type Formula } from "../../core/dough/forno";
 import { validatePlan, calculateDough, convertYeast } from "../../core/dough/calculations";
 import type { DoughPlan } from "../../core/dough/model";
 import { readSchedule, saveSchedule, SCHEDULE_KEY } from "./scheduleRepository";
+import { createPizzaNightRepository, PIZZA_NIGHT_KEY } from "./pizzaNightRepository";
 import type { SchedulePlan } from "../../core/schedule/plan";
 
 export const FORNO_KEY = "forno:calculator:v1";
@@ -48,12 +49,15 @@ export function copyCompatibleFormula(value: unknown): Formula | null {
   return Object.keys(formulaIssues(formula)).length ? null : formula;
 }
 export function createFornoRepository(store: KeyValueStore) {
+  const pizzaNight = createPizzaNightRepository(store);
   return {
+    pizzaNight,
     async load() {
       const [saved, workspace, oldDough, rawSchedule] = await Promise.all([
         store.get<unknown>(FORNO_KEY), store.get<unknown>(LEGACY_KEYS[0]), store.get<unknown>(LEGACY_KEYS[1]),
         store.get<unknown>(SCHEDULE_KEY),
       ]);
+      const pizza = await pizzaNight.load();
       let formula: Formula;
       let copied = false;
       if (saved !== undefined) {
@@ -70,7 +74,7 @@ export function createFornoRepository(store: KeyValueStore) {
         copied = !!compatible;
         // No write on load. A user edit creates the separate FORNO. entry.
       }
-      return { formula, evening: latestEvening(workspace), copied, ...readSchedule(rawSchedule),
+      return { ...pizza, formula, evening: latestEvening(workspace), copied, ...readSchedule(rawSchedule),
         hasLegacy: workspace !== undefined || oldDough !== undefined };
     },
     async save(formula: Formula) {
@@ -79,11 +83,12 @@ export function createFornoRepository(store: KeyValueStore) {
     },
     saveSchedule: (plan: SchedulePlan) => saveSchedule(store, plan),
     async backup() {
-      const keys = [FORNO_KEY, ...LEGACY_KEYS, SCHEDULE_KEY];
-      const entries = await Promise.all(keys.map(async key => [key, await store.get(key)] as const));
-      return { format: "forno-preserved-data", version: 1,
-        entries: store.entries ? await store.entries()
-          : Object.fromEntries(entries.filter(([, value]) => value !== undefined)) };
+      const keys = [FORNO_KEY, ...LEGACY_KEYS, SCHEDULE_KEY, PIZZA_NIGHT_KEY];
+      const entries = store.entries ? await store.entries() : Object.fromEntries(
+        (await Promise.all(keys.map(async key => [key, await store.get(key)] as const)))
+          .filter(([, value]) => value !== undefined),
+      );
+      return { format: "forno-preserved-data", version: 1, entries };
     },
   };
 }
