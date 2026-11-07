@@ -161,3 +161,47 @@ describe("P2 schedule integration", () => {
     expect(screen.queryByText(/erledigt|abgeschlossen/i)).not.toBeInTheDocument();
   });
 });
+
+describe("Teichner template integration", () => {
+  it("keeps saved legacy plans until explicit selection and save, then uses the same steps on Home", async () => {
+    const db = createIndexedDbStore(`teichner-ui-${crypto.randomUUID()}`); const repo = createFornoRepository(db);
+    const old = { ...createSchedule(), bakeAt: new Date(Math.floor((Date.now() + 30 * 3600000) / 60000) * 60000).toISOString(), bulkHours: 3, preheatMinutes: 90 };
+    await repo.saveSchedule(old); const before = await db.entries!();
+    window.location.hash = "#/zeitplan"; render(<App repo={repo} />);
+    expect(await screen.findByRole("textbox", { name: /^Stockgare im Raum/ })).toHaveValue("3");
+    fireEvent.change(screen.getByLabelText("Vorlage"), { target: { value: "teichner-48h" } });
+    expect(screen.getByRole("textbox", { name: /^Stockgare im Kühlschrank/ })).toHaveValue("24");
+    expect(screen.getByRole("textbox", { name: /^Stückgare im Kühlschrank/ })).toHaveValue("20");
+    expect(screen.getByRole("textbox", { name: /^Akklimatisierung im Raum/ })).toHaveValue("4");
+    expect(screen.getByRole("heading", { name: "Portionieren/Rundschleifen · Stückgare im Kühlschrank" })).toBeVisible();
+    expect(await db.entries!()).toEqual(before);
+    fireEvent.change(screen.getByLabelText("Vorlage"), { target: { value: "" } });
+    expect(screen.getByRole("textbox", { name: /^Stockgare im Raum/ })).toHaveValue("3");
+    expect(await db.entries!()).toEqual(before);
+    fireEvent.change(screen.getByLabelText("Vorlage"), { target: { value: "teichner-48h" } });
+    fireEvent.click(screen.getByText("Kneten, Vorheizen und Temperaturen"));
+    fireEvent.change(screen.getByRole("textbox", { name: /^Raumtemperatur/ }), { target: { value: "23" } });
+    fireEvent.change(screen.getByRole("textbox", { name: /^Kühlschranktemperatur/ }), { target: { value: "5" } });
+    expect(screen.getByRole("textbox", { name: /^Ofen vorheizen/ })).toHaveValue("30");
+    fireEvent.click(screen.getByRole("button", { name: "Änderungen speichern" }));
+    await screen.findByText("Zeitplan auf diesem Gerät gespeichert.");
+    expect((await repo.load()).schedule).toMatchObject({ version: 2, method: "cold-staged", coldBulkHours: 24, coldBallHours: 20, acclimationHours: 4, roomC: 23, fridgeC: 5 });
+    fireEvent.click(screen.getByRole("link", { name: "Home" }));
+    expect(await screen.findByText("Portionieren/Rundschleifen · Stückgare im Kühlschrank")).toBeVisible();
+    fireEvent.click(screen.getByRole("link", { name: "Zeitplan" }));
+    expect(await screen.findByRole("textbox", { name: /^Stockgare im Kühlschrank/ })).toHaveValue("24");
+  });
+  it("retains the staged draft on failed save without replacing the old plan", async () => {
+    const db = createIndexedDbStore(`teichner-failure-${crypto.randomUUID()}`); const repo = createFornoRepository(db); const old = createSchedule();
+    await repo.saveSchedule(old); window.location.hash = "#/zeitplan"; render(<App repo={repo} />);
+    fireEvent.change(await screen.findByLabelText("Vorlage"), { target: { value: "teichner-48h" } });
+    vi.spyOn(db, "update").mockRejectedValueOnce(Error("Storage full"));
+    fireEvent.click(screen.getByRole("button", { name: "Änderungen speichern" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("nicht gespeichert");
+    expect((await repo.load()).schedule).toEqual(old);
+    expect(screen.getByRole("textbox", { name: /^Stückgare im Kühlschrank/ })).toHaveValue("20");
+    fireEvent.click(screen.getByRole("button", { name: "Änderungen speichern" }));
+    await screen.findByText("Zeitplan auf diesem Gerät gespeichert.");
+    expect((await repo.load()).schedule?.version).toBe(2);
+  });
+});

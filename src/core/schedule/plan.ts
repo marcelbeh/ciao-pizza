@@ -1,7 +1,7 @@
 import { fromLocalInput, limits, plannedPhases, toLocalInput } from "../dough/calculations";
 import { createPlan } from "../dough/model";
 
-export interface SchedulePlan {
+export interface LegacySchedulePlan {
   version: 1;
   bakeAt: string;
   method: "direct" | "cold";
@@ -13,33 +13,62 @@ export interface SchedulePlan {
   roomC: number;
   fridgeC: number;
 }
+export interface StagedSchedulePlan {
+  version: 2;
+  method: "cold-staged";
+  bakeAt: string;
+  coldBulkHours: number;
+  coldBallHours: number;
+  acclimationHours: number;
+  mixMinutes: number;
+  preheatMinutes: number;
+  roomC: number;
+  fridgeC: number;
+}
+export type SchedulePlan = LegacySchedulePlan | StagedSchedulePlan;
 export const scheduleRanges = {
   bulkHours: limits.bulkHours, coldHours: limits.coldHours, ballHours: limits.ballHours,
   mixMinutes: limits.mixMinutes, preheatMinutes: limits.preheatMinutes,
   roomC: limits.roomC, fridgeC: limits.fridgeC,
+  coldBulkHours: [0.25, 72], coldBallHours: [0.25, 72], acclimationHours: [0.25, 24],
 } as const;
 export type ScheduleNumber = keyof typeof scheduleRanges;
-export type ScheduleIssues = Partial<Record<keyof SchedulePlan | "plan", string>>;
+export type ScheduleIssues = Partial<Record<keyof LegacySchedulePlan | keyof StagedSchedulePlan | "plan", string>>;
 
-export function createSchedule(now = Date.now()): SchedulePlan {
+export function createSchedule(now = Date.now()): LegacySchedulePlan {
   return {
     version: 1, bakeAt: new Date(Math.floor((now + 48 * 3600000) / 60000) * 60000).toISOString(),
     method: "cold", bulkHours: 2, coldHours: 24, ballHours: 4,
     mixMinutes: 20, preheatMinutes: 30, roomC: 22, fridgeC: 4,
   };
 }
+/** Explicit template only: never selected or written while loading an existing plan. */
+export function createTeichnerSchedule(bakeAt: string, settings: Pick<SchedulePlan, "mixMinutes" | "roomC" | "fridgeC">): StagedSchedulePlan {
+  return { version: 2, method: "cold-staged", bakeAt, coldBulkHours: 24, coldBallHours: 20,
+    acclimationHours: 4, preheatMinutes: 30, mixMinutes: settings.mixMinutes, roomC: settings.roomC, fridgeC: settings.fridgeC };
+}
+export function scheduleNumberKeys(plan: SchedulePlan): ScheduleNumber[] {
+  const phases: ScheduleNumber[] = plan.version === 1 ? ["bulkHours", "coldHours", "ballHours"]
+    : ["coldBulkHours", "coldBallHours", "acclimationHours"];
+  return [...phases, "mixMinutes", "preheatMinutes", "roomC", "fridgeC"];
+}
+export function fermentationHours(plan: SchedulePlan): number {
+  return plan.version === 1 ? plan.bulkHours + (plan.method === "cold" ? plan.coldHours : 0) + plan.ballHours
+    : plan.coldBulkHours + plan.coldBallHours + plan.acclimationHours;
+}
 export function scheduleIssues(value: unknown): ScheduleIssues {
   if (!value || typeof value !== "object" || Array.isArray(value)) return { plan: "Ungültiger Zeitplan." };
   const plan = value as SchedulePlan;
   const issues: ScheduleIssues = {};
-  if (plan.version !== 1) issues.version = "Unbekannte Zeitplanversion.";
-  if (!["direct", "cold"].includes(plan.method)) issues.method = "Teigführung wählen.";
+  if (plan.version !== 1 && plan.version !== 2) issues.version = "Unbekannte Zeitplanversion.";
+  if (plan.version === 2 ? plan.method !== "cold-staged" : !["direct", "cold"].includes(plan.method)) issues.method = "Teigführung wählen.";
   if (typeof plan.bakeAt !== "string" || !/^\d{4}-\d\d-\d\dT/.test(plan.bakeAt) || !Number.isFinite(Date.parse(plan.bakeAt)) ||
     new Date(plan.bakeAt).toISOString() !== plan.bakeAt) issues.bakeAt = "Gültigen Backtermin wählen.";
-  for (const key of Object.keys(scheduleRanges) as ScheduleNumber[]) {
+  for (const key of scheduleNumberKeys(plan)) {
     const [min, max] = scheduleRanges[key];
-    if (!Number.isFinite(plan[key]) || plan[key] < min || plan[key] > max ||
-      ((key === "mixMinutes" || key === "preheatMinutes") && !Number.isInteger(plan[key])))
+    const duration = (plan as unknown as Record<string, unknown>)[key];
+    if (typeof duration !== "number" || !Number.isFinite(duration) || duration < min || duration > max ||
+      ((key === "mixMinutes" || key === "preheatMinutes") && !Number.isInteger(duration)))
       issues[key] = `Bitte ${min} bis ${max}${key.endsWith("Minutes") ? " ganze Minuten" : ""} eingeben.`;
   }
   return issues;
@@ -58,7 +87,7 @@ export function parseBakeInput(value: string): string {
   return iso;
 }
 export interface ScheduleStep {
-  id: "mix" | "bulk" | "cold-bulk" | "balls" | "preheat" | "bake";
+  id: "mix" | "bulk" | "cold-bulk" | "balls" | "cold-balls" | "acclimate" | "preheat" | "bake";
   label: string;
   at: string;
   endsAt?: string;
@@ -67,7 +96,23 @@ export interface ScheduleStep {
 /** Reuse P1's elapsed-time arithmetic. Durations are user choices, not fermentation predictions. */
 export function calculateSchedule(plan: SchedulePlan): ScheduleStep[] {
   assertSchedule(plan);
-  const times = Object.fromEntries((Object.keys(scheduleRanges) as ScheduleNumber[]).map(key => [key, plan[key]]));
+  if (plan.version === 2) {
+    const hour = 3600000; const minute = 60000; const bake = Date.parse(plan.bakeAt);
+    const acclimate = bake - plan.acclimationHours * hour;
+    const coldBalls = acclimate - plan.coldBallHours * hour;
+    const coldBulk = coldBalls - plan.coldBulkHours * hour;
+    const iso = (at: number) => new Date(at).toISOString();
+    const steps: ScheduleStep[] = [
+      { id: "mix", label: "Teig mischen und kneten", at: iso(coldBulk - plan.mixMinutes * minute), endsAt: iso(coldBulk) },
+      { id: "cold-bulk", label: "Ende Kneten · Stockgare im Kühlschrank", at: iso(coldBulk), endsAt: iso(coldBalls), temperatureC: plan.fridgeC },
+      { id: "cold-balls", label: "Portionieren/Rundschleifen · Stückgare im Kühlschrank", at: iso(coldBalls), endsAt: iso(acclimate), temperatureC: plan.fridgeC },
+      { id: "acclimate", label: "Teiglinge herausnehmen · Akklimatisierung im Raum", at: iso(acclimate), endsAt: plan.bakeAt, temperatureC: plan.roomC },
+      { id: "preheat", label: "Ofen vorheizen", at: iso(bake - plan.preheatMinutes * minute), endsAt: plan.bakeAt },
+      { id: "bake", label: "Formen, Belegen und Backen", at: plan.bakeAt },
+    ];
+    return steps.sort((a, b) => Date.parse(a.at) - Date.parse(b.at));
+  }
+  const times = Object.fromEntries(scheduleNumberKeys(plan).map(key => [key, plan[key as keyof LegacySchedulePlan]]));
   const phases = plannedPhases({
     ...createPlan(new Date("2026-01-01T12:00:00.000Z")), ...times,
     method: plan.method, bakeAt: plan.bakeAt,

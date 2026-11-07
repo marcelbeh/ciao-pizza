@@ -30,7 +30,7 @@ npm run preview
 
 ## P2 · Zeitplan
 
-Backtermin, Raum-/Kühlschrankphasen und daraus rückwärts berechnete Arbeitsschritte. Vorschau mit ausdrücklichem Speichern; nächster geplanter Schritt im Dashboard. Keine automatische Gärprognose oder Anpassung der Hefemenge. [Bedienung, Grenzen und Datenerhalt](docs/P2-SCHEDULE.md).
+Backtermin, Raum-/Kühlschrankphasen und daraus rückwärts berechnete Arbeitsschritte. Die bewusst auswählbare Vorlage „Teichner · 48 Stunden“ ergänzt 24 h kalte Stockgare, 20 h kalte Stückgare und 4 h Akklimatisierung, mit zusätzlicher Knetzeit und parallelem Vorheizen. Gespeicherte ältere Pläne behalten ihre bisherige Bedeutung. Vorschau mit ausdrücklichem Speichern; nächster geplanter Schritt im Dashboard. Keine automatische Gärprognose oder Anpassung der Hefemenge. [Bedienung, Grenzen und Datenerhalt](docs/P2-SCHEDULE.md).
 
 ## P3 · Pizzaabend und Belagrezepte
 
