@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calculateSchedule, createSchedule, nextScheduleSteps, parseBakeInput, scheduleIssues, scheduleWarning } from "./plan";
+import { calculateSchedule, createSchedule, createTeichnerSchedule, type SchedulePlan, nextScheduleSteps, parseBakeInput, scheduleIssues, scheduleWarning } from "./plan";
 
 const plan = () => ({ ...createSchedule(), bakeAt: "2027-01-10T18:00:00.000Z" });
 describe("P2 elapsed-time planning", () => {
@@ -69,5 +69,51 @@ describe("P2 elapsed-time planning", () => {
     } finally {
       if (previous === undefined) delete process.env.TZ; else process.env.TZ = previous;
     }
+  });
+});
+
+describe("Teichner · 48 Stunden", () => {
+  const teichner = () => createTeichnerSchedule("2027-01-10T18:00:00.000Z", { mixMinutes: 20, roomC: 22, fridgeC: 4 });
+  it("places every transition exactly, with mixing before 48h and parallel preheating", () => {
+    const p = teichner(); const before = structuredClone(p); const steps = calculateSchedule(p);
+    expect(steps.map(({ id, at, endsAt }) => [id, at, endsAt])).toEqual([
+      ["mix", "2027-01-08T17:40:00.000Z", "2027-01-08T18:00:00.000Z"],
+      ["cold-bulk", "2027-01-08T18:00:00.000Z", "2027-01-09T18:00:00.000Z"],
+      ["cold-balls", "2027-01-09T18:00:00.000Z", "2027-01-10T14:00:00.000Z"],
+      ["acclimate", "2027-01-10T14:00:00.000Z", "2027-01-10T18:00:00.000Z"],
+      ["preheat", "2027-01-10T17:30:00.000Z", "2027-01-10T18:00:00.000Z"],
+      ["bake", "2027-01-10T18:00:00.000Z", undefined],
+    ]);
+    const phases = steps.filter(step => ["cold-bulk", "cold-balls", "acclimate"].includes(step.id));
+    expect(phases.map(step => (Date.parse(step.endsAt!) - Date.parse(step.at)) / 3600000)).toEqual([24, 20, 4]);
+    expect(phases.reduce((sum, step) => sum + Date.parse(step.endsAt!) - Date.parse(step.at), 0)).toBe(48 * 3600000);
+    expect(Date.parse(p.bakeAt) - Date.parse(steps[0].at)).toBe(48 * 3600000 + 20 * 60000);
+    expect(phases.map(step => step.temperatureC)).toEqual([4, 4, 22]);
+    expect(steps.find(step => step.id === "cold-balls")?.label).toContain("Portionieren/Rundschleifen");
+    expect(steps.at(-1)?.label).toBe("Formen, Belegen und Backen"); expect(p).toEqual(before);
+  });
+  it("copies only explicit common settings, never the old version or legacy phases", () => {
+    const old = { ...plan(), mixMinutes: 35, roomC: 23, fridgeC: 5, preheatMinutes: 90 };
+    const copy = structuredClone(old); const next = createTeichnerSchedule(old.bakeAt, old);
+    expect(next).toMatchObject({ version: 2, method: "cold-staged", mixMinutes: 35, roomC: 23, fridgeC: 5, preheatMinutes: 30 });
+    expect(next).not.toHaveProperty("bulkHours"); expect(next).not.toHaveProperty("coldHours"); expect(old).toEqual(copy);
+  });
+  it("keeps next steps consistent at every transition and counts no separate portioning duration", () => {
+    const p = teichner();
+    for (const [now, expected] of [["2027-01-08T18:00:00Z", "cold-bulk"], ["2027-01-09T18:00:00Z", "cold-balls"], ["2027-01-10T14:00:00Z", "acclimate"], ["2027-01-10T17:30:00Z", "preheat"], [p.bakeAt, "bake"]])
+      expect(nextScheduleSteps(p, Date.parse(now)).map(step => step.id)).toEqual([expected]);
+    expect(calculateSchedule(p)).toHaveLength(6);
+  });
+  it("keeps the 48 elapsed hours across DST and treats changed durations as an individual schedule", () => {
+    const p = { ...teichner(), bakeAt: "2027-03-28T16:00:00.000Z" };
+    const steps = calculateSchedule(p);
+    expect(Date.parse(p.bakeAt) - Date.parse(steps.find(step => step.id === "cold-bulk")!.at)).toBe(48 * 3600000);
+    const changed = { ...p, coldBallHours: 21, mixMinutes: 40, preheatMinutes: 60 };
+    const edited = calculateSchedule(changed);
+    expect(Date.parse(changed.bakeAt) - Date.parse(edited.find(step => step.id === "cold-bulk")!.at)).toBe(49 * 3600000);
+    expect(edited.find(step => step.id === "mix")?.endsAt).toBe(edited.find(step => step.id === "cold-bulk")?.at);
+  });
+  it.each([{ coldBulkHours: 0 }, { coldBallHours: NaN }, { acclimationHours: 0 }, { roomC: 40 }, { fridgeC: 0 }, { method: "cold" }, { version: 3 }])("rejects invalid staged data %j", patch => {
+    expect(() => calculateSchedule({ ...teichner(), ...patch } as SchedulePlan)).toThrow();
   });
 });

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createSchedule } from "../../core/schedule/plan";
+import { calculateSchedule, createSchedule, createTeichnerSchedule } from "../../core/schedule/plan";
 import { defaults } from "../../core/dough/forno";
 import { createIndexedDbStore } from "./indexedDbStore";
 import { createFornoRepository, FORNO_KEY, LEGACY_KEYS } from "./fornoRepository";
@@ -56,4 +56,24 @@ describe("P2 isolated local storage", () => {
     await repo.save(defaults);
     expect((await repo.backup()).entries).toMatchObject({ [FORNO_KEY]: { formula: defaults }, [SCHEDULE_KEY]: plan });
   });
+});
+
+it("retains legacy meaning and all personal data until explicitly saving the staged template", async () => {
+  const db = store(); const repo = createFornoRepository(db);
+  const legacy = { ...createSchedule(), bulkHours: 3, coldHours: 36, ballHours: 6, retained: { untouched: true } };
+  await db.set(SCHEDULE_KEY, legacy); await repo.save(defaults);
+  await db.set("forno:pizza-night:v1", { version: 1, recipes: [], evening: null });
+  await db.set(LEGACY_KEYS[0], { recipes: ["personal"], future: true });
+  await db.set("unknown:cache", { opaque: true });
+  const before = await db.entries!(); const expectedSteps = calculateSchedule(legacy);
+  expect((await repo.load()).schedule).toEqual(legacy);
+  expect(calculateSchedule((await repo.load()).schedule!)).toEqual(expectedSteps);
+  const template = createTeichnerSchedule(legacy.bakeAt, legacy);
+  calculateSchedule(template); expect(await db.entries!()).toEqual(before);
+  await repo.saveSchedule(template);
+  expect(await db.entries!()).toEqual({ ...before, [SCHEDULE_KEY]: template });
+  expect((await createFornoRepository(db).load()).schedule).toEqual(template);
+  expect((await repo.backup()).entries).toEqual(await db.entries!());
+  await expect(repo.saveSchedule({ ...template, coldBallHours: 0 })).rejects.toThrow();
+  expect(await db.get(SCHEDULE_KEY)).toEqual(template);
 });

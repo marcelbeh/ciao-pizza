@@ -1,6 +1,7 @@
 import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { formatScheduleTime, groupTimelineDays, ScheduleTimeline } from "./ScheduleTimeline";
+import { calculateSchedule, createTeichnerSchedule } from "../core/schedule/plan";
 import type { ScheduleStep } from "../core/schedule/plan";
 
 // Local constructors deliberately exercise the device calendar, independent of the runner zone.
@@ -46,4 +47,14 @@ describe("Day-grouped schedule timeline", () => {
     expect(screen.getAllByRole("heading", { level: 3 })).toHaveLength(1);
     expect(groupTimelineDays([])).toEqual([]);
   });
+});
+
+it("renders cold bulk, cold balls and acclimatisation separately with their own duration and temperature", () => {
+  const plan = createTeichnerSchedule("2027-01-10T18:00:00.000Z", { mixMinutes: 20, roomC: 23, fridgeC: 5 });
+  render(<ScheduleTimeline steps={calculateSchedule(plan)} next={[]} />);
+  expect(screen.getByRole("heading", { name: "Ende Kneten · Stockgare im Kühlschrank" })).toBeVisible();
+  expect(screen.getByRole("heading", { name: "Portionieren/Rundschleifen · Stückgare im Kühlschrank" })).toBeVisible();
+  expect(screen.getByRole("heading", { name: "Teiglinge herausnehmen · Akklimatisierung im Raum" })).toBeVisible();
+  expect(screen.getByText("24 Std. · 5 °C")).toBeVisible(); expect(screen.getByText("20 Std. · 5 °C")).toBeVisible();
+  expect(screen.getByText("4 Std. · 23 °C")).toBeVisible(); expect(screen.getByText("30 Min.")).toBeVisible();
 });
