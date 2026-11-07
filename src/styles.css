@@ -1,11 +1,11 @@
 @font-face { font-family: Inter; src: url('/fonts/inter-variable.ttf') format('truetype'); font-weight: 100 900; font-display: swap; }
 :root {
   color-scheme: light;
-  --background: #F9F6F1; --surface: #FFFFFF; --surface-raised: #F1F3E9;
+  --background: #F9F6F1; --surface: #FCF9F3; --surface-raised: #F1F3E9;
   --text: #252A22; --text-secondary: #5D6659; --accent: #486923; --olive: #6B8F3A;
   --accent-soft: #EAF0DE; --terracotta: #A9472D; --border: #DDDFD5; --control-border: #87947C;
   --button-bg: #526F2B; --button-text: #FFFFFF; --field-bg: #FAFBF7; --error: #A33C28;
-  --shadow: 0 3px 14px #303A2110; --logo-bg: #272923; --focus: #486923;
+  --shadow: 0 3px 14px #303A2110; --focus: #486923;
   --space-1: 8px; --space-2: 16px; --space-3: 24px; --space-4: 32px;
   --space-5: 40px; --space-6: 48px; --space-8: 64px;
   --radius-card: 20px; --radius-control: 12px;
@@ -56,7 +56,7 @@ button:disabled { opacity: .6; cursor: not-allowed; }
 .skip-link:focus { top: 16px; }
 .app-shell { max-width: 1200px; min-height: 100svh; margin: auto; }
 .app-header { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 8px; padding: calc(20px + env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) 16px max(20px, env(safe-area-inset-left)); }
-.brand-link { display: flex; align-items: center; justify-content: center; justify-self: start; width: min(148px, 100%); min-height: 48px; padding: 4px 8px; border-radius: 12px; background: var(--logo-bg); }
+.brand-link { display: flex; align-items: center; justify-content: center; justify-self: start; width: min(148px, 100%); min-height: 48px; padding: 4px 8px; border-radius: 12px; background: transparent; }
 .wordmark { display: block; width: 100%; height: auto; object-fit: contain; }
 .settings-link { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: var(--surface); border: 1px solid var(--border); color: var(--text-secondary); }
 .theme-control { min-width: 0; }
@@ -251,9 +251,9 @@ summary { min-height: 48px; padding: 8px 0; font-size: 14px; font-weight: 500; c
 .brand-link { width: min(156px, 100%); min-height: 44px; padding: 0; background: transparent; border-radius: 0; }
 .wordmark { position: relative; display: block; width: 100%; line-height: 0; }
 .wordmark img { display: block; width: 100%; height: auto; }
-/* Reuse the exact approved artwork: only its lettering is contrast-adapted. The oven and orange dot stay untouched. */
-.wordmark .wordmark-ink { position: absolute; inset: 0; clip-path: inset(0 5% 0 42%); filter: brightness(0); pointer-events: none; }
-:root[data-theme='dark'] .wordmark .wordmark-ink { filter: brightness(0) invert(1); }
+.wordmark .brand-dark { display: none; }
+:root[data-theme='dark'] .wordmark .brand-light { display: none; }
+:root[data-theme='dark'] .wordmark .brand-dark { display: block; }
 .settings-link { border: 0; background: transparent; }
 .settings-link svg { width: 20px; height: 20px; }
 .theme-switch { padding: 0; border: 0; background: transparent; border-radius: 12px; }
@@ -341,3 +341,32 @@ summary { min-height: 48px; padding: 8px 0; font-size: 14px; font-weight: 500; c
 /* Dashboard already links settings in its header; keep offline/update notices without a clipped duplicate footer. */
 .app-content:has(.welcome) .app-footer { margin-top: 16px; padding-top: 0; border-top: 0; }
 .app-content:has(.welcome) .app-footer > p, .app-content:has(.welcome) .app-footer > .text-link { display: none; }
+
+/* Supplied brand and Fresh Food reference: shared geometry in both themes. */
+:root { --button-highlight: #617F32; --button-depth: #425E23; --button-shadow: 0 2px 4px #435C2324; --tricolour-white: #FFFDF7; --tricolour-red: #C55A3B; }
+:root[data-theme='dark'] { --button-highlight: #B3D277; --button-depth: #97B95D; --button-shadow: 0 2px 4px #00000024; }
+.app-shell { position: relative; isolation: isolate; }
+.app-shell:has(.welcome)::before { content: ''; position: absolute; z-index: -1; pointer-events: none; top: -38px; right: 0; width: 128px; height: 232px; background: url('/food/header-pizza.webp') no-repeat left top / 230px auto; }
+.app-header { position: relative; z-index: 1; }
+.app-header .theme-switch, .app-header .settings-link { background: var(--background); }
+.brand-link { width: min(156px, 100%); }
+.welcome .eyebrow { font-family: Georgia, 'Times New Roman', serif; font-weight: 600; font-style: italic; font-synthesis: style; font-size: 19px; }
+.welcome h1 { font-weight: 680; letter-spacing: -.04em; }
+.welcome.page-heading > .welcome-copy { color: var(--text); }
+.flourish { background: linear-gradient(to right, var(--olive) 0 33%, var(--tricolour-white) 33% 66%, var(--tricolour-red) 66%); transform: rotate(-2deg); border-radius: 80% 20% 70% 30%; }
+.plan-values dd { font-weight: 650; }
+.calculator-cta { background: linear-gradient(var(--button-highlight), var(--button-bg) 55%, var(--button-depth)); box-shadow: var(--button-shadow); }
+.feature-copy { background: var(--surface); }
+.feature-card h2 { font-weight: 600; }
+.floating-dock { background: var(--background); }
+.floating-dock a.active { background: transparent; font-weight: 650; }
+@media (max-width: 799px) {
+  .welcome { position: relative; }
+  .welcome .eyebrow { font-size: 19px; }
+  .welcome h1 { font-size: clamp(23px, 6.3vw, 27px); }
+  .welcome.page-heading > .welcome-copy { max-width: 270px; font-size: 12px; }
+  .plan-values dd { font-size: 27px; }
+  .feature-photo { object-position: center 58%; }
+}
+@media (max-width: 359px) { .brand-link { width: 112px; } .app-shell:has(.welcome)::before { width: 84px; opacity: .8; } }
+@media (min-width: 800px) { .brand-link { width: 192px; } .app-shell:has(.welcome)::before { width: 240px; height: 270px; background-size: 330px auto; } .welcome { padding-right: 160px; } }
