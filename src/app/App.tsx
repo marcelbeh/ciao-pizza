@@ -21,7 +21,9 @@ const toDraft = (f: Formula): Draft => Object.fromEntries(Object.keys(ranges).ma
 const parse = (text: string) => /^\d+(?:[.,]\d+)?$/.test(text.trim()) ? Number(text.trim().replace(",", ".")) : NaN;
 
 function Wordmark() {
-  return <img className="wordmark" src={`${import.meta.env.BASE_URL}brand/forno-header.png`} alt="" width={576} height={192} />;
+  const source = `${import.meta.env.BASE_URL}brand/forno-header.png`;
+  return <span className="wordmark"><img src={source} alt="" width={576} height={192} />
+    <img className="wordmark-ink" src={source} alt="" width={576} height={192} aria-hidden="true" /></span>;
 }
 function FeatureCard({ to, icon, title, description, scene }: {
   to: string; icon: "clock" | "pizza"; title: string; description: string; scene: string;
@@ -47,12 +49,12 @@ function Dashboard({ evening, formula, schedule, scheduleError, now }: {
   return <>
     <div className="welcome page-heading"><p className="eyebrow">Buongiorno, Marcel!</p>
       <h1>Deine Pizzaplanung<span className="accent-dot">.</span></h1>
-      <p className="welcome-copy">Teig, Zeitplan, Rezepte und dein<br className="mobile-break" /> perfekter Pizzaabend – alles an einem Ort.</p>
+      <p className="welcome-copy">Teig, Zeitplan und Pizzaabend – an einem Ort.</p>
       <span className="flourish" aria-hidden="true" /></div>
     <div className="dashboard-grid">
       <section className="card plan-summary" aria-labelledby="current-plan-title">
         <div className="card-heading"><h2 id="current-plan-title"><Icon name="dough" />Aktuelle Teigplanung</h2>
-          <Link className="edit-link" to="/teig"><Icon name="edit" /><span>Bearbeiten</span></Link></div>
+          <Link className="edit-link" to="/teig" aria-label="Bearbeiten"><Icon name="edit" /><span>Bearbeiten</span></Link></div>
         <dl className="plan-values">
           <div><dt>Pizzen</dt><dd>{number(formula.count)}</dd></div>
           <div><dt>pro Teigling</dt><dd>{number(formula.ballGrams, Number.isInteger(formula.ballGrams) ? 0 : 1)}<span>g</span></dd></div>
@@ -61,9 +63,9 @@ function Dashboard({ evening, formula, schedule, scheduleError, now }: {
         <p className="flour-note"><Icon name="wheat" />{formula.flourProfile}</p>
         <Link className="button primary calculator-cta" to="/teig"><Icon name="calculator" />Zum Teigrechner <Icon name="arrow" /></Link>
       </section>
-      <Link to="/zeitplan" className="card feature-card time-scene">
+      <Link to="/zeitplan" className={`card feature-card time-scene ${schedule || scheduleError ? "has-time-plan" : "no-time-plan"}`}>
         <img className="feature-photo" src={`${import.meta.env.BASE_URL}food/dough.webp`} alt="" width="710" height="800" loading="lazy" />
-        <div className="feature-copy"><h2><Icon name="clock" />Zeitplan</h2>
+        <div className="feature-copy"><h2><Icon name="evening" />Zeitplan</h2>
           <p>{scheduleError ? "Gespeicherten Zeitplan prüfen." : next.length ? next.map(step => step.label).join(" / ")
             : schedule ? "Backtermin erreicht. Zeitplan bei Bedarf aktualisieren." : "Backtermin und Teigphasen festlegen."}</p>
           <span className="feature-status">{next.length ? `Geplant: ${formatScheduleTime(next[0].at)}` : scheduleError ? "Hinweis öffnen" : schedule ? "Zeitplan öffnen" : "Jetzt planen"}</span>
@@ -76,7 +78,7 @@ function Dashboard({ evening, formula, schedule, scheduleError, now }: {
       <div className="quick-grid">
         <Link className="card quick-card" to="/rezepte"><Icon name="book" /><span>Rezepte</span><small>In Vorbereitung</small></Link>
         <Link className="card quick-card" to="/teig#zutaten"><Icon name="sprout" /><span>Zutaten</span></Link>
-        <Link to="/reife-monitor" className="card quick-card"><Icon name="evening" /><span>Reife-Monitor</span><small>In Vorbereitung</small></Link>
+        <Link to="/reife-monitor" className="card quick-card"><Icon name="trend" /><span>Reife-Monitor</span><small>In Vorbereitung</small></Link>
         <Link to="/journal" className="card quick-card"><Icon name="journal" /><span>Mein Journal</span><small>In Vorbereitung</small></Link>
       </div>
     </section>
