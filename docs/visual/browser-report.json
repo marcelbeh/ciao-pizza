@@ -1,0 +1,381 @@
+{
+  "browser": "155.0.8059.79",
+  "capturedAt": "2026-11-07T05:06:35.195Z",
+  "checks": [
+    "light: all routes without horizontal overflow, calculator/schedule drafts survive theme switch, saved next step remains visible",
+    "dark: all routes without horizontal overflow, calculator/schedule drafts survive theme switch, saved next step remains visible",
+    "Light/Dark dimensions identical; main cards and quick access visible above dock at 390x664 and 390x780"
+  ],
+  "metrics": [
+    {
+      "width": 320,
+      "height": 700,
+      "theme": "light",
+      "metrics": {
+        ".app-header": {
+          "y": 0,
+          "height": 60,
+          "bottom": 60
+        },
+        ".welcome": {
+          "y": 64,
+          "height": 88.03125,
+          "bottom": 152.03125
+        },
+        ".plan-summary": {
+          "y": 164.03125,
+          "height": 205.78125,
+          "bottom": 369.8125
+        },
+        ".time-scene": {
+          "y": 381.8125,
+          "height": 124.84375,
+          "bottom": 506.65625
+        },
+        ".quick-section": {
+          "y": 514.65625,
+          "height": 95.09375,
+          "bottom": 609.75
+        },
+        ".floating-dock": {
+          "y": 643,
+          "height": 57,
+          "bottom": 700
+        }
+      }
+    },
+    {
+      "width": 320,
+      "height": 700,
+      "theme": "dark",
+      "metrics": {
+        ".app-header": {
+          "y": 0,
+          "height": 60,
+          "bottom": 60
+        },
+        ".welcome": {
+          "y": 64,
+          "height": 88.03125,
+          "bottom": 152.03125
+        },
+        ".plan-summary": {
+          "y": 164.03125,
+          "height": 205.78125,
+          "bottom": 369.8125
+        },
+        ".time-scene": {
+          "y": 381.8125,
+          "height": 124.84375,
+          "bottom": 506.65625
+        },
+        ".quick-section": {
+          "y": 514.65625,
+          "height": 95.09375,
+          "bottom": 609.75
+        },
+        ".floating-dock": {
+          "y": 643,
+          "height": 57,
+          "bottom": 700
+        }
+      }
+    },
+    {
+      "width": 390,
+      "height": 664,
+      "theme": "light",
+      "metrics": {
+        ".app-header": {
+          "y": 0,
+          "height": 68,
+          "bottom": 68
+        },
+        ".welcome": {
+          "y": 72,
+          "height": 89.578125,
+          "bottom": 161.578125
+        },
+        ".plan-summary": {
+          "y": 173.578125,
+          "height": 205.78125,
+          "bottom": 379.359375
+        },
+        ".time-scene": {
+          "y": 391.359375,
+          "height": 128.84375,
+          "bottom": 520.203125
+        },
+        ".quick-section": {
+          "y": 528.203125,
+          "height": 72,
+          "bottom": 600.203125
+        },
+        ".floating-dock": {
+          "y": 607,
+          "height": 57,
+          "bottom": 664
+        }
+      }
+    },
+    {
+      "width": 390,
+      "height": 664,
+      "theme": "dark",
+      "metrics": {
+        ".app-header": {
+          "y": 0,
+          "height": 68,
+          "bottom": 68
+        },
+        ".welcome": {
+          "y": 72,
+          "height": 89.578125,
+          "bottom": 161.578125
+        },
+        ".plan-summary": {
+          "y": 173.578125,
+          "height": 205.78125,
+          "bottom": 379.359375
+        },
+        ".time-scene": {
+          "y": 391.359375,
+          "height": 128.84375,
+          "bottom": 520.203125
+        },
+        ".quick-section": {
+          "y": 528.203125,
+          "height": 72,
+          "bottom": 600.203125
+        },
+        ".floating-dock": {
+          "y": 607,
+          "height": 57,
+          "bottom": 664
+        }
+      }
+    },
+    {
+      "width": 390,
+      "height": 780,
+      "theme": "light",
+      "metrics": {
+        ".app-header": {
+          "y": 0,
+          "height": 68,
+          "bottom": 68
+        },
+        ".welcome": {
+          "y": 72,
+          "height": 93.578125,
+          "bottom": 165.578125
+        },
+        ".plan-summary": {
+          "y": 181.578125,
+          "height": 225.59375,
+          "bottom": 407.171875
+        },
+        ".time-scene": {
+          "y": 419.171875,
+          "height": 146.84375,
+          "bottom": 566.015625
+        },
+        ".quick-section": {
+          "y": 578.015625,
+          "height": 80,
+          "bottom": 658.015625
+        },
+        ".floating-dock": {
+          "y": 723,
+          "height": 57,
+          "bottom": 780
+        }
+      }
+    },
+    {
+      "width": 390,
+      "height": 780,
+      "theme": "dark",
+      "metrics": {
+        ".app-header": {
+          "y": 0,
+          "height": 68,
+          "bottom": 68
+        },
+        ".welcome": {
+          "y": 72,
+          "height": 93.578125,
+          "bottom": 165.578125
+        },
+        ".plan-summary": {
+          "y": 181.578125,
+          "height": 225.59375,
+          "bottom": 407.171875
+        },
+        ".time-scene": {
+          "y": 419.171875,
+          "height": 146.84375,
+          "bottom": 566.015625
+        },
+        ".quick-section": {
+          "y": 578.015625,
+          "height": 80,
+          "bottom": 658.015625
+        },
+        ".floating-dock": {
+          "y": 723,
+          "height": 57,
+          "bottom": 780
+        }
+      }
+    },
+    {
+      "width": 430,
+      "height": 932,
+      "theme": "light",
+      "metrics": {
+        ".app-header": {
+          "y": 0,
+          "height": 68,
+          "bottom": 68
+        },
+        ".welcome": {
+          "y": 72,
+          "height": 96.578125,
+          "bottom": 168.578125
+        },
+        ".plan-summary": {
+          "y": 184.578125,
+          "height": 225.59375,
+          "bottom": 410.171875
+        },
+        ".time-scene": {
+          "y": 422.171875,
+          "height": 146.84375,
+          "bottom": 569.015625
+        },
+        ".quick-section": {
+          "y": 581.015625,
+          "height": 80,
+          "bottom": 661.015625
+        },
+        ".floating-dock": {
+          "y": 875,
+          "height": 57,
+          "bottom": 932
+        }
+      }
+    },
+    {
+      "width": 430,
+      "height": 932,
+      "theme": "dark",
+      "metrics": {
+        ".app-header": {
+          "y": 0,
+          "height": 68,
+          "bottom": 68
+        },
+        ".welcome": {
+          "y": 72,
+          "height": 96.578125,
+          "bottom": 168.578125
+        },
+        ".plan-summary": {
+          "y": 184.578125,
+          "height": 225.59375,
+          "bottom": 410.171875
+        },
+        ".time-scene": {
+          "y": 422.171875,
+          "height": 146.84375,
+          "bottom": 569.015625
+        },
+        ".quick-section": {
+          "y": 581.015625,
+          "height": 80,
+          "bottom": 661.015625
+        },
+        ".floating-dock": {
+          "y": 875,
+          "height": 57,
+          "bottom": 932
+        }
+      }
+    },
+    {
+      "width": 1280,
+      "height": 900,
+      "theme": "light",
+      "metrics": {
+        ".app-header": {
+          "y": 0,
+          "height": 68,
+          "bottom": 68
+        },
+        ".welcome": {
+          "y": 72,
+          "height": 147.234375,
+          "bottom": 219.234375
+        },
+        ".plan-summary": {
+          "y": 247.234375,
+          "height": 308.734375,
+          "bottom": 555.96875
+        },
+        ".time-scene": {
+          "y": 247.234375,
+          "height": 308.734375,
+          "bottom": 555.96875
+        },
+        ".quick-section": {
+          "y": 587.96875,
+          "height": 172,
+          "bottom": 759.96875
+        },
+        ".floating-dock": {
+          "y": 810,
+          "height": 74,
+          "bottom": 884
+        }
+      }
+    },
+    {
+      "width": 1280,
+      "height": 900,
+      "theme": "dark",
+      "metrics": {
+        ".app-header": {
+          "y": 0,
+          "height": 68,
+          "bottom": 68
+        },
+        ".welcome": {
+          "y": 72,
+          "height": 147.234375,
+          "bottom": 219.234375
+        },
+        ".plan-summary": {
+          "y": 247.234375,
+          "height": 308.734375,
+          "bottom": 555.96875
+        },
+        ".time-scene": {
+          "y": 247.234375,
+          "height": 308.734375,
+          "bottom": 555.96875
+        },
+        ".quick-section": {
+          "y": 587.96875,
+          "height": 172,
+          "bottom": 759.96875
+        },
+        ".floating-dock": {
+          "y": 810,
+          "height": 74,
+          "bottom": 884
+        }
+      }
+    }
+  ]
+}

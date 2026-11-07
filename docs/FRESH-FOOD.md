@@ -22,3 +22,7 @@ Ein Wechsel ändert nur Root-Tokens und den Umschalter, nicht den React-Arbeitsb
 - Lokale Produktionsvorschau startet. Chromium scheitert in dieser Umgebung mit Prozess-/Zertifikatsfehlern, ohne verlässliche Bildschirmbilder zu erzeugen. Keine behauptete visuelle iPhone-/Desktop- oder physische Offline-Abnahme. Eine separat öffentlich testbare PR-Vorschau ist hier nicht eingerichtet; dafür wurde kein zusätzlicher Hosting-Dienst aktiviert. Lokale Vorschau: `npm run preview -- --host 127.0.0.1` unter `/ciao-pizza/`.
 
 Gemäß abschließender Nutzeranweisung wird genau ein PR erstellt und nach grüner CI gemergt sowie über den vorhandenen manuellen Pages-Workflow veröffentlicht.
+
+## Visuelle Nachbesserung nach Referenz
+
+Die frühere Browserblockade wurde für die Nachbesserung durch die freigegebene Browserausführung außerhalb der Dateisandbox überwunden. Echte Vorher-/Nachher-Aufnahmen und die aktuellen Messwerte stehen unter [visual/README.md](visual/README.md). Dort sind auch die verbleibenden Unterschiede und die weiterhin fehlende physische Safari-/iPhone-Abnahme aufgeführt.
