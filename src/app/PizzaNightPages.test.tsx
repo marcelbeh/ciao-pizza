@@ -4,7 +4,7 @@ import { App } from './App';
 import { createIndexedDbStore } from '../infrastructure/storage/indexedDbStore';
 import { createFornoRepository, FORNO_KEY, LEGACY_KEYS } from '../infrastructure/storage/fornoRepository';
 import { PIZZA_NIGHT_KEY } from '../infrastructure/storage/pizzaNightRepository';
-import { createSchedule } from '../core/schedule/plan';
+import { createSchedule, createTeichnerSchedule } from '../core/schedule/plan';
 import { SCHEDULE_KEY } from '../infrastructure/storage/scheduleRepository';
 import { defaults } from '../core/dough/forno';
 import { createPlan } from '../core/dough/model';
@@ -106,7 +106,7 @@ describe('P3 recipes, evening and draft protection', () => {
     expect((await repo.backup()).entries[PIZZA_NIGHT_KEY]).toEqual({ version: 77, raw: true });
   });
   it('uses the updated shared P2 date without saving an evening date', async () => {
-    const { db, repo } = setup(); await db.set(SCHEDULE_KEY, createSchedule());
+    const { db, repo } = setup(); const initial = createSchedule(); await db.set(SCHEDULE_KEY, createTeichnerSchedule(initial.bakeAt, initial));
     window.location.hash = '#/pizzaabend'; render(<App repo={repo} />);
     fireEvent.click(await screen.findByRole('button', { name: 'Pizzaabend anlegen' }));
     fireEvent.change(screen.getByLabelText('Name des Pizzaabends'), { target: { value: 'Freunde' } });

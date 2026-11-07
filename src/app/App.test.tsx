@@ -5,7 +5,7 @@ import { defaults } from "../core/dough/forno";
 import type { FornoRepository } from "../infrastructure/storage/fornoRepository";
 import { createFornoRepository } from "../infrastructure/storage/fornoRepository";
 import { createIndexedDbStore } from "../infrastructure/storage/indexedDbStore";
-import { createSchedule } from "../core/schedule/plan";
+import { createSchedule, createTeichnerSchedule } from "../core/schedule/plan";
 
 vi.mock("../infrastructure/pwa/PwaNotice", () => ({ PwaNotice: () => null }));
 function repository(): FornoRepository {
@@ -77,13 +77,13 @@ describe("P2 schedule integration", () => {
   it("previews edits, saves explicitly and exposes the next planned step on Home without touching the formula", async () => {
     const repo = repository(); window.location.hash = "#/zeitplan";
     render(<App repo={repo} />);
-    const bulk = await screen.findByRole("textbox", { name: /^Stockgare im Raum/ });
+    const bulk = await screen.findByRole("textbox", { name: /^Stockgare im Kühlschrank/ });
     fireEvent.change(bulk, { target: { value: "3,5" } });
     expect(screen.getByRole("heading", { name: "Vorschau deiner Schritte" })).toBeVisible();
     expect(repo.saveSchedule).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole("button", { name: "Zeitplan speichern" }));
     await screen.findByText("Zeitplan auf diesem Gerät gespeichert.");
-    expect(repo.saveSchedule).toHaveBeenCalledWith(expect.objectContaining({ bulkHours: 3.5, method: "cold" }));
+    expect(repo.saveSchedule).toHaveBeenCalledWith(expect.objectContaining({ coldBulkHours: 3.5, method: "cold-staged" }));
     fireEvent.click(screen.getByRole("link", { name: "Home" }));
     expect(await screen.findByText("Teig mischen und kneten")).toBeVisible();
     expect(repo.save).not.toHaveBeenCalled();
@@ -96,20 +96,20 @@ describe("P2 schedule integration", () => {
     const view = render(<App repo={repo} />);
     const date = await screen.findByLabelText("Backdatum und Uhrzeit");
     fireEvent.change(date, { target: { value: "2027-01-10T18:00" } });
-    fireEvent.change(screen.getByRole("textbox", { name: /^Stockgare im Raum/ }), { target: { value: "4" } });
+    fireEvent.change(screen.getByRole("textbox", { name: /^Stockgare im Kühlschrank/ }), { target: { value: "4" } });
     fireEvent.click(screen.getByRole("button", { name: "Zeitplan speichern" }));
     await screen.findByText("Zeitplan auf diesem Gerät gespeichert.");
     view.unmount();
     render(<App repo={createFornoRepository(db)} />);
     expect(await screen.findByLabelText("Backdatum und Uhrzeit")).toHaveValue("2027-01-10T18:00");
-    expect(screen.getByRole("textbox", { name: /^Stockgare im Raum/ })).toHaveValue("4");
+    expect(screen.getByRole("textbox", { name: /^Stockgare im Kühlschrank/ })).toHaveValue("4");
     expect((await repo.load()).formula.count).toBe(11);
   });
   it("blocks invalid input and lets a failed write be retried with the draft intact", async () => {
     const repo = repository(); window.location.hash = "#/zeitplan";
     vi.mocked(repo.saveSchedule).mockRejectedValueOnce(Error("Storage full"));
     render(<App repo={repo} />);
-    const bulk = await screen.findByRole("textbox", { name: /^Stockgare im Raum/ });
+    const bulk = await screen.findByRole("textbox", { name: /^Stockgare im Kühlschrank/ });
     fireEvent.change(bulk, { target: { value: "" } });
     expect(bulk).toHaveAttribute("aria-invalid", "true");
     expect(screen.getByRole("button", { name: "Zeitplan speichern" })).toBeDisabled();
@@ -122,19 +122,17 @@ describe("P2 schedule integration", () => {
     await screen.findByText("Zeitplan auf diesem Gerät gespeichert.");
     expect(repo.saveSchedule).toHaveBeenCalledTimes(2);
   });
-  it("switches to room-only planning even after an invalid hidden cold input", async () => {
-    const repo = repository(); window.location.hash = "#/zeitplan";
-    render(<App repo={repo} />);
-    fireEvent.change(await screen.findByRole("textbox", { name: /^Kühlschrankphase/ }), { target: { value: "" } });
-    fireEvent.change(screen.getByLabelText("Teigführung"), { target: { value: "direct" } });
-    expect(screen.queryByRole("textbox", { name: /^Kühlschrankphase/ })).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Zeitplan speichern" })).toBeEnabled();
-    fireEvent.click(screen.getByRole("button", { name: "Zeitplan speichern" }));
-    await screen.findByText("Zeitplan auf diesem Gerät gespeichert.");
-    expect(repo.saveSchedule).toHaveBeenCalledWith(expect.objectContaining({ method: "direct", coldHours: 24 }));
+  it("offers only Teichner for fresh plans without writing on load", async () => {
+    const repo = repository(); window.location.hash = "#/zeitplan"; render(<App repo={repo} />);
+    expect(await screen.findByRole("textbox", { name: /^Stockgare im Kühlschrank/ })).toHaveValue("24");
+    expect(screen.queryByLabelText("Teigführung")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Vorlage")).not.toBeInTheDocument();
+    expect(screen.getByRole("textbox", { name: /^Stückgare im Kühlschrank/ })).toHaveValue("20");
+    expect(screen.getByRole("textbox", { name: /^Akklimatisierung im Raum/ })).toHaveValue("4");
+    expect(repo.saveSchedule).not.toHaveBeenCalled();
   });
   it("blocks an empty date without discarding a previously stored plan", async () => {
-    const repo = repository(); const loaded = await repo.load(); const saved = createSchedule();
+    const repo = repository(); const loaded = await repo.load(); const initial = createSchedule(); const saved = createTeichnerSchedule(initial.bakeAt, initial);
     vi.mocked(repo.load).mockResolvedValue({ ...loaded, schedule: saved });
     window.location.hash = "#/zeitplan"; render(<App repo={repo} />);
     const date = await screen.findByLabelText("Backdatum und Uhrzeit");
@@ -168,17 +166,18 @@ describe("Teichner template integration", () => {
     const old = { ...createSchedule(), bakeAt: new Date(Math.floor((Date.now() + 30 * 3600000) / 60000) * 60000).toISOString(), bulkHours: 3, preheatMinutes: 90 };
     await repo.saveSchedule(old); const before = await db.entries!();
     window.location.hash = "#/zeitplan"; render(<App repo={repo} />);
-    expect(await screen.findByRole("textbox", { name: /^Stockgare im Raum/ })).toHaveValue("3");
-    fireEvent.change(screen.getByLabelText("Vorlage"), { target: { value: "teichner-48h" } });
+    expect(await screen.findByRole("heading", { name: "Bisheriger Zeitplan" })).toBeVisible();
+    expect(screen.getByLabelText("Backdatum und Uhrzeit")).toBeDisabled();
+    fireEvent.click(screen.getByRole("button", { name: "Teichner · 48 Stunden verwenden" }));
     expect(screen.getByRole("textbox", { name: /^Stockgare im Kühlschrank/ })).toHaveValue("24");
     expect(screen.getByRole("textbox", { name: /^Stückgare im Kühlschrank/ })).toHaveValue("20");
     expect(screen.getByRole("textbox", { name: /^Akklimatisierung im Raum/ })).toHaveValue("4");
     expect(screen.getByRole("heading", { name: "Portionieren/Rundschleifen · Stückgare im Kühlschrank" })).toBeVisible();
     expect(await db.entries!()).toEqual(before);
-    fireEvent.change(screen.getByLabelText("Vorlage"), { target: { value: "" } });
-    expect(screen.getByRole("textbox", { name: /^Stockgare im Raum/ })).toHaveValue("3");
+    fireEvent.click(screen.getByRole("button", { name: "Gespeicherten Plan wiederherstellen" }));
+    expect(screen.getByRole("heading", { name: "Bisheriger Zeitplan" })).toBeVisible();
     expect(await db.entries!()).toEqual(before);
-    fireEvent.change(screen.getByLabelText("Vorlage"), { target: { value: "teichner-48h" } });
+    fireEvent.click(screen.getByRole("button", { name: "Teichner · 48 Stunden verwenden" }));
     fireEvent.click(screen.getByText("Kneten, Vorheizen und Temperaturen"));
     fireEvent.change(screen.getByRole("textbox", { name: /^Raumtemperatur/ }), { target: { value: "23" } });
     fireEvent.change(screen.getByRole("textbox", { name: /^Kühlschranktemperatur/ }), { target: { value: "5" } });
@@ -194,7 +193,7 @@ describe("Teichner template integration", () => {
   it("retains the staged draft on failed save without replacing the old plan", async () => {
     const db = createIndexedDbStore(`teichner-failure-${crypto.randomUUID()}`); const repo = createFornoRepository(db); const old = createSchedule();
     await repo.saveSchedule(old); window.location.hash = "#/zeitplan"; render(<App repo={repo} />);
-    fireEvent.change(await screen.findByLabelText("Vorlage"), { target: { value: "teichner-48h" } });
+    fireEvent.click(await screen.findByRole("button", { name: "Teichner · 48 Stunden verwenden" }));
     vi.spyOn(db, "update").mockRejectedValueOnce(Error("Storage full"));
     fireEvent.click(screen.getByRole("button", { name: "Änderungen speichern" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("nicht gespeichert");
@@ -204,4 +203,20 @@ describe("Teichner template integration", () => {
     await screen.findByText("Zeitplan auf diesem Gerät gespeichert.");
     expect((await repo.load()).schedule?.version).toBe(2);
   });
+});
+
+it("recalculates Thermomix batches with the existing recipe and hides them for invalid inputs", async () => {
+  const repo = repository(); window.location.hash = "#/teig"; render(<App repo={repo} />);
+  const section = await screen.findByRole("region", { name: "Thermomix-Chargen" });
+  expect(within(section).getByText("30 Sekunden · Teigstufe")).toBeVisible();
+  expect(within(section).getByText(/Hefe sind die Gesamtmengen/)).toBeVisible();
+  const count = screen.getByRole("textbox", { name: /Pizzaanzahl/ });
+  fireEvent.change(count, { target: { value: "1" } });
+  expect(within(section).getByRole("heading", { name: "Thermomix · 1 Charge" })).toBeVisible();
+  expect(within(section).queryByText(/Teige aller Chargen zusammenführen/)).not.toBeInTheDocument();
+  fireEvent.change(count, { target: { value: "8" } });
+  expect(within(section).getByRole("heading", { name: "Thermomix · 4 Chargen" })).toBeVisible();
+  expect(within(section).getByText(/Teige aller Chargen zusammenführen/)).toBeVisible();
+  fireEvent.change(count, { target: { value: "" } });
+  expect(screen.queryByRole("region", { name: "Thermomix-Chargen" })).not.toBeInTheDocument();
 });

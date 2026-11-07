@@ -32,8 +32,8 @@ const path=require('node:path');const output=process.env.FORNO_VISUAL_OUTPUT||pa
    }
    await page.goto(`${base}#/teig`,{waitUntil:'networkidle'});await page.locator('#count').fill('');
    await page.getByRole('button',{name:theme==='light'?'Dunkel':'Hell',exact:true}).click();assert.equal(await page.locator('#count').inputValue(),'');
-   await page.goto(`${base}#/zeitplan`,{waitUntil:'networkidle'});await page.locator('#schedule-bulkHours').fill('3,5');
-   await page.getByRole('button',{name:theme==='light'?'Hell':'Dunkel',exact:true}).click();assert.equal(await page.locator('#schedule-bulkHours').inputValue(),'3,5');
+   await page.goto(`${base}#/zeitplan`,{waitUntil:'networkidle'});await page.locator('#schedule-coldBulkHours').fill('3,5');
+   await page.getByRole('button',{name:theme==='light'?'Hell':'Dunkel',exact:true}).click();assert.equal(await page.locator('#schedule-coldBulkHours').inputValue(),'3,5');
    const plan={version:1,bakeAt:new Date(Date.now()+48*3600000).toISOString(),method:'cold',bulkHours:2,coldHours:24,ballHours:4,mixMinutes:20,preheatMinutes:30,roomC:22,fridgeC:4};
    await page.evaluate(p=>new Promise((resolve,reject)=>{const request=indexedDB.open('ciao-pizza',1);request.onsuccess=()=>{const db=request.result;const tx=db.transaction('key-value','readwrite');tx.objectStore('key-value').put(p,'forno:schedule:v1');tx.oncomplete=()=>{db.close();resolve()};tx.onerror=()=>reject(tx.error)}}),plan);
    await page.goto(base,{waitUntil:'networkidle'});await page.locator('.has-time-plan .feature-status').waitFor();
