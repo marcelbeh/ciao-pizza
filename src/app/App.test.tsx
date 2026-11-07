@@ -10,7 +10,8 @@ import { createSchedule } from "../core/schedule/plan";
 vi.mock("../infrastructure/pwa/PwaNotice", () => ({ PwaNotice: () => null }));
 function repository(): FornoRepository {
   return {
-    load: vi.fn().mockResolvedValue({ formula: { ...defaults, count: 6, hydration: 67.5, flourProfile: "Mein gespeichertes Mehl" }, evening: null, copied: false, hasLegacy: true, schedule: null, scheduleError: "" }),
+    pizzaNight: createFornoRepository(createIndexedDbStore(`p3-mock-${crypto.randomUUID()}`)).pizzaNight,
+    load: vi.fn().mockResolvedValue({ pizzaNight: { version: 1, recipes: [], evening: null }, pizzaNightError: "", formula: { ...defaults, count: 6, hydration: 67.5, flourProfile: "Mein gespeichertes Mehl" }, evening: null, copied: false, hasLegacy: true, schedule: null, scheduleError: "" }),
     save: vi.fn().mockResolvedValue(undefined),
     saveSchedule: vi.fn().mockResolvedValue(undefined),
     backup: vi.fn().mockResolvedValue({ format: "forno-preserved-data", version: 1, entries: { "ciao-workspace:v2": { recipes: [{ name: "Original" }] } } }),
@@ -29,7 +30,7 @@ describe("FORNO. cinematic navigation and preserved features", () => {
     expect(repo.save).not.toHaveBeenCalled();
     fireEvent.click(links[4]);
     expect(await screen.findByRole("heading", { name: "Rezepte" })).toBeVisible();
-    expect(screen.getByText(/Eine Rezeptansicht ist/)).toBeVisible();
+    expect(screen.getByText(/Noch keine Belagrezepte/)).toBeVisible();
     expect(repo.save).not.toHaveBeenCalled();
   });
   it("keeps editing, comma decimals, ingredient calculation and invalid-input protection working", async () => {

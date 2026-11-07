@@ -370,3 +370,31 @@ summary { min-height: 48px; padding: 8px 0; font-size: 14px; font-weight: 500; c
 }
 @media (max-width: 359px) { .brand-link { width: 112px; } .app-shell:has(.welcome)::before { width: 84px; opacity: .8; } }
 @media (min-width: 800px) { .brand-link { width: 192px; } .app-shell:has(.welcome)::before { width: 240px; height: 270px; background-size: 330px auto; } .welcome { padding-right: 160px; } }
+
+/* P3 uses the existing cards, controls, semantic colours and responsive layouts. */
+textarea { display: block; width: 100%; min-height: 96px; padding: 12px; resize: vertical; font: inherit; color: var(--text); background: var(--field-bg); border: 1px solid var(--control-border); border-radius: var(--radius-control); }
+.p3-layout { display: grid; gap: 16px; align-items: start; }
+.p3-panel { margin-top: 16px; }
+.p3-layout .p3-panel { margin-top: 0; }
+.p3-panel > p, .p3-panel > .button, .p3-panel > button { margin-top: 16px; }
+.p3-fields { display: grid; gap: 16px; margin: 16px 0 0; padding: 0; border: 0; min-width: 0; }
+.p3-fields label, .p3-item > label { display: grid; gap: 8px; min-width: 0; font-size: 14px; }
+.p3-fields input, .p3-fields select, .p3-item input { width: 100%; }
+.p3-fields input, .p3-fields select, .p3-fields textarea { font-size: 16px; }
+.p3-fields:disabled { opacity: .7; }
+.p3-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.p3-actions > button, .p3-actions > .button { flex: 1 1 144px; }
+.p3-list { list-style: none; padding: 0; margin: 16px 0 0; display: grid; gap: 8px; }
+.p3-list-button { display: flex; justify-content: space-between; width: 100%; text-align: left; overflow-wrap: anywhere; }
+.p3-list-button[aria-pressed='true'] { border-color: var(--accent); background: var(--accent-soft); }
+.p3-list-button svg { width: 20px; height: 20px; }
+.p3-recipe-detail ul { padding-left: 20px; margin: 12px 0; }
+.p3-recipe-detail li { margin-top: 4px; }
+.p3-multiline { white-space: pre-wrap; overflow-wrap: anywhere; }
+.p3-item { padding: 16px; border: 1px solid var(--border); border-radius: var(--radius-control); background: var(--field-bg); margin-top: 16px; min-width: 0; }
+.p3-item > button { margin-top: 12px; }
+.p3-count { padding: 12px 0; margin-top: 12px; border-block: 1px solid var(--border); }
+.p3-schedule { margin-top: 12px; }
+.feature-card.has-current-evening p { display: block; margin-top: 6px; font-size: 12px; line-height: 1.4; }
+.p3-panel h2, .p3-panel h3 { overflow-wrap: anywhere; }
+@media (min-width: 800px) { .p3-layout { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
