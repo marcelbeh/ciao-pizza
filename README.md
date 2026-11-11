@@ -1,6 +1,6 @@
 # FORNO. by Marcel
 
-Privater, offline-fähiger Pizzarechner im Fresh-Food-Design mit Hell-, Dunkel- und Systemmodus. React, TypeScript, Vite und installierbare PWA; ohne Konto oder externe API. P1 umfasst Dashboard, Teigrechner und dezente Bottom-Navigation. P2 ergänzt den lokalen Zeitplan. P3 verwaltet lokale Belagrezepte und einen aktuellen Pizzaabend.
+Privater, offline-fähiger Pizzarechner im Fresh-Food-Design mit Hell-, Dunkel- und Systemmodus. React, TypeScript, Vite und installierbare PWA; ohne Konto oder externe API. P1 umfasst Dashboard, Teigrechner und dezente Bottom-Navigation. P2 ergänzt den lokalen Zeitplan. P3 verwaltet lokale Belagrezepte und einen aktuellen Pizzaabend. P4 ergänzt den qualitativen Reifemonitor und eine optionale TM5-Rezeptansicht.
 
 [Fresh-Food-Design, Theme-Verhalten und Prüfungen](docs/FRESH-FOOD.md) · [P3: Bedienung, Datenerhalt und Prüfung](docs/P3-PIZZA-NIGHT.md)
 
@@ -22,7 +22,7 @@ npm run preview
 ## P1
 
 - Sofortige Mengenberechnung mit acht Pizzen à 280 g, 66 % Hydration, 3 % Salz, 0,1 % Trockenhefe und Caputo Pizzeria 00 als Ausgangswerten.
-- Thermomix-Chargen: maximal 400 g Mehl pro Charge, gleichmäßig aufgeteilt; Mehl + Wasser jeweils 30 Sekunden Teigstufe, anschließend Salz und Trockenhefe per Hand einarbeiten und mehrere Chargen zusammenführen. [Ablauf und Berechnung](docs/THERMOMIX.md).
+- Optionale TM5-Rezeptansicht mit dynamischen Mengen, persönlicher 400-g-Mehl-Aufteilung, 30 Minuten Autolyse und gemeinsamer Teigtemperatur im Reifemonitor. Konkrete Geräteintervalle und allgemeine Hersteller-Chargengrenze sind nicht bestätigt. [Ablauf, Quellen und Grenzen](docs/P4-MATURITY-TM5.md).
 - Mehl = Gesamtteig / (1 + Hydration/100 + Salz/100 + Trockenhefe/100). Der vorhandene Berechnungskern bleibt erhalten. Zwischenwerte werden nicht gerundet.
 - Automatisches lokales Speichern gültiger Änderungen; Fehler werden sichtbar angezeigt. Ungültige Eingaben überschreiben keine gespeicherten Werte.
 - Dashboard zeigt die aktuellen Teigeinstellungen und den aktuellen Pizzaabend mit Pizzaanzahl und gespeichertem P2-Backtermin. Ein lesbarer alter Abend bleibt separat als „Bisheriger Pizzaabend“ sichtbar. Ohne Zeitplandaten werden keine nächsten Zeitpunkte erfunden.
@@ -53,9 +53,24 @@ Navigation und Browser-Zurück fragen vor dem Verwerfen; PWA-Updates bleiben wä
 und Speichern gesperrt. Es gibt keinen eigenen Abendtermin: Es gilt immer der gespeicherte P2-Zeitplan.
 Keine Rezeptskalierung oder Übernahme alter Daten; keine mehreren gleichzeitigen Abende und keine Import-/Archivfunktion.
 
+## P4 · Reifemonitor und TM5
+
+Dashboard-Reifeanzeige oder bisheriger Schnellzugriff **Reife-Monitor**: aktive Planung ausdrücklich
+starten, Temperaturen erfassen/korrigieren und freiwillige Teig-Checks speichern oder überspringen.
+Die Prognose bleibt qualitativ, mit erklärten Gründen und geringer/eingeschränkter Sicherheit;
+keine Reifeprozente und keine automatisch verschobenen Termine. Rezept-/Zeitplanänderungen
+überschreiben keine aktive Monitor-Planung. Frühere Monitoraufzeichnungen bleiben in der Sicherung.
+
+Im **Teigrechner** die optionale TM5-Karte aufklappen. Gesamtes Wasser je Charge wird am Anfang
+verwendet, die Autolyse ist mit 30 Minuten vorbelegt. Teigtemperatur dort nur einmal eingeben;
+sie erscheint im aktiven Monitor. Die bestehende Rezeptur bleibt die Quelle aller Mengen.
+[Annahmen, Bedienung, Herstellerprüfung und Einschränkungen](docs/P4-MATURITY-TM5.md).
+
 ## Daten bleiben erhalten
 
 Die IndexedDB-Datenbank heißt weiterhin **`ciao-pizza`**, Version 1, Object Store `key-value`. Origin und Pages-Pfad bleiben gleich. FORNO. löscht oder überschreibt keine alten Datensätze.
+
+`forno:maturity:v1` ergänzt ausschließlich Monitor-Snapshots, Messungen und TM5-Autolyse-Vorgabe. P4 benötigt kein DB-Upgrade und verändert keine bestehenden Keys.
 
 `forno:calculator:v1` enthält ausschließlich die neue Rezeptur. `ciao-workspace:v2`, `dough-workspace:v1` und vorhandene Cloud-Caches bleiben unverändert. Persönliche Belagrezepte, Profile, Abende, Listen, Tagebuch und Fotos bleiben gespeichert, auch wenn die alten Ansichten entfernt wurden. Unter „Daten & Offline“ lässt sich eine JSON-Sicherung **aller** Einträge des Object Stores herunterladen. Die Sicherung ist ein Datenarchiv; eine Importoberfläche gibt es nicht. P3 verwendet ausschließlich den neuen Schlüssel `forno:pizza-night:v1` und übernimmt keine alten Rezepte oder Abende. Unbekannte oder beschädigte P3-Daten werden sichtbar gemeldet und nicht überschrieben; andere Bereiche und Sicherung bleiben erreichbar. Browserdaten nicht ohne Sicherung löschen.
 

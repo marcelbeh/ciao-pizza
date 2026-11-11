@@ -11,7 +11,7 @@
     "typecheck": "tsc --noEmit",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "vitest run src/app/App.test.tsx src/core/dough/forno.test.ts src/core/dough/thermomix.test.ts src/infrastructure/storage/fornoRepository.test.ts src/core/schedule/plan.test.ts src/infrastructure/storage/scheduleRepository.test.ts src/app/ScheduleTimeline.test.tsx src/components/ThemeSwitch.test.tsx src/core/pizzaNight/model.test.ts src/infrastructure/storage/pizzaNightRepository.test.ts src/app/PizzaNightPages.test.tsx",
+    "test": "vitest run src/app/App.test.tsx src/core/dough/forno.test.ts src/core/dough/thermomix.test.ts src/core/dough/tm5.test.ts src/core/maturity/forecast.test.ts src/infrastructure/storage/maturityRepository.test.ts src/app/MaturityPage.test.tsx src/infrastructure/storage/fornoRepository.test.ts src/core/schedule/plan.test.ts src/infrastructure/storage/scheduleRepository.test.ts src/app/ScheduleTimeline.test.tsx src/components/ThemeSwitch.test.tsx src/core/pizzaNight/model.test.ts src/infrastructure/storage/pizzaNightRepository.test.ts src/app/PizzaNightPages.test.tsx",
     "check": "npm run test && npm run typecheck && npm run build"
   },
   "dependencies": {

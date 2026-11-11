@@ -6,6 +6,8 @@ import { readSchedule, saveSchedule, SCHEDULE_KEY } from "./scheduleRepository";
 import { createPizzaNightRepository, PIZZA_NIGHT_KEY } from "./pizzaNightRepository";
 import type { SchedulePlan } from "../../core/schedule/plan";
 
+import { createMaturityRepository, MATURITY_KEY } from "./maturityRepository";
+
 export const FORNO_KEY = "forno:calculator:v1";
 export const LEGACY_KEYS = ["ciao-workspace:v2", "dough-workspace:v1"] as const;
 export interface SavedFormula { version: 1; formula: Formula }
@@ -50,14 +52,16 @@ export function copyCompatibleFormula(value: unknown): Formula | null {
 }
 export function createFornoRepository(store: KeyValueStore) {
   const pizzaNight = createPizzaNightRepository(store);
+  const maturity = createMaturityRepository(store);
   return {
-    pizzaNight,
+    pizzaNight, maturity,
     async load() {
       const [saved, workspace, oldDough, rawSchedule] = await Promise.all([
         store.get<unknown>(FORNO_KEY), store.get<unknown>(LEGACY_KEYS[0]), store.get<unknown>(LEGACY_KEYS[1]),
         store.get<unknown>(SCHEDULE_KEY),
       ]);
       const pizza = await pizzaNight.load();
+      const monitoring = await maturity.load();
       let formula: Formula;
       let copied = false;
       if (saved !== undefined) {
@@ -74,7 +78,7 @@ export function createFornoRepository(store: KeyValueStore) {
         copied = !!compatible;
         // No write on load. A user edit creates the separate FORNO. entry.
       }
-      return { ...pizza, formula, evening: latestEvening(workspace), copied, ...readSchedule(rawSchedule),
+      return { ...pizza, ...monitoring, formula, evening: latestEvening(workspace), copied, ...readSchedule(rawSchedule),
         hasLegacy: workspace !== undefined || oldDough !== undefined };
     },
     async save(formula: Formula) {
@@ -83,7 +87,7 @@ export function createFornoRepository(store: KeyValueStore) {
     },
     saveSchedule: (plan: SchedulePlan) => saveSchedule(store, plan),
     async backup() {
-      const keys = [FORNO_KEY, ...LEGACY_KEYS, SCHEDULE_KEY, PIZZA_NIGHT_KEY];
+      const keys = [FORNO_KEY, ...LEGACY_KEYS, SCHEDULE_KEY, PIZZA_NIGHT_KEY, MATURITY_KEY];
       const entries = store.entries ? await store.entries() : Object.fromEntries(
         (await Promise.all(keys.map(async key => [key, await store.get(key)] as const)))
           .filter(([, value]) => value !== undefined),
