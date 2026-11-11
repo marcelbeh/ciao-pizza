@@ -46,10 +46,10 @@ describe('P3 model and independent snapshots', () => {
   });
 });
 
-describe('Seven standard pizzas, catalog version 1', () => {
-  it('contains exactly the requested content, stable unique IDs and no invented preparation', () => {
+describe('Nine standard pizzas, catalog versions 1 and 2', () => {
+  it('contains exactly the requested nine recipes, stable unique IDs and no invented preparation', () => {
     const state = withStandardRecipes(emptyPizzaNight(), date);
-    expect(state.standardRecipesVersion).toBe(1);
+    expect(state.standardRecipesVersion).toBe(2);
     expect(state.recipes.map(({ name, ingredients, preparation }) => ({ name, ingredients, preparation }))).toEqual([
       { name: 'Margherita', ingredients: ['San Marzano', 'Fior di Latte', 'Basilikum'], preparation: '' },
       { name: 'Salami', ingredients: ['San Marzano', 'Fior di Latte', 'Salami Milano'], preparation: '' },
@@ -58,8 +58,10 @@ describe('Seven standard pizzas, catalog version 1', () => {
       { name: 'Bianca', ingredients: ['Fior di Latte', 'Ricotta', 'italienische Mortadella', 'Pistazien'], preparation: '' },
       { name: 'Tonno', ingredients: ['San Marzano', 'Fior di Latte', 'Thunfisch', 'Zwiebeln'], preparation: '' },
       { name: '’Nduja 🌶️', ingredients: ['San Marzano', 'Fior di Latte', '’Nduja', 'rote Zwiebeln'], preparation: '' },
+      { name: 'Marcello', ingredients: ['San Marzano', 'Fior di Latte', 'Salami Milano', 'Oliven', 'Burrata'], preparation: '' },
+      { name: 'Prosciutto e Funghi', ingredients: ['San Marzano', 'Fior di Latte', 'Prosciutto cotto (gekochter Schinken)', 'Champignons'], preparation: '' },
     ]);
-    expect(new Set(state.recipes.map(recipe => recipe.id)).size).toBe(7);
+    expect(new Set(state.recipes.map(recipe => recipe.id)).size).toBe(9);
     expect(state.recipes.map(recipe => recipe.id)).toEqual(withStandardRecipes(emptyPizzaNight(), '2027-01-01T00:00:00.000Z').recipes.map(recipe => recipe.id));
     expect(() => assertPizzaNight(state)).not.toThrow();
   });
@@ -67,13 +69,13 @@ describe('Seven standard pizzas, catalog version 1', () => {
     const original = { ...withStandardRecipes(emptyPizzaNight(), date).recipes[0], name: 'Meine Margherita', ingredients: ['Mein Käse'] };
     const state = { ...emptyPizzaNight(), recipes: [original] };
     const seeded = withStandardRecipes(state, '2027-01-01T00:00:00.000Z');
-    expect(seeded.recipes).toHaveLength(7); expect(seeded.recipes[0]).toEqual(original);
+    expect(seeded.recipes).toHaveLength(9); expect(seeded.recipes[0]).toEqual(original);
     expect(state.recipes).toEqual([original]); expect(state).not.toHaveProperty('standardRecipesVersion');
     const afterDeletion = { ...seeded, recipes: [] };
     expect(withStandardRecipes(afterDeletion)).toBe(afterDeletion);
   });
   it('rejects unsupported markers and refuses partial addition when the library is full', () => {
-    expect(() => assertPizzaNight({ ...emptyPizzaNight(), standardRecipesVersion: 2 })).toThrow();
+    expect(() => assertPizzaNight({ ...emptyPizzaNight(), standardRecipesVersion: 3 })).toThrow();
     expect(() => assertPizzaNight({ ...emptyPizzaNight(), standardRecipesVersion: undefined })).toThrow();
     const state = { ...emptyPizzaNight(), recipes: Array.from({ length: 500 }, (_, i) => ({ ...recipe(), id: `own-${i}` })) };
     expect(() => withStandardRecipes(state)).toThrow('höchstens 500'); expect(state.recipes).toHaveLength(500);

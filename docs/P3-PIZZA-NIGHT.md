@@ -36,7 +36,7 @@ Ausschließlich neuer Schlüssel **`forno:pizza-night:v1`** im bisherigen Store:
   version: 1,
   recipes: ToppingRecipe[],
   evening: PizzaEvening | null,
-  standardRecipesVersion?: 1 // dauerhafter Marker der Standardpizzen-Ergänzung
+  standardRecipesVersion?: 1 | 2 // dauerhafter Marker der Standardpizzen-Ergänzung
 }
 // ToppingRecipe: id, name, ingredients: string[], preparation, createdAt, updatedAt
 // PizzaEvening: id, name, notes, items: Item[], createdAt, updatedAt
@@ -55,7 +55,7 @@ Notiz 2000 Zeichen; 500 Bibliotheksrezepte/Abendpositionen; Stückzahl 1–10000
 bei ausdrücklicher Benutzereingabe getrimmt, leere Zutatenzeilen entfernt. Vorhandene gespeicherte
 Daten werden beim Lesen niemals normalisiert, migriert oder neu geschrieben. Unbekannte Felder,
 Versionen, ungültige IDs, Datenstrukturen, Zeitstempel und Mengen sperren P3-Schreibzugriffe.
-Ein fehlender Schlüssel wird jetzt einmalig mit den sieben Standardpizzen samt Marker atomar initialisiert. Bereits vorhandene Sammlungen werden beim Laden weiterhin niemals ergänzt oder neu geschrieben.
+Ein fehlender Schlüssel wird jetzt einmalig mit den neun Standardpizzen samt Marker atomar initialisiert. Sammlungen ohne Marker werden beim Laden nicht ergänzt. Katalogversion 1 erhält einmalig nur die beiden Rezepte aus Version 2.
 
 Jeder P3-Schreibzugriff validiert den bisherigen Datensatz **innerhalb von `store.update`**, klont
 ihn, wendet nur die gezielte Änderung an und validiert vor dem atomaren Commit erneut. Ohne
@@ -75,7 +75,7 @@ eine Aufzählung frei benannter unbekannter Schlüssel setzt weiterhin `entries`
 
 ## Prüfungen
 
-`npm run check` erfolgreich: **149 Tests in 11 Dateien**, Typecheck und Produktionsbuild.
+`npm run check` erfolgreich: **153 Tests in 11 Dateien**, Typecheck und Produktionsbuild.
 `git diff --check` ohne Befund. Rechner-/Zeitplankern, DB-Implementierung, Theme-Bootstrap,
 Pages-Konfiguration und Abhängigkeiten sind unverändert.
 
@@ -117,7 +117,7 @@ lokaler Produktionsbuild und dokumentierte Screenshots. Kein Merge oder Deployme
 
 ## Standardpizzen
 
-Katalogversion 1 enthält genau die gelieferten Namen und Zutaten, ohne Mengen oder erfundene Zubereitung:
+Katalogversion 2 ergänzt Marcello und Prosciutto e Funghi zu den sieben unveränderten Version-1-Rezepten. Die neun Rezepte enthalten genau die gelieferten Namen und Zutaten, ohne Mengen oder erfundene Zubereitung:
 
 | Name | Zutaten |
 | --- | --- |
@@ -128,15 +128,17 @@ Katalogversion 1 enthält genau die gelieferten Namen und Zutaten, ohne Mengen o
 | Bianca | Fior di Latte, Ricotta, italienische Mortadella, Pistazien |
 | Tonno | San Marzano, Fior di Latte, Thunfisch, Zwiebeln |
 | ’Nduja 🌶️ | San Marzano, Fior di Latte, ’Nduja, rote Zwiebeln |
+| Marcello | San Marzano, Fior di Latte, Salami Milano, Oliven, Burrata |
+| Prosciutto e Funghi | San Marzano, Fior di Latte, Prosciutto cotto (gekochter Schinken), Champignons |
 
 Pesto enthält kein Fior di Latte, Bianca keine Tomatensauce, Tonno keine Kapern.
 `preparation` bleibt jeweils leer. Es sind echte lokale Bibliotheksrezepte: anzeigen, bearbeiten,
 löschen und als Snapshot für einen Pizzaabend auswählen funktioniert wie bei eigenen Rezepten.
 
-**Fehlender P3-Schlüssel:** Sieben Rezepte und `standardRecipesVersion: 1` werden gemeinsam
+**Fehlender P3-Schlüssel:** Neun Rezepte und `standardRecipesVersion: 2` werden gemeinsam
 in einer atomaren `store.update`-Transaktion initialisiert. Auch parallele Erststarts erzeugen
 keine Duplikate. Erscheint zwischen Lesen und Transaktion eine vorhandene Sammlung, hat sie Vorrang;
-sie wird dabei nicht ergänzt. Eine direkte erste P3-Schreibaktion initialisiert ebenfalls atomar.
+eine unmarkierte Sammlung wird dabei nicht ergänzt. Eine direkte erste P3-Schreibaktion initialisiert ebenfalls atomar.
 
 **Vorhandener P3-Schlüssel ohne Marker:** Keine automatische Ergänzung, auch nicht bei einer leeren
 Sammlung. Auf der Rezeptseite steht **Standardpizzen ergänzen**. Erst diese ausdrückliche Aktion
@@ -144,11 +146,17 @@ fügt fehlende Standard-IDs hinzu und setzt denselben Marker in derselben Transa
 Standard-IDs werden niemals überschrieben, auch wenn Name, Zutaten oder Zubereitung geändert wurden.
 Gleiche Namen mit anderen IDs bleiben eigenständige persönliche Rezepte.
 
-Die IDs sind stabil (`forno-standard-v1-margherita`, `-salami`, `-funghi`, `-pesto`, `-bianca`,
-`-tonno`, `-nduja`, jeweils mit demselben Präfix). Sobald der Marker vorhanden ist, wird nie erneut
-automatisch ergänzt. Er bleibt bei Änderungen, Löschungen und einer völlig geleerten Sammlung
-bestehen; gelöschte Standards werden auch durch einen erneuten Methodenaufruf nicht wiederhergestellt.
-Der Ergänzen-Button entfällt nach Erfolg. Die Sicherung enthält den Marker mit allen Rezeptdaten.
+**Bereits mit Katalogversion 1 initialisiert:** Beim nächsten Laden werden ausschließlich
+Marcello und Prosciutto e Funghi einmalig ergänzt und der Marker atomar von 1 auf 2 gesetzt.
+Die sieben früheren IDs werden dabei nicht aufgefüllt, auch wenn einzelne oder alle gelöscht
+wurden. Bereits vorhandene neue IDs bleiben mitsamt eigenen Änderungen unverändert.
+
+Die sieben alten IDs bleiben stabil (`forno-standard-v1-margherita`, `-salami`, `-funghi`,
+`-pesto`, `-bianca`, `-tonno`, `-nduja`, jeweils mit demselben Präfix). Neu sind ausschließlich
+`forno-standard-v2-marcello` und `forno-standard-v2-prosciutto-e-funghi`.
+Nach Marker 2 gibt es keine erneute Ergänzung, auch nicht nach Änderungen oder Löschungen.
+Der Marker bleibt selbst bei einer vollständig geleerten Sammlung bestehen. Der Ergänzen-Button
+entfällt nach Erfolg. Sicherungen enthalten den Marker mit allen Rezeptdaten.
 
 Die Datensatzversion bleibt 1; das neue optionale Feld wird strikt validiert. Unbekannte Datensatz-
 oder Markerversionen und beschädigte Daten bleiben schreibgeschützt und unverändert exportierbar.
@@ -159,7 +167,7 @@ Theme-System bleiben unverändert. Keine Übernahme alter Rezepte, keine zusätz
 
 
 Abnahme der Standardpizzen-Ergänzung: `npm run check` und `git diff --check` erfolgreich.
-Gezielter Chromium-Check bei 390 × 844 in Hell/Dunkel: sieben lokale Rezepte beim Erststart,
+Gezielter Chromium-Check bei 390 × 844 in Hell/Dunkel: neun lokale Rezepte beim Erststart,
 Bearbeitung und Löschung bleiben nach Neuladen und offline erhalten, keine Wiederherstellung
 und keine Duplikate. Vorhandene Sammlung bleibt bis zum Klick unverändert; Ergänzen erhält
-eigene Rezepte und unbekannte Archive. Kein physischer iPhone-/Safari-Test. Nicht veröffentlicht.
+eigene Rezepte und unbekannte Archive. Kein physischer iPhone-/Safari-Test. Veröffentlichung nach erfolgreicher Prüfung ausdrücklich freigegeben.

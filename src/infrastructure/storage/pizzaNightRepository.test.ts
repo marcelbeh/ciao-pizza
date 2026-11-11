@@ -42,7 +42,7 @@ describe('P3 atomic, isolated persistence and backup', () => {
     expect((await repo.load()).pizzaNight?.recipes).toHaveLength(2);
     expect((await repo.load()).pizzaNight?.evening).toEqual(evening());
   });
-  it.each([{ version: 99, future: { keep: true } }, { version: 1, recipes: [], evening: { name: 'broken' } }, { version: 1, recipes: [], evening: null, standardRecipesVersion: 2 }, null])('protects unknown/corrupt P3 data on every mutation and exports original %j', async raw => {
+  it.each([{ version: 99, future: { keep: true } }, { version: 1, recipes: [], evening: { name: 'broken' } }, { version: 1, recipes: [], evening: null, standardRecipesVersion: 3 }, null])('protects unknown/corrupt P3 data on every mutation and exports original %j', async raw => {
     const db = await store(); const app = createFornoRepository(db); await db.set(PIZZA_NIGHT_KEY, raw);
     const loaded = await app.load(); expect(loaded.pizzaNight).toBeNull(); expect(loaded.pizzaNightError).toContain('nicht überschrieben'); expect(loaded.formula).toEqual(defaults);
     const repo = app.pizzaNight;
@@ -78,7 +78,7 @@ describe('Atomic, one-time standard pizza initialization', () => {
     await db.set(LEGACY_KEYS[0], { personal: ['old recipes', 'old evenings'] }); await db.set('unknown:archive', { opaque: true });
     const before = await db.entries!();
     const loads = await Promise.all([repo.load(), createPizzaNightRepository(db).load()]);
-    for (const { pizzaNight } of loads) { expect(pizzaNight?.recipes).toHaveLength(7); expect(pizzaNight?.standardRecipesVersion).toBe(1); }
+    for (const { pizzaNight } of loads) { expect(pizzaNight?.recipes).toHaveLength(9); expect(pizzaNight?.standardRecipesVersion).toBe(2); }
     const saved = await db.get(PIZZA_NIGHT_KEY); expect(await db.entries!()).toEqual({ ...before, [PIZZA_NIGHT_KEY]: saved });
     const update = vi.spyOn(db, 'update'); await repo.load(); expect(update).not.toHaveBeenCalled();
     expect(await db.get(PIZZA_NIGHT_KEY)).toEqual(saved);
@@ -96,7 +96,7 @@ describe('Atomic, one-time standard pizza initialization', () => {
     const edited = { ...standard, name: 'Meine Margherita', ingredients: ['Eigener Belag'] };
     const original = { version: 1, recipes: [edited, recipe()], evening: evening() };
     await db.set(PIZZA_NIGHT_KEY, original); await db.set('archive:unknown', { preserve: true });
-    const first = await repo.addStandardRecipes(); expect(first.recipes).toHaveLength(8);
+    const first = await repo.addStandardRecipes(); expect(first.recipes).toHaveLength(10);
     expect(first.recipes.find(row => row.id === edited.id)).toEqual(edited); expect(first.evening).toEqual(original.evening);
     await repo.deleteRecipe(edited);
     const second = first.recipes.find(row => row.name === 'Salami')!;
@@ -115,15 +115,15 @@ describe('Atomic, one-time standard pizza initialization', () => {
     const db = fresh(); const repo = createPizzaNightRepository(db);
     vi.spyOn(db, 'update').mockRejectedValueOnce(Error('QuotaExceededError'));
     expect((await repo.load()).pizzaNightError).toContain('nicht initialisiert'); expect(await db.get(PIZZA_NIGHT_KEY)).toBeUndefined();
-    expect((await repo.load()).pizzaNight?.recipes).toHaveLength(7);
+    expect((await repo.load()).pizzaNight?.recipes).toHaveLength(9);
     const existing = { ...emptyPizzaNight(), recipes: [recipe()] }; await db.set(PIZZA_NIGHT_KEY, existing);
     vi.spyOn(db, 'update').mockRejectedValueOnce(Error('QuotaExceededError'));
     await expect(repo.addStandardRecipes()).rejects.toThrow('Quota'); expect(await db.get(PIZZA_NIGHT_KEY)).toEqual(existing);
-    expect((await repo.addStandardRecipes()).standardRecipesVersion).toBe(1);
+    expect((await repo.addStandardRecipes()).standardRecipesVersion).toBe(2);
   });
   it('refuses unknown/corrupt data and markers during explicit addition', async () => {
     const db = fresh(); const repo = createPizzaNightRepository(db);
-    for (const raw of [{ version: 88, personal: true }, { ...emptyPizzaNight(), standardRecipesVersion: 2 }, null]) {
+    for (const raw of [{ version: 88, personal: true }, { ...emptyPizzaNight(), standardRecipesVersion: 3 }, null]) {
       await db.set(PIZZA_NIGHT_KEY, raw); await expect(repo.addStandardRecipes()).rejects.toThrow();
       expect(await db.get(PIZZA_NIGHT_KEY)).toEqual(raw);
     }
@@ -133,5 +133,47 @@ describe('Atomic, one-time standard pizza initialization', () => {
     vi.spyOn(db, 'get').mockImplementationOnce(async key => { await db.set(key, original); return undefined; });
     const repo = createPizzaNightRepository(db);
     expect((await repo.load()).pizzaNight).toEqual(original); expect(await get(PIZZA_NIGHT_KEY)).toEqual(original);
+  });
+});
+
+describe('Catalog V2: Marcello and Prosciutto e Funghi', () => {
+  const versionOne = () => ({ ...withStandardRecipes(emptyPizzaNight(), date), standardRecipesVersion: 1 as const,
+    recipes: withStandardRecipes(emptyPizzaNight(), date).recipes.slice(0, 7) });
+  it('atomically upgrades V1 only with the two additions, preserving deleted/edited V1 and all other data', async () => {
+    const db = await store(); const repo = createPizzaNightRepository(db); const v1 = versionOne();
+    const edited = { ...v1.recipes[1], name: 'Meine Salami', ingredients: ['Eigene Zutaten'] };
+    const original = { ...v1, recipes: [edited, ...v1.recipes.slice(2)], evening: evening() };
+    await db.set(PIZZA_NIGHT_KEY, original); await db.set('archive:personal', { preserve: true });
+    const loaded = await Promise.all([repo.load(), createPizzaNightRepository(db).load()]);
+    const state = loaded[0].pizzaNight!;
+    expect(state.standardRecipesVersion).toBe(2); expect(state.recipes).toHaveLength(8);
+    expect(state.recipes.some(row => row.name === 'Margherita')).toBe(false);
+    expect(state.recipes[0]).toEqual(edited); expect(state.evening).toEqual(original.evening);
+    expect(state.recipes.slice(-2).map(row => row.name)).toEqual(['Marcello', 'Prosciutto e Funghi']);
+    const after = await db.entries!(); await repo.load(); expect(await db.entries!()).toEqual(after);
+    expect(after['archive:personal']).toEqual({ preserve: true });
+    const marcello = state.recipes.find(row => row.name === 'Marcello')!;
+    const prosciutto = state.recipes.find(row => row.name === 'Prosciutto e Funghi')!;
+    await repo.saveRecipe({ ...marcello, name: 'Mein Marcello' }, marcello); await repo.deleteRecipe(prosciutto);
+    const saved = await db.entries!(); await repo.load(); await repo.addStandardRecipes();
+    expect(await db.entries!()).toEqual(saved);
+    expect((await repo.load()).pizzaNight?.recipes.find(row => row.id === marcello.id)?.name).toBe('Mein Marcello');
+  });
+  it('does not overwrite an already present V2 ID when upgrading, even in an empty V1 collection', async () => {
+    const db = await store(); const repo = createPizzaNightRepository(db);
+    const marcello = withStandardRecipes(emptyPizzaNight(), date).recipes[7];
+    const edited = { ...marcello, ingredients: ['Meine Oliven'] };
+    await db.set(PIZZA_NIGHT_KEY, { ...emptyPizzaNight(), recipes: [edited], standardRecipesVersion: 1 });
+    const state = (await repo.load()).pizzaNight!;
+    expect(state.recipes).toHaveLength(2); expect(state.recipes[0]).toEqual(edited);
+    expect(state.recipes[1].name).toBe('Prosciutto e Funghi'); expect(state.standardRecipesVersion).toBe(2);
+  });
+  it('keeps the entire V1 dataset and marker on upgrade failure, then retries once', async () => {
+    const db = await store(); const repo = createPizzaNightRepository(db); const v1 = versionOne();
+    await db.set(PIZZA_NIGHT_KEY, v1); vi.spyOn(db, 'update').mockRejectedValueOnce(Error('QuotaExceededError'));
+    expect((await repo.load()).pizzaNightError).toContain('nicht initialisiert oder ergänzt');
+    expect(await db.get(PIZZA_NIGHT_KEY)).toEqual(v1);
+    expect((await repo.load()).pizzaNight?.recipes).toHaveLength(9);
+    expect((await repo.load()).pizzaNight?.recipes).toHaveLength(9);
   });
 });

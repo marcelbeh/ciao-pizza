@@ -18,17 +18,21 @@ export function createPizzaNightRepository(store: KeyValueStore) {
       let initializing = false;
       try {
         const raw = await store.get(PIZZA_NIGHT_KEY);
-        if (raw === undefined) {
+        if (raw !== undefined) assertPizzaNight(raw);
+        if (raw === undefined || raw.standardRecipesVersion === 1) {
           initializing = true;
           if (!store.update) throw Error('Atomarer Speicherzugriff nicht verfügbar.');
           const pizzaNight = await store.update<PizzaNightState>(PIZZA_NIGHT_KEY, previous => {
-            if (previous !== undefined) { assertPizzaNight(previous); return previous; }
-            const state = withStandardRecipes(emptyPizzaNight()); assertPizzaNight(state); return state;
+            if (previous !== undefined) {
+              assertPizzaNight(previous);
+              if (previous.standardRecipesVersion !== 1) return previous;
+            }
+            const state = withStandardRecipes(previous ?? emptyPizzaNight()); assertPizzaNight(state); return state;
           });
           return { pizzaNight, pizzaNightError: '' };
         }
         assertPizzaNight(raw); return { pizzaNight: raw, pizzaNightError: '' };
-      } catch { return { pizzaNight: null, pizzaNightError: initializing ? 'Die Standardpizzen konnten nicht initialisiert werden. Es wurde kein Erfolg bestätigt. Bitte den lokalen Speicher prüfen und erneut laden; vorhandene Daten bleiben erhalten.' : PIZZA_NIGHT_ERROR }; }
+      } catch { return { pizzaNight: null, pizzaNightError: initializing ? 'Die Standardpizzen konnten nicht initialisiert oder ergänzt werden. Es wurde kein Erfolg bestätigt. Bitte den lokalen Speicher prüfen und erneut laden; vorhandene Daten bleiben erhalten.' : PIZZA_NIGHT_ERROR }; }
     },
     addStandardRecipes() {
       return change(state => { Object.assign(state, withStandardRecipes(state)); });

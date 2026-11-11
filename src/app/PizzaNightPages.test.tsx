@@ -145,12 +145,12 @@ describe('P3 recipes, evening and draft protection', () => {
 });
 
 describe('Editable standard pizza starting recipes', () => {
-  it('shows seven real, selectable recipes for a new collection without an add-standards action', async () => {
+  it('shows nine real, selectable recipes for a new collection without an add-standards action', async () => {
     const db = createIndexedDbStore(`standards-fresh-ui-${crypto.randomUUID()}`); const repo = createFornoRepository(db);
     render(<App repo={repo} />);
     await screen.findByRole('button', { name: '’Nduja 🌶️' });
     expect(screen.queryByRole('button', { name: 'Standardpizzen ergänzen' })).not.toBeInTheDocument();
-    const state = (await repo.pizzaNight.load()).pizzaNight!; expect(state.recipes).toHaveLength(7); expect(state.standardRecipesVersion).toBe(1);
+    const state = (await repo.pizzaNight.load()).pizzaNight!; expect(state.recipes).toHaveLength(9); expect(state.standardRecipesVersion).toBe(2);
     fireEvent.click(screen.getByRole('button', { name: 'Pesto' }));
     const details = screen.getByRole('region', { name: 'Rezeptdetails' });
     expect(within(details).getByText('selbst gemachtes Pesto')).toBeVisible(); expect(within(details).queryByText('Fior di Latte')).not.toBeInTheDocument();
@@ -178,7 +178,28 @@ describe('Editable standard pizza starting recipes', () => {
     view.unmount(); render(<App repo={createFornoRepository(db)} />); await screen.findByRole('button', { name: 'Hauspesto' });
     expect(screen.queryByRole('button', { name: 'Margherita' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Standardpizzen ergänzen' })).not.toBeInTheDocument();
-    const after = (await repo.pizzaNight.load()).pizzaNight!; expect(after.recipes).toHaveLength(7); expect(after.recipes.find(row => row.id === own.id)).toEqual(own);
-    expect(after.standardRecipesVersion).toBe(1);
+    const after = (await repo.pizzaNight.load()).pizzaNight!; expect(after.recipes).toHaveLength(9); expect(after.recipes.find(row => row.id === own.id)).toEqual(own);
+    expect(after.standardRecipesVersion).toBe(2);
   });
+});
+
+it('automatically adds only the V2 recipes to an initialized collection and offers them for the evening', async () => {
+  const { db, repo } = await setup();
+  await db.set(PIZZA_NIGHT_KEY, { version: 1, recipes: [], evening: null, standardRecipesVersion: 1 });
+  render(<App repo={repo} />);
+  await screen.findByRole('button', { name: 'Marcello' });
+  expect(screen.getByRole('button', { name: 'Prosciutto e Funghi' })).toBeVisible();
+  expect(screen.queryByRole('button', { name: 'Salami' })).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: 'Standardpizzen ergänzen' })).not.toBeInTheDocument();
+  fireEvent.click(navigation('Pizzaabend')); fireEvent.click(await screen.findByRole('button', { name: 'Pizzaabend anlegen' }));
+  fireEvent.change(screen.getByLabelText('Name des Pizzaabends'), { target: { value: 'Neue Beläge' } });
+  fireEvent.change(screen.getByLabelText('Belagrezept auswählen'), { target: { value: 'forno-standard-v2-marcello' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Rezept hinzufügen' }));
+  fireEvent.change(screen.getByLabelText('Belagrezept auswählen'), { target: { value: 'forno-standard-v2-prosciutto-e-funghi' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Rezept hinzufügen' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Pizzaabend speichern' })); await screen.findByText('Pizzaabend auf diesem Gerät gespeichert.');
+  expect((await repo.pizzaNight.load()).pizzaNight?.evening?.items.map(item => item.recipeSnapshot)).toEqual([
+    { name: 'Marcello', ingredients: ['San Marzano', 'Fior di Latte', 'Salami Milano', 'Oliven', 'Burrata'], preparation: '' },
+    { name: 'Prosciutto e Funghi', ingredients: ['San Marzano', 'Fior di Latte', 'Prosciutto cotto (gekochter Schinken)', 'Champignons'], preparation: '' },
+  ]);
 });
