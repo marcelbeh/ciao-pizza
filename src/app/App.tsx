@@ -1,7 +1,7 @@
 import { Component, useEffect, useRef, useState, type ReactNode } from "react";
 import { createHashRouter, RouterProvider, Link, NavLink, Route, Routes, useLocation } from "react-router-dom";
 import { Icon } from "../components/Icon";
-import { calculateFormula, formulaIssues, ranges, type Formula, type NumericField } from "../core/dough/forno";
+import { calculateFormula, defaults, formulaIssues, ranges, type Formula, type NumericField } from "../core/dough/forno";
 import { createFornoRepository, type FornoRepository, type EveningSummary } from "../infrastructure/storage/fornoRepository";
 import { createIndexedDbStore } from "../infrastructure/storage/indexedDbStore";
 import { PwaNotice } from "../infrastructure/pwa/PwaNotice";
@@ -11,6 +11,8 @@ import { nextScheduleSteps, type SchedulePlan } from "../core/schedule/plan";
 import { RecipesPage, PizzaEveningPage } from "./PizzaNightPages";
 import { pizzaCount, type PizzaNightState } from "../core/pizzaNight/model";
 import { ThermomixBatches } from "../components/ThermomixBatches";
+import { MaturityCompact, MaturityPage, type MonitorAccess } from "./MaturityPage";
+import type { MaturityState } from "../core/maturity/model";
 import { ThemeSwitch } from "../components/ThemeSwitch";
 
 const repository = createFornoRepository(createIndexedDbStore());
@@ -37,8 +39,8 @@ function EveningDetails({ evening }: { evening: EveningSummary }) {
     <p className="muted">{number(evening.count)} Pizzen · {number(evening.ballGrams, 1)} g pro Teigling</p>
   </div>;
 }
-function Dashboard({ evening, formula, schedule, scheduleError, now, pizzaNight, pizzaNightError }: {
-  evening: EveningSummary | null; formula: Formula; schedule: SchedulePlan | null; scheduleError: string; now: number; pizzaNight: PizzaNightState | null; pizzaNightError: string;
+function Dashboard({ evening, formula, schedule, scheduleError, now, pizzaNight, pizzaNightError, monitoring }: {
+  evening: EveningSummary | null; formula: Formula; schedule: SchedulePlan | null; scheduleError: string; now: number; pizzaNight: PizzaNightState | null; pizzaNightError: string; monitoring: MonitorAccess;
 }) {
   const next = schedule ? nextScheduleSteps(schedule, now) : [];
   return <>
@@ -73,12 +75,13 @@ function Dashboard({ evening, formula, schedule, scheduleError, now, pizzaNight,
             {scheduleError ? "Zeitplan nicht lesbar – bitte prüfen." : schedule ? formatScheduleTime(schedule.bakeAt) : "Noch kein Backtermin"}</p> : <span className="feature-status">Pizzaabend planen</span>}
         </div></Link>
     </div>
+    <MaturityCompact access={monitoring} />
     <section className="quick-section" aria-labelledby="quick-title">
       <h2 className="section-label" id="quick-title">Schnellzugriff<span /></h2>
       <div className="quick-grid">
         <Link className="card quick-card" to="/rezepte"><Icon name="book" /><span>Rezepte</span></Link>
         <Link className="card quick-card" to="/teig#zutaten"><Icon name="sprout" /><span>Zutaten</span></Link>
-        <Link to="/reife-monitor" className="card quick-card"><Icon name="trend" /><span>Reife-Monitor</span><small>In Vorbereitung</small></Link>
+        <Link to="/reife-monitor" className="card quick-card"><Icon name="trend" /><span>Reife-Monitor</span></Link>
         <Link to="/journal" className="card quick-card"><Icon name="journal" /><span>Mein Journal</span><small>In Vorbereitung</small></Link>
       </div>
     </section>
@@ -90,8 +93,8 @@ function Dashboard({ evening, formula, schedule, scheduleError, now, pizzaNight,
 const fieldLabels: Record<NumericField, string> = {
   count: "Pizzaanzahl", ballGrams: "Teiglingsgewicht", hydration: "Hydration", salt: "Salz", yeastPercent: "Trockenhefe",
 };
-function Calculator({ formula, save, status, invalidChanged }: {
-  formula: Formula; save: (next: Formula) => void; status: string; invalidChanged: (invalid: boolean) => void;
+function Calculator({ formula, save, status, invalidChanged, monitoring }: {
+  formula: Formula; save: (next: Formula) => void; status: string; invalidChanged: (invalid: boolean) => void; monitoring: MonitorAccess;
 }) {
   const [draft, setDraft] = useState(() => toDraft(formula));
   const [flourDraft, setFlourDraft] = useState(formula.flourProfile);
@@ -108,7 +111,7 @@ function Calculator({ formula, save, status, invalidChanged }: {
   function field(key: NumericField, unit: string, large = false) {
     return <label className={`number-field ${large ? "large" : ""}`} htmlFor={key}>
       <span>{fieldLabels[key]}</span><span className="input-line"><input id={key} type="text"
-        inputMode={key === "count" ? "numeric" : "decimal"} value={draft[key]}
+        inputMode={key === "count" ? "numeric" : "decimal"} disabled={monitoring.editing} value={draft[key]}
         aria-invalid={!!issues[key]} aria-describedby={issues[key] ? `${key}-error` : undefined}
         autoComplete="off" spellCheck={false} onChange={e => change(key, e.target.value)} />
         <span className="unit">{unit}</span></span>
@@ -123,11 +126,11 @@ function Calculator({ formula, save, status, invalidChanged }: {
       <div className="card-heading"><h2>Deine Rezeptur</h2></div>
       <div className="quantity-grid">{field("count", "Pizzen", true)}{field("ballGrams", "g", true)}</div>
       <div className="hydration-field">{field("hydration", "%")}
-        <input className="hydration-slider" type="range" aria-label="Hydration per Schieberegler"
+        <input className="hydration-slider" type="range" disabled={monitoring.editing} aria-label="Hydration per Schieberegler"
           min="40" max="100" step="0.1" value={Number.isFinite(candidate.hydration) ? Math.min(100, Math.max(40, candidate.hydration)) : 66}
           onChange={e => change("hydration", e.target.value)} />
         <div className="range-labels"><span>40 %</span><span>100 %</span></div></div>
-      <label className="flour-field" htmlFor="flour">Dein Mehl<input id="flour" value={flourDraft}
+      <label className="flour-field" htmlFor="flour">Dein Mehl<input id="flour" disabled={monitoring.editing} value={flourDraft}
         aria-invalid={!!issues.flourProfile} aria-describedby={issues.flourProfile ? "flour-error" : undefined}
         maxLength={80} onChange={e => {
           setFlourDraft(e.target.value);
@@ -148,13 +151,12 @@ function Calculator({ formula, save, status, invalidChanged }: {
         : <p role="status" className="error">Bitte korrigiere die markierten Eingaben. Es werden keine ungültigen Mengen berechnet oder gespeichert.</p>}
     </section>
     </div>
-    {result && <ThermomixBatches ingredients={result.ingredients} />}
+    {result && <ThermomixBatches ingredients={result.ingredients} access={{...monitoring, formula:candidate}} />}
     <p className={`save-status ${status.includes("fehlgeschlagen") ? "error" : "muted"}`} role="status">{status}</p>
   </>;
 }
-function Placeholder({ kind }: { kind: "monitor" | "journal" }) {
+function Placeholder({ kind }: { kind: "journal" }) {
   const content = {
-    monitor: { title: "Reife-Monitor", subtitle: "Deinen Teig im Blick behalten.", heading: "In Vorbereitung", text: "Ein Reife-Monitor ist noch nicht verfügbar. Deine geplanten Phasen findest du bereits im Zeitplan.", icon: "evening" },
     journal: { title: "Mein Journal", subtitle: "Platz für deine Pizza-Erfahrungen.", heading: "In Vorbereitung", text: "Eine Journalansicht ist noch nicht verfügbar. Bisherige persönliche Daten bleiben erhalten und sind in deiner Sicherung enthalten.", icon: "journal" },
   } as const;
   const c = content[kind];
@@ -195,6 +197,7 @@ function Workspace({ repo }: { repo: FornoRepository }) {
   const [status, setStatus] = useState("Auf diesem Gerät gespeichert.");
   const [busy, setBusy] = useState(false);
   const [invalid, setInvalid] = useState(false);
+  const [monitorEditing, setMonitorEditing] = useState(false);
   const [now, setNow] = useState(Date.now);
   const queue = useRef(Promise.resolve());
   const revision = useRef(0);
@@ -252,6 +255,16 @@ function Workspace({ repo }: { repo: FornoRepository }) {
       setData(previous => previous ? { ...previous, pizzaNight, pizzaNightError: "" } : previous);
     } finally { if (revision.current === current) setBusy(false); }
   }
+  async function runMaturity(task: () => Promise<MaturityState>) {
+    if (!data || data.maturityError) throw Error("Reifemonitor-Daten sind schreibgeschützt.");
+    setBusy(true); const current = ++revision.current;
+    const operation = queue.current.catch(() => {}).then(task); queue.current = operation.then(() => {}, () => {});
+    try { const maturity = await operation; setData(previous => previous ? { ...previous, maturity, maturityError: "" } : previous); setNow(Date.now()); }
+    finally { if (revision.current === current) setBusy(false); }
+  }
+  const monitoring: MonitorAccess = { state: data?.maturity ?? null, loadError: data?.maturityError ?? "", repository: repo.maturity,
+    busy, editing: monitorEditing, run: runMaturity, editingChanged: setMonitorEditing, formula: data?.formula ?? defaults,
+    schedule: data?.schedule ?? null, scheduleError: data?.scheduleError ?? "", now };
   async function backup() {
     try {
       await queue.current;
@@ -267,20 +280,20 @@ function Workspace({ repo }: { repo: FornoRepository }) {
       {error && <div className="card error" role="alert"><p>{error}</p>
         <button onClick={() => window.location.reload()}>Erneut laden</button></div>}
       {!data ? !error && <p role="status">Deine Daten werden geladen …</p> : <Routes>
-        <Route path="/" element={<Dashboard evening={data.evening} formula={data.formula} schedule={data.schedule} scheduleError={data.scheduleError} now={now} pizzaNight={data.pizzaNight} pizzaNightError={data.pizzaNightError} />} />
-        <Route path="/teig" element={<Calculator formula={data.formula} save={save} status={status} invalidChanged={setInvalid} />} />
+        <Route path="/" element={<Dashboard evening={data.evening} formula={data.formula} schedule={data.schedule} scheduleError={data.scheduleError} now={now} pizzaNight={data.pizzaNight} pizzaNightError={data.pizzaNightError} monitoring={monitoring} />} />
+        <Route path="/teig" element={<Calculator formula={data.formula} save={save} status={status} invalidChanged={setInvalid} monitoring={monitoring} />} />
         <Route path="/zeitplan" element={<SchedulePage saved={data.schedule} loadError={data.scheduleError} save={saveTimePlan} busy={busy} now={now} editingChanged={setInvalid} />} />
         <Route path="/pizzaabend" element={<PizzaEveningPage saved={data.pizzaNight} loadError={data.pizzaNightError} repository={repo.pizzaNight} busy={busy} run={runPizza} editingChanged={setInvalid} hasLegacy={data.hasLegacy}
           doughCount={data.formula.count} schedule={data.schedule} scheduleError={data.scheduleError}
           legacyEvening={data.evening && <section className="card saved-evening"><h2>Bisheriger Pizzaabend</h2><EveningDetails evening={data.evening} /><p className="field-hint">Dieser bisherige Abend bleibt unverändert erhalten und ist in deiner Sicherung enthalten. Er kann hier noch nicht bearbeitet werden.</p></section>} />} />
         <Route path="/rezepte" element={<RecipesPage saved={data.pizzaNight} loadError={data.pizzaNightError} repository={repo.pizzaNight} busy={busy} run={runPizza} editingChanged={setInvalid} hasLegacy={data.hasLegacy} />} />
-        <Route path="/reife-monitor" element={<Placeholder kind="monitor" />} />
+        <Route path="/reife-monitor" element={<MaturityPage access={monitoring} />} />
         <Route path="/journal" element={<Placeholder kind="journal" />} />
         <Route path="/einstellungen" element={<Settings hasLegacy={data.hasLegacy} busy={busy} backup={backup} />} />
         <Route path="*" element={<><PageHeading title="Seite nicht gefunden" description="Diese Adresse ist nicht verfügbar." /><Link className="button" to="/">Zum Dashboard</Link></>} />
       </Routes>}
       <footer className="app-footer"><p><span className="local-dot" aria-hidden="true" />Lokal gespeichert. Mit Liebe gemacht.</p>
-        <Link to="/einstellungen" className="text-link">Daten & Offline <Icon name="chevron" /></Link><PwaNotice busy={busy || invalid} />
+        <Link to="/einstellungen" className="text-link">Daten & Offline <Icon name="chevron" /></Link><PwaNotice busy={busy || invalid || monitorEditing} />
         {!data && error && <button onClick={() => void backup()} disabled={busy}>Sicherung herunterladen</button>}
       </footer>
     </main>

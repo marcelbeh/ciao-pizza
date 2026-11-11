@@ -10,8 +10,9 @@ import { createSchedule, createTeichnerSchedule } from "../core/schedule/plan";
 vi.mock("../infrastructure/pwa/PwaNotice", () => ({ PwaNotice: () => null }));
 function repository(): FornoRepository {
   return {
+    maturity: createFornoRepository(createIndexedDbStore(`p4-mock-${crypto.randomUUID()}`)).maturity,
     pizzaNight: createFornoRepository(createIndexedDbStore(`p3-mock-${crypto.randomUUID()}`)).pizzaNight,
-    load: vi.fn().mockResolvedValue({ pizzaNight: { version: 1, recipes: [], evening: null }, pizzaNightError: "", formula: { ...defaults, count: 6, hydration: 67.5, flourProfile: "Mein gespeichertes Mehl" }, evening: null, copied: false, hasLegacy: true, schedule: null, scheduleError: "" }),
+    load: vi.fn().mockResolvedValue({ maturity: { version: 1, modelVersion: 1, activeId: null, plans: [], autolyseMinutes: 30 }, maturityError: "", pizzaNight: { version: 1, recipes: [], evening: null }, pizzaNightError: "", formula: { ...defaults, count: 6, hydration: 67.5, flourProfile: "Mein gespeichertes Mehl" }, evening: null, copied: false, hasLegacy: true, schedule: null, scheduleError: "" }),
     save: vi.fn().mockResolvedValue(undefined),
     saveSchedule: vi.fn().mockResolvedValue(undefined),
     backup: vi.fn().mockResolvedValue({ format: "forno-preserved-data", version: 1, entries: { "ciao-workspace:v2": { recipes: [{ name: "Original" }] } } }),
@@ -208,15 +209,16 @@ describe("Teichner template integration", () => {
 it("recalculates Thermomix batches with the existing recipe and hides them for invalid inputs", async () => {
   const repo = repository(); window.location.hash = "#/teig"; render(<App repo={repo} />);
   const section = await screen.findByRole("region", { name: "Thermomix-Chargen" });
-  expect(within(section).getByText("30 Sekunden · Teigstufe")).toBeVisible();
-  expect(within(section).getByText(/Hefe sind die Gesamtmengen/)).toBeVisible();
+  fireEvent.click(within(section).getByText("TM5-Rezeptansicht (optional)"));
+  expect(within(section).getByText(/keine validierte TM5-Maximalmenge/)).toBeVisible();
+  expect(within(section).getByText(/Das gesamte Wasser der jeweiligen Charge/)).toBeVisible();
   const count = screen.getByRole("textbox", { name: /Pizzaanzahl/ });
   fireEvent.change(count, { target: { value: "1" } });
   expect(within(section).getByRole("heading", { name: "Thermomix · 1 Charge" })).toBeVisible();
-  expect(within(section).queryByText(/Teige aller Chargen zusammenführen/)).not.toBeInTheDocument();
+  expect(within(section).getByText(/Kontrolliert fertigkneten/)).toBeVisible();
   fireEvent.change(count, { target: { value: "8" } });
   expect(within(section).getByRole("heading", { name: "Thermomix · 4 Chargen" })).toBeVisible();
-  expect(within(section).getByText(/Teige aller Chargen zusammenführen/)).toBeVisible();
+  expect(within(section).getByText(/Chargen anschließend zusammenführen/)).toBeVisible();
   fireEvent.change(count, { target: { value: "" } });
   expect(screen.queryByRole("region", { name: "Thermomix-Chargen" })).not.toBeInTheDocument();
 });
