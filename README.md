@@ -35,6 +35,13 @@ Backtermin, Raum-/Kühlschrankphasen und daraus rückwärts berechnete Arbeitssc
 
 ## P3 · Pizzaabend und Belagrezepte
 
+Neue lokale Sammlungen starten einmalig mit neun bearbeitbaren Standardpizzen: Margherita,
+Salami, Funghi, Pesto, Bianca, Tonno, ’Nduja 🌶️, Marcello und Prosciutto e Funghi. Bereits mit Version 1 initialisierte
+Sammlungen erhalten einmalig nur die beiden neuen Rezepte; gelöschte alte Rezepte bleiben gelöscht.
+Bei bestehenden Sammlungen ohne Initialisierungsmarker erfolgt die Ergänzung ausschließlich mit **Standardpizzen ergänzen** hinzugefügt. Ein dauerhaft gespeicherter
+Versionsmarker schützt eigene Änderungen und Löschungen vor erneutem Einfügen. Keine erfundenen
+Mengen oder Zubereitungsschritte. [Initialisierung und Datenerhalt](docs/P3-PIZZA-NIGHT.md#standardpizzen).
+
 Unter **Rezepte** Beläge mit Name, einer Zutat pro Zeile und optionaler Zubereitung anlegen,
 anzeigen, bearbeiten und nach Bestätigung löschen. Unter **Pizzaabend** einen aktuellen Abend
 mit Name, optionaler Notiz und Rezeptpositionen planen. Eine feste Rezeptkopie schützt den Abend

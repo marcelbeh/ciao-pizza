@@ -2,7 +2,7 @@ export interface RecipeSnapshot { name: string; ingredients: string[]; preparati
 export interface ToppingRecipe extends RecipeSnapshot { id: string; createdAt: string; updatedAt: string }
 export interface PizzaItem { id: string; sourceRecipeId?: string; recipeSnapshot: RecipeSnapshot; quantity: number }
 export interface PizzaEvening { id: string; name: string; notes: string; items: PizzaItem[]; createdAt: string; updatedAt: string }
-export interface PizzaNightState { version: 1; recipes: ToppingRecipe[]; evening: PizzaEvening | null }
+export interface PizzaNightState { version: 1; recipes: ToppingRecipe[]; evening: PizzaEvening | null; standardRecipesVersion?: 1 | 2 }
 export const pizzaLimits = { name: 100, ingredient: 300, ingredients: 100, preparation: 4000, notes: 2000, recipes: 500, items: 500, quantity: 10000 } as const;
 export const emptyPizzaNight = (): PizzaNightState => ({ version: 1, recipes: [], evening: null });
 function fail(): never { throw Error('Ungültige oder unbekannte Pizzaabend-/Rezeptdaten.'); }
@@ -50,7 +50,8 @@ export function assertEvening(value: unknown): asserts value is PizzaEvening {
   }
 }
 export function assertPizzaNight(value: unknown): asserts value is PizzaNightState {
-  const row = object(value, ['version', 'recipes', 'evening']);
+  const row = object(value, ['version', 'recipes', 'evening'], ['standardRecipesVersion']);
+  if (Object.hasOwn(row, 'standardRecipesVersion') && row.standardRecipesVersion !== 1 && row.standardRecipesVersion !== 2) fail();
   if (row.version !== 1 || !Array.isArray(row.recipes) || row.recipes.length > pizzaLimits.recipes) fail();
   const ids = new Set<string>();
   for (const recipe of row.recipes) { assertRecipe(recipe); if (ids.has(recipe.id)) fail(); ids.add(recipe.id); }

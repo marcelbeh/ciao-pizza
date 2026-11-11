@@ -164,7 +164,7 @@ describe("Teichner template integration", () => {
   it("keeps saved legacy plans until explicit selection and save, then uses the same steps on Home", async () => {
     const db = createIndexedDbStore(`teichner-ui-${crypto.randomUUID()}`); const repo = createFornoRepository(db);
     const old = { ...createSchedule(), bakeAt: new Date(Math.floor((Date.now() + 30 * 3600000) / 60000) * 60000).toISOString(), bulkHours: 3, preheatMinutes: 90 };
-    await repo.saveSchedule(old); const before = await db.entries!();
+    await repo.saveSchedule(old); await db.set("forno:pizza-night:v1", { version: 1, recipes: [], evening: null }); const before = await db.entries!();
     window.location.hash = "#/zeitplan"; render(<App repo={repo} />);
     expect(await screen.findByRole("heading", { name: "Bisheriger Zeitplan" })).toBeVisible();
     expect(screen.getByLabelText("Backdatum und Uhrzeit")).toBeDisabled();

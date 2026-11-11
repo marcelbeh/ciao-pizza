@@ -92,6 +92,7 @@ describe("Theme changes preserve app state", () => {
     const t = bootstrap({ doc: document }); window.fornoTheme = t.api;
     const db = createIndexedDbStore(`theme-calculator-${crypto.randomUUID()}`); const repo = createFornoRepository(db);
     await repo.save(defaults); await repo.saveSchedule(createSchedule());
+    await db.set("forno:pizza-night:v1", { version: 1, recipes: [], evening: null });
     const before = await db.entries!(); window.location.hash = "#/teig";
     render(<App repo={repo} />);
     const input = await screen.findByRole("textbox", { name: /Pizzaanzahl/ });

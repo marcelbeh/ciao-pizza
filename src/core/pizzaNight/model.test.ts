@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { addRecipe, assertEvening, assertPizzaNight, assertRecipe, emptyPizzaNight, pizzaCount, planningHint, recipeInput, type PizzaEvening, type ToppingRecipe } from './model';
+import { withStandardRecipes } from './standardRecipes';
 const date = '2026-11-07T12:00:00.000Z';
 const recipe = (): ToppingRecipe => ({ id: 'recipe-1', name: 'Margherita', ingredients: ['Tomate', 'Mozzarella'], preparation: '', createdAt: date, updatedAt: date });
 const evening = (): PizzaEvening => ({ id: 'evening-1', name: 'Samstag', notes: '', items: addRecipe([], recipe(), () => 'item-1'), createdAt: date, updatedAt: date });
@@ -42,5 +43,42 @@ describe('P3 model and independent snapshots', () => {
     expect(() => assertEvening({ ...e, items: [e.items[0], { ...e.items[0], id: 'different-id' }] })).toThrow();
     expect(() => assertEvening({ ...e, items: [{ ...e.items[0], sourceRecipeId: undefined }] })).toThrow();
     expect(() => assertEvening({ ...e, items: [{ ...e.items[0], recipeSnapshot: { name: 'Pizza' } }] })).toThrow();
+  });
+});
+
+describe('Nine standard pizzas, catalog versions 1 and 2', () => {
+  it('contains exactly the requested nine recipes, stable unique IDs and no invented preparation', () => {
+    const state = withStandardRecipes(emptyPizzaNight(), date);
+    expect(state.standardRecipesVersion).toBe(2);
+    expect(state.recipes.map(({ name, ingredients, preparation }) => ({ name, ingredients, preparation }))).toEqual([
+      { name: 'Margherita', ingredients: ['San Marzano', 'Fior di Latte', 'Basilikum'], preparation: '' },
+      { name: 'Salami', ingredients: ['San Marzano', 'Fior di Latte', 'Salami Milano'], preparation: '' },
+      { name: 'Funghi', ingredients: ['San Marzano', 'Fior di Latte', 'Champignons'], preparation: '' },
+      { name: 'Pesto', ingredients: ['San Marzano', 'selbst gemachtes Pesto', 'Tomaten', 'Pinienkerne', 'Burrata', 'Parmesan'], preparation: '' },
+      { name: 'Bianca', ingredients: ['Fior di Latte', 'Ricotta', 'italienische Mortadella', 'Pistazien'], preparation: '' },
+      { name: 'Tonno', ingredients: ['San Marzano', 'Fior di Latte', 'Thunfisch', 'Zwiebeln'], preparation: '' },
+      { name: '’Nduja 🌶️', ingredients: ['San Marzano', 'Fior di Latte', '’Nduja', 'rote Zwiebeln'], preparation: '' },
+      { name: 'Marcello', ingredients: ['San Marzano', 'Fior di Latte', 'Salami Milano', 'Oliven', 'Burrata'], preparation: '' },
+      { name: 'Prosciutto e Funghi', ingredients: ['San Marzano', 'Fior di Latte', 'Prosciutto cotto (gekochter Schinken)', 'Champignons'], preparation: '' },
+    ]);
+    expect(new Set(state.recipes.map(recipe => recipe.id)).size).toBe(9);
+    expect(state.recipes.map(recipe => recipe.id)).toEqual(withStandardRecipes(emptyPizzaNight(), '2027-01-01T00:00:00.000Z').recipes.map(recipe => recipe.id));
+    expect(() => assertPizzaNight(state)).not.toThrow();
+  });
+  it('preserves an existing standard ID, all its edits and original timestamps', () => {
+    const original = { ...withStandardRecipes(emptyPizzaNight(), date).recipes[0], name: 'Meine Margherita', ingredients: ['Mein Käse'] };
+    const state = { ...emptyPizzaNight(), recipes: [original] };
+    const seeded = withStandardRecipes(state, '2027-01-01T00:00:00.000Z');
+    expect(seeded.recipes).toHaveLength(9); expect(seeded.recipes[0]).toEqual(original);
+    expect(state.recipes).toEqual([original]); expect(state).not.toHaveProperty('standardRecipesVersion');
+    const afterDeletion = { ...seeded, recipes: [] };
+    expect(withStandardRecipes(afterDeletion)).toBe(afterDeletion);
+  });
+  it('rejects unsupported markers and refuses partial addition when the library is full', () => {
+    expect(() => assertPizzaNight({ ...emptyPizzaNight(), standardRecipesVersion: 3 })).toThrow();
+    expect(() => assertPizzaNight({ ...emptyPizzaNight(), standardRecipesVersion: undefined })).toThrow();
+    const state = { ...emptyPizzaNight(), recipes: Array.from({ length: 500 }, (_, i) => ({ ...recipe(), id: `own-${i}` })) };
+    expect(() => withStandardRecipes(state)).toThrow('höchstens 500'); expect(state.recipes).toHaveLength(500);
+    expect(state).not.toHaveProperty('standardRecipesVersion');
   });
 });

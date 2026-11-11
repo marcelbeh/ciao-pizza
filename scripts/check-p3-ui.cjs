@@ -43,7 +43,7 @@ async function noOverflow(page) { assert(await page.evaluate(() => document.docu
     'ciao-workspace:v2': { version: 99, personalRecipes: ['untouched'], future: true },
     'unknown-cache:preserve': { opaque: ['all', 'fields'] },
   };
-  await seed(page, p1p2); await page.reload({ waitUntil: 'networkidle' });
+  await seed(page, { ...p1p2, 'forno:pizza-night:v1': { version: 1, recipes: [], evening: null } }); await page.reload({ waitUntil: 'networkidle' });
   await nav(page, 'Teig'); await nav(page, 'Rezepte');
   await page.getByRole('button', { name: 'Rezept anlegen', exact: true }).click();
   await page.getByLabel('Rezeptname', { exact: true }).fill('Margherita');
