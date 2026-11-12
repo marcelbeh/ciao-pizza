@@ -1,0 +1,10 @@
+{
+  "browser": "156.0.8078.79",
+  "at": "2026-11-12T21:08:30.191Z",
+  "checks": [
+    "390px light: optional 8-phase TM5 card, single shared temperature, Back discard protection, System/manual themes retain draft, corrections/skipped checks, unchanged P1/P2/P3/archive, offline restore, no overflow or page errors",
+    "390px dark: optional 8-phase TM5 card, single shared temperature, Back discard protection, System/manual themes retain draft, corrections/skipped checks, unchanged P1/P2/P3/archive, offline restore, no overflow or page errors",
+    "1280px light: optional 8-phase TM5 card, single shared temperature, Back discard protection, System/manual themes retain draft, corrections/skipped checks, unchanged P1/P2/P3/archive, offline restore, no overflow or page errors",
+    "1280px dark: optional 8-phase TM5 card, single shared temperature, Back discard protection, System/manual themes retain draft, corrections/skipped checks, unchanged P1/P2/P3/archive, offline restore, no overflow or page errors"
+  ]
+}
