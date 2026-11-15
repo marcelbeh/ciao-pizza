@@ -404,3 +404,102 @@ textarea { display: block; width: 100%; min-height: 96px; padding: 12px; resize:
 .tm5-phases { padding-left: 24px; margin-block: 16px; }
 .tm5-phases > li { margin-top: 16px; padding-left: 4px; }
 .tm5-phases p { margin-top: 4px; font-size: 14px; color: var(--text-secondary); }
+
+/* Reifemonitor: qualitative status, planned phases and measurements stay visually distinct. */
+.monitor-page { display: grid; gap: 16px; min-width: 0; }
+.monitor-page .page-heading { margin-bottom: 0; }
+.monitor-page .card { padding: 20px; }
+.monitor-sync:empty { display: none; }
+.monitor-sync > p, .monitor-sync > button { margin-top: 12px; }
+.monitor-sync > :first-child { margin-top: 0; }
+.monitor-hero-heading { display: flex; align-items: center; gap: 12px; }
+.monitor-status-icon { display: grid; place-items: center; flex: 0 0 48px; height: 48px; border-radius: 16px; background: var(--accent-soft); color: var(--accent); }
+.monitor-status-icon svg { width: 30px; height: 30px; }
+.monitor-eyebrow { color: var(--text-secondary); font-size: 12px; font-weight: 600; letter-spacing: .02em; }
+.monitor-hero h2 { margin-top: 4px; font-size: clamp(22px, 4vw, 28px); line-height: 1.15; text-wrap: balance; }
+.monitor-confidence { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 16px 0 12px; font-size: 12px; color: var(--text-secondary); }
+.monitor-confidence strong { color: var(--text); font-weight: 600; }
+.monitor-confidence > :first-child { border-right: 1px solid var(--border); padding-right: 12px; }
+.monitor-bake { display: flex; align-items: center; gap: 8px; color: var(--text-secondary); font-size: 13px; }
+.monitor-bake svg { width: 18px; height: 18px; color: var(--accent); }
+.monitor-bake time { margin-left: 8px; color: var(--text); font-weight: 600; }
+.monitor-advice { margin-top: 16px; padding: 16px; border-radius: var(--radius-control); background: var(--accent-soft); font-size: 14px; line-height: 1.5; }
+.monitor-advice .monitor-eyebrow { margin-bottom: 6px; color: var(--accent); }
+.monitor-advice p + p { margin-top: 0; }
+.monitor-advice ul { padding-left: 20px; margin: 8px 0 0; }
+.monitor-caution { border-color: var(--terracotta); }
+.monitor-caution .monitor-status-icon, .monitor-caution .monitor-advice .monitor-eyebrow { color: var(--terracotta); }
+.monitor-explanation { margin-top: 8px; color: var(--text-secondary); font-size: 13px; }
+.monitor-explanation summary, .monitor-recipe summary, .monitor-history summary { min-height: 44px; align-content: center; cursor: pointer; font-size: 13px; color: var(--accent); }
+.monitor-explanation p { margin-top: 8px; }
+.monitor-explanation ul { padding-left: 20px; margin: 12px 0 0; }
+.monitor-explanation li + li { margin-top: 8px; }
+.monitor-section-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.monitor-section-heading h2 { font-size: 18px; }
+.monitor-section-heading .text-link { font-size: 12px; }
+.monitor-tag { display: inline-flex; padding: 4px 8px; border-radius: 8px; color: var(--text-secondary); background: var(--surface-raised); font-size: 11px; }
+.monitor-caption { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+.monitor-section-heading + .monitor-caption { margin-top: 8px; }
+.monitor-phase-section { padding: 0 4px; }
+.monitor-phases { list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(88px, 1fr)); padding: 0; margin: 12px 0; gap: 8px; }
+.monitor-phases li { position: relative; min-width: 0; padding-top: 24px; }
+.monitor-phases li::before { position: absolute; content: ''; top: 6px; left: 0; right: -8px; height: 1px; background: var(--border); }
+.monitor-phases li:last-child::before { right: 0; }
+.monitor-phase-dot { position: absolute; top: 1px; left: 0; width: 11px; height: 11px; border-radius: 50%; border: 2px solid var(--control-border); background: var(--background); }
+.monitor-phases [aria-current='step'] .monitor-phase-dot { border-color: var(--accent); background: var(--accent); }
+.monitor-phases h3 { font-size: 13px; line-height: 1.4; letter-spacing: -.02em; }
+.monitor-phases p, .monitor-phases small { display: block; font-size: 11px; color: var(--text-secondary); margin-top: 4px; }
+.monitor-phases [aria-current='step'] small { color: var(--accent); font-weight: 600; }
+.monitor-layout { display: grid; gap: 16px; align-items: start; min-width: 0; }
+.monitor-layout > * { min-width: 0; }
+.monitor-check-list { list-style: none; padding: 0; margin: 16px 0 0; }
+.monitor-check-list > li { padding: 16px 0; border-top: 1px solid var(--border); }
+.monitor-check-list > li:last-child { padding-bottom: 0; }
+.monitor-check-row { display: flex; align-items: start; gap: 10px; }
+.monitor-check-number { display: grid; place-items: center; flex: 0 0 28px; height: 28px; background: var(--surface-raised); border-radius: 8px; color: var(--text-secondary); font-size: 11px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.monitor-check-due .monitor-check-number { background: var(--accent-soft); color: var(--accent); }
+.monitor-check-row > div { min-width: 0; flex: 1; }
+.monitor-check-row h3 { font-size: 14px; letter-spacing: -.02em; }
+.monitor-check-row time { display: block; margin-top: 4px; font-size: 11px; color: var(--text-secondary); }
+.monitor-check-state { max-width: 76px; text-align: right; font-size: 11px; color: var(--text-secondary); }
+.monitor-check-due .monitor-check-state { color: var(--accent); }
+.monitor-check-button { display: flex; justify-content: space-between; margin-top: 12px; width: 100%; min-height: 44px; padding: 8px 12px; font-size: 12px; background: transparent; border-color: var(--border); }
+.monitor-check-button svg { width: 16px; height: 16px; }
+.monitor-observation { margin-top: 12px; font-size: 12px; color: var(--text-secondary); }
+.monitor-observation small { display: inline-block; margin-top: 4px; font-size: 11px; }
+.monitor-temperatures { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 16px 0; margin: 0; }
+.monitor-temperatures > div { padding: 0 8px; border-right: 1px solid var(--border); min-width: 0; }
+.monitor-temperatures > div:first-child { padding-left: 0; }
+.monitor-temperatures > div:last-child { padding-right: 0; border-right: 0; }
+.monitor-temperatures dt { font-size: 11px; color: var(--text-secondary); }
+.monitor-temperatures dd { margin: 4px 0; font-size: clamp(18px, 4.8vw, 24px); line-height: 1.3; letter-spacing: -.04em; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.monitor-temperatures small { display: block; font-size: 10px; color: var(--text-secondary); }
+.monitor-measurements > div > button { width: 100%; }
+.monitor-measurements > .monitor-caption { margin-top: 12px; }
+.monitor-event-button { width: 100%; margin-top: 12px; min-height: 44px; padding: 8px 12px; font-size: 12px; }
+.monitor-history { margin-top: 12px; border-top: 1px solid var(--border); padding-top: 4px; }
+.monitor-history ul { list-style: none; padding: 0; margin: 0; }
+.monitor-history li { display: flex; align-items: center; gap: 8px; justify-content: space-between; padding: 12px 0; border-top: 1px solid var(--border); }
+.monitor-history strong { font-size: 13px; font-weight: 600; }
+.monitor-history time { display: block; font-size: 11px; color: var(--text-secondary); }
+.monitor-history button { padding: 8px; min-height: 44px; font-size: 11px; }
+.monitor-editor { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+.monitor-editor h3 { font-size: 16px; }
+.monitor-editor .p3-actions { gap: 8px; }
+.monitor-editor .p3-actions > button { flex-basis: 120px; }
+.monitor-page .monitor-recipe { padding-block: 8px; font-size: 13px; }
+.monitor-recipe p { margin-top: 12px; }
+.monitor-recipe section { margin-top: 16px; }
+.monitor-recipe h3 { font-size: 14px; }
+.monitor-recipe ul { padding-left: 20px; }
+.monitor-recipe li + li { margin-top: 8px; }
+@media (min-width: 800px) {
+  .monitor-page { gap: 24px; }
+  .monitor-page .card { padding: 24px; }
+  .monitor-hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 32px; align-items: start; }
+  .monitor-hero-heading, .monitor-confidence, .monitor-bake { grid-column: 1; }
+  .monitor-advice { grid-column: 2; grid-row: 1 / 4; margin-top: 0; }
+  .monitor-explanation { grid-column: 1 / -1; margin-top: 12px; border-top: 1px solid var(--border); padding-top: 4px; }
+  .monitor-layout { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 24px; }
+  .monitor-page .monitor-recipe { padding-block: 8px; }
+}

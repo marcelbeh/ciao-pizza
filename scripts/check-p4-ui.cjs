@@ -29,7 +29,7 @@ for(const width of [390,1280])for(const theme of ['light','dark']){
  await p.getByRole('button',{name:'Temperaturen speichern',exact:true}).click();await p.getByText('Temperaturen im aktiven Reifemonitor gespeichert.',{exact:true}).waitFor();
  await capture(p,`tm5-${theme}-${width}.png`);await noOverflow(p);
  await nav(p,'Home');await p.locator('.maturity-summary').waitFor();await p.locator('.maturity-summary').click();await p.getByRole('heading',{name:'Reife-Monitor',exact:true}).waitFor();
- await p.getByText('22 °C',{exact:true}).waitFor();
+ await p.getByText('22 °C',{exact:true}).first().waitFor();
  await p.getByRole('button',{name:'Temperaturänderung erfassen',exact:true}).click();await p.getByLabel('Gemessen an',{exact:true}).selectOption('fridge');await p.getByLabel('Neue Temperatur (°C)',{exact:true}).fill('6');
  await p.getByRole('button',{name:'Änderung speichern',exact:true}).click();await p.getByText('Temperaturänderung lokal gespeichert.',{exact:true}).waitFor();
  await p.getByRole('button',{name:'Check öffnen oder überspringen',exact:true}).first().click();await p.getByRole('button',{name:'Check überspringen',exact:true}).click();await p.getByText('Check lokal gespeichert.',{exact:true}).waitFor();
@@ -39,7 +39,7 @@ for(const width of [390,1280])for(const theme of ['light','dark']){
  const after=await storage(p);for(const [key,value]of Object.entries(before))assert.deepEqual(after[key],value);assert(after['forno:maturity:v1']);
  const active=after['forno:maturity:v1'].plans[0];assert.equal(active.conditions.doughC,22);assert.equal(active.temperatures[0].celsius,6);assert.equal(active.checks[0].skipped,false);assert.equal(active.checks[0].volume,'clear');
  await p.evaluate(()=>navigator.serviceWorker.ready);await p.reload({waitUntil:'networkidle'});await context.setOffline(true);await p.reload({waitUntil:'networkidle'});await p.getByRole('heading',{name:'Reife-Monitor',exact:true}).waitFor();assert.deepEqual(await storage(p),after);
- await nav(p,'Teig');await p.getByText('TM5-Rezeptansicht (optional)',{exact:true}).click();await p.getByText('22 °C',{exact:true}).waitFor();assert.deepEqual(await storage(p),after);
+ await nav(p,'Teig');await p.getByText('TM5-Rezeptansicht (optional)',{exact:true}).click();await p.getByText('22 °C',{exact:true}).first().waitFor();assert.deepEqual(await storage(p),after);
  assert.deepEqual(errors,[]);report.checks.push(`${width}px ${theme}: optional 8-phase TM5 card, single shared temperature, Back discard protection, System/manual themes retain draft, corrections/skipped checks, unchanged P1/P2/P3/archive, offline restore, no overflow or page errors`);
  await context.close();console.log(`PASS ${width}px ${theme}`);
 }
