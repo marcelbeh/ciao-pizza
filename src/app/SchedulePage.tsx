@@ -108,7 +108,7 @@ export function SchedulePage({ saved, loadError, save, busy, now, editingChanged
             <div className="schedule-fields">{field("coldBulkHours", "Std.")}{field("coldBallHours", "Std.")}{field("acclimationHours", "Std.")}</div>
             <p className="field-hint">{valid ? `Gärphasen: ${new Intl.NumberFormat("de-DE").format(fermentationHours(candidate))} Stunden.` : "Bitte die Phasendauern prüfen."} Teichner setzt 24 + 20 + 4 = 48 Stunden; geänderte Dauern passen die Gesamtzeit an. Die gesamte Vorbereitung liegt zusätzlich davor. Portionieren ist der Übergang zur kalten Stückgare ohne zusätzliche Dauer.</p>
           <details className="pro"><summary>Kneten, Vorheizen und Temperaturen</summary>
-            <p className="field-hint">Vorbereitungszeit für alle Chargen, Handarbeit und Zusammenführen einplanen. Die 30 Sekunden Teigstufe gelten je Charge und ersetzen nicht die gesamte Vorbereitung.</p>
+            <p className="field-hint">Vorbereitungszeit für alle Chargen, Handarbeit und Zusammenführen einplanen. Autolyse, Chargen und Handarbeit gehören zur gesamten Vorbereitung; Geräteintervalle sind nicht als Rezeptvorgabe bestätigt.</p>
             <div className="schedule-fields">{field("mixMinutes", "Min.")}{field("preheatMinutes", "Min.")}
               {field("roomC", "°C")}{field("fridgeC", "°C")}</div>
           </details></>}

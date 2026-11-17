@@ -1,0 +1,28 @@
+{
+  "browser": "156.0.8078.79",
+  "viewports": [
+    "320×844 light: all routes, radio check/cancel, time dial, no overflow, no page errors, no IndexedDB changes",
+    "320×844 dark: all routes, radio check/cancel, time dial, no overflow, no page errors, no IndexedDB changes",
+    "390×844 light: all routes, radio check/cancel, time dial, no overflow, no page errors, no IndexedDB changes",
+    "390×844 dark: all routes, radio check/cancel, time dial, no overflow, no page errors, no IndexedDB changes",
+    "1280×844 light: all routes, radio check/cancel, time dial, no overflow, no page errors, no IndexedDB changes",
+    "1280×844 dark: all routes, radio check/cancel, time dial, no overflow, no page errors, no IndexedDB changes"
+  ],
+  "contrasts": {
+    "light": {
+      "--text / --surface": 14.67,
+      "--text-secondary / --surface": 5.98,
+      "--accent / --accent-soft": 5.43,
+      "--button-text / --button-bg": 5.73,
+      "--control-border / --field-bg": 3.08
+    },
+    "dark": {
+      "--text / --surface": 13.69,
+      "--text-secondary / --surface": 7.66,
+      "--accent / --accent-soft": 6.58,
+      "--button-text / --button-bg": 8.87,
+      "--control-border / --field-bg": 4.16
+    }
+  },
+  "errors": []
+}

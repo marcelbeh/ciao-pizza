@@ -36,7 +36,7 @@ describe('P4 UI and shared TM5 temperature',()=>{
     fireEvent.click(screen.getByRole('button',{name:'Check überspringen'}));await screen.findByText('Check lokal gespeichert.');
     expect(activeMonitor((await repo.maturity.load()).maturity)?.checks[0].skipped).toBe(true);
     fireEvent.click(screen.getByRole('button',{name:'Check korrigieren'}));
-    fireEvent.change(screen.getByLabelText('Volumenzunahme'),{target:{value:'clear'}});fireEvent.change(screen.getByLabelText('Oberfläche'),{target:{value:'bubbles'}});
+    fireEvent.click(screen.getByRole('radio',{name:'Volumenzunahme: Deutlich aufgegangen'}));fireEvent.click(screen.getByRole('radio',{name:'Oberfläche: Luftig mit sichtbaren Bläschen'}));
     fireEvent.click(screen.getByRole('button',{name:'Check speichern'}));await screen.findByText('Check lokal gespeichert.');
     expect(activeMonitor((await repo.maturity.load()).maturity)?.checks[0]).toMatchObject({skipped:false,volume:'clear',surface:'bubbles'});
     expect((await repo.load()).schedule).toEqual(before);expect(await db.get('forno:schedule:v1')).toEqual(before);

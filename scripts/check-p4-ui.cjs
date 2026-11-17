@@ -33,7 +33,7 @@ for(const width of [390,1280])for(const theme of ['light','dark']){
  await p.getByRole('button',{name:'Temperaturänderung erfassen',exact:true}).click();await p.getByLabel('Gemessen an',{exact:true}).selectOption('fridge');await p.getByLabel('Neue Temperatur (°C)',{exact:true}).fill('6');
  await p.getByRole('button',{name:'Änderung speichern',exact:true}).click();await p.getByText('Temperaturänderung lokal gespeichert.',{exact:true}).waitFor();
  await p.getByRole('button',{name:'Check öffnen oder überspringen',exact:true}).first().click();await p.getByRole('button',{name:'Check überspringen',exact:true}).click();await p.getByText('Check lokal gespeichert.',{exact:true}).waitFor();
- await p.getByRole('button',{name:'Check korrigieren',exact:true}).click();await p.getByLabel('Volumenzunahme',{exact:true}).selectOption('clear');await p.getByLabel('Oberfläche',{exact:true}).selectOption('bubbles');
+ await p.getByRole('button',{name:'Check korrigieren',exact:true}).click();await p.getByRole('radio',{name:'Volumenzunahme: Deutlich aufgegangen',exact:true}).check();await p.getByRole('radio',{name:'Oberfläche: Luftig mit sichtbaren Bläschen',exact:true}).check();
  await p.getByRole('button',{name:'Check speichern',exact:true}).click();await p.getByText('Check lokal gespeichert.',{exact:true}).waitFor();await noOverflow(p);
  await p.getByText('Warum diese Einschätzung?',{exact:true}).click();await capture(p,`monitor-${theme}-${width}.png`);
  const after=await storage(p);for(const [key,value]of Object.entries(before))assert.deepEqual(after[key],value);assert(after['forno:maturity:v1']);

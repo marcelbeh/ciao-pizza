@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
+import { PhaseDial, ProcessTimeline } from '../components/PhaseDial';
 import { Icon } from '../components/Icon';
 import { PageHeading } from '../components/PageHeading';
 import { activeMonitor, recipeSnapshot, assertCheck, assertConditions, assertTemperatureEvent, newMonitor, type Conditions, type DoughCheck, type MaturityState, type MonitorPlan, type TemperatureEvent, type CheckSlot } from '../core/maturity/model';
@@ -77,6 +78,13 @@ export function SharedTemperatures({ access, disabled = false, onEditingChange, 
 const volumes = { little: 'Kaum verändert', slight: 'Leicht aufgegangen', clear: 'Deutlich aufgegangen', double: 'Ungefähr verdoppelt' };
 const surfaces = { tense: 'Glatt und gespannt', bubbles: 'Luftig mit sichtbaren Bläschen', collapsed: 'Schlaff oder eingefallen' };
 const elasticities = { fast: 'Federt schnell zurück', slow: 'Federt langsam zurück', soft: 'Sehr weich oder klebrig' };
+function ObservationChoices({ label, value, choices, change }: { label: string; value: string; choices: Record<string, string>; change: (value: string) => void }) {
+  return <fieldset className="observation-group"><legend>{label}</legend><div className="observation-choices">
+    {[['', 'Nicht beobachtet'], ...Object.entries(choices)].map(([key, text]) => <label key={key} className="observation-option">
+      <input type="radio" name={label} aria-label={`${label}: ${text}`} value={key} checked={value === key} onChange={() => change(key)} /><span>{text}</span>
+    </label>)}
+  </div></fieldset>;
+}
 function CheckEditor({ access, plan, slot, close }: { access: MonitorAccess; plan: MonitorPlan; slot: CheckSlot; close: (saved?: boolean) => void }) {
   const [original] = useState(plan.checks.find(c => c.slot === slot) ?? null);
   const [base] = useState<DoughCheck>(() => original ?? { id: crypto.randomUUID(), slot, at: new Date().toISOString(), skipped: false, volume: null, surface: null, elasticity: null });
@@ -94,9 +102,10 @@ function CheckEditor({ access, plan, slot, close }: { access: MonitorAccess; pla
   return <form className="monitor-editor" aria-label="Freiwilliger Teig-Check" onSubmit={e => { e.preventDefault(); void save(false); }} noValidate>
     <h3>Freiwilliger Teig-Check</h3><fieldset className="p3-fields" disabled={access.busy}>
       <label>Zeitpunkt der Beobachtung<input type="datetime-local" value={at} onChange={e => setAt(e.target.value)} /></label>
-      <label>Volumenzunahme<select aria-label="Volumenzunahme" value={volume} onChange={e => setVolume(e.target.value as typeof volume)}><option value="">Nicht beobachtet</option>{Object.entries(volumes).map(([v,l]) => <option value={v} key={v}>{l}</option>)}</select></label>
-      <label>Oberfläche<select aria-label="Oberfläche" value={surface} onChange={e => setSurface(e.target.value as typeof surface)}><option value="">Nicht beobachtet</option>{Object.entries(surfaces).map(([v,l]) => <option value={v} key={v}>{l}</option>)}</select></label>
-      <label>Elastizität<select aria-label="Elastizität" value={elasticity} onChange={e => setElasticity(e.target.value as typeof elasticity)}><option value="">Nicht beobachtet</option>{Object.entries(elasticities).map(([v,l]) => <option value={v} key={v}>{l}</option>)}</select></label>
+      <ObservationChoices label="Volumenzunahme" value={volume} choices={volumes} change={value => setVolume(value as typeof volume)} />
+      <ObservationChoices label="Oberfläche" value={surface} choices={surfaces} change={value => setSurface(value as typeof surface)} />
+      <ObservationChoices label="Elastizität" value={elasticity} choices={elasticities} change={value => setElasticity(value as typeof elasticity)} />
+      <p className="observation-tip"><Icon name="sprout" />Achte auch auf Blasen, Spannung und Geruch. Blasen und Spannung beschreibst du über Oberfläche und Elastizität. Geruch wird hier nicht gespeichert und allein nicht als Reifebeweis gewertet.</p>
       <p className="field-hint">Einzelne Merkmale beweisen weder Unter- noch Übergare. Eine oder mehrere Angaben reichen zum Speichern; Überspringen erfordert keine Beobachtung.</p>
       <div className="p3-actions"><button className="primary" type="submit">Check speichern</button><button type="button" onClick={() => void save(true)}>Check überspringen</button>
         <button type="button" onClick={() => { if (!dirty || window.confirm('Ungespeicherte Änderungen verwerfen?')) close(); }}>Abbrechen</button></div>
@@ -121,8 +130,13 @@ function TemperatureEditor({ access, plan, original, close }: { access: MonitorA
 export function MaturityCompact({ access }: { access: MonitorAccess }) {
   const plan = activeMonitor(access.state) ?? (access.schedule && !access.scheduleError ? newMonitor(access.formula, access.schedule, new Date(access.now).toISOString(), 'preview') : null);
   const prediction = plan ? maturityForecast(plan, access.now) : null;
-  return <Link className="card maturity-summary" to="/reife-monitor"><strong>Reife: {access.loadError ? 'Daten prüfen' : prediction?.status ?? 'Noch kein Zeitplan'}</strong>
-    <span>{prediction ? `Sicherheit: ${prediction.certainty}${plan?.id === 'preview' ? ' · Planvorschau' : ''}` : 'Planung und freiwillige Teig-Checks öffnen'} →</span></Link>;
+  return <Link className="card maturity-summary" to="/reife-monitor">
+    {plan && !access.loadError ? <PhaseDial schedule={plan.schedule} now={access.now} compact /> : <span className="maturity-empty-icon"><Icon name="dough" /></span>}
+    <div className="maturity-summary-copy"><span className="monitor-eyebrow">{plan?.id === 'preview' ? 'Planvorschau' : 'Dein aktiver Teig'}</span>
+      <strong>Reife: {access.loadError ? 'Daten prüfen' : prediction?.status ?? 'Noch kein Zeitplan'}</strong>
+      <span>{prediction ? `Zeitbogen · Sicherheit: ${prediction.certainty}` : 'Planung und freiwillige Teig-Checks öffnen'}</span>
+    </div><Icon name="chevron" />
+  </Link>;
 }
 const phaseNames: Record<string, string> = {
   bulk: 'Stockgare', 'cold-bulk': 'Stockgare · kalt', balls: 'Stückgare',
@@ -142,6 +156,10 @@ export function MaturityPage({ access }: { access: MonitorAccess }) {
   const ingredients = plan ? calculateFormula(plan.formula).ingredients : null;
   const currentPhase = forecast?.phases.find(phase => Date.parse(phase.at) <= access.now && access.now < Date.parse(phase.endsAt!));
 
+  const suggestions = plan ? checkSuggestions(plan) : [];
+  const pending = suggestions.filter(suggestion => !plan?.checks.some(check => check.slot === suggestion.slot));
+  const nextCheck = pending.find(suggestion => Date.parse(suggestion.at) >= access.now) ?? pending.at(-1);
+
   return <div className="monitor-page">
     <PageHeading title="Reife-Monitor" description="Dein Teig im Blick. Vom Kneten bis zum Backen." />
     <section className="card monitor-sync">
@@ -150,12 +168,14 @@ export function MaturityPage({ access }: { access: MonitorAccess }) {
     </section>
     {plan && forecast && ingredients && !access.loadError && <>
       <section className={`card monitor-hero ${forecast.status === 'Möglicherweise überreif' ? 'monitor-caution' : ''}`} aria-label="Reifeeinschätzung">
+        <div className="monitor-dial-area"><PhaseDial schedule={plan.schedule} now={access.now} /><p>Zeitlicher Phasenfortschritt</p><small>Keine gemessene Teigreife</small></div>
         <div className="monitor-hero-heading">
           <span className="monitor-status-icon"><Icon name="dough" /></span>
           <div><p className="monitor-eyebrow">{currentPhase ? phaseNames[currentPhase.id] : access.now < Date.parse(forecast.phases[0].at) ? 'Vor dem Gärbeginn' : 'Backtermin erreicht'}</p>
             <h2>{forecast.status}</h2></div>
         </div>
         <div className="monitor-confidence"><span>Sicherheit: <strong>{forecast.certainty}</strong></span><span>Qualitative Einschätzung</span></div>
+        <div className="monitor-next-check"><Icon name="clock" /><div><span>Nächster freiwilliger Check</span><strong>{nextCheck ? nextCheck.label : 'Alle Checks erfasst oder übersprungen'}</strong>{nextCheck && <time dateTime={nextCheck.at}>{shortDate(nextCheck.at)}</time>}</div></div>
         <p className="monitor-bake"><Icon name="evening" /><span>Backtermin <time dateTime={plan.schedule.bakeAt}>{shortDate(plan.schedule.bakeAt)}</time></span></p>
         <div className="monitor-advice"><p className="monitor-eyebrow">Was du jetzt tun kannst</p><p>{forecast.recommendations[0]}</p>
           {forecast.recommendations.length > 1 && <ul>{forecast.recommendations.slice(1).map(reason => <li key={reason}>{reason}</li>)}</ul>}
@@ -168,13 +188,7 @@ export function MaturityPage({ access }: { access: MonitorAccess }) {
 
       <section className="monitor-phase-section" aria-labelledby="monitor-phases-title">
         <div className="monitor-section-heading"><h2 id="monitor-phases-title">Dein Gärverlauf</h2><Link className="text-link" to="/zeitplan">Zeitplan <Icon name="arrow" /></Link></div>
-        <ol className="monitor-phases" aria-label="Geplante Gärphasen">
-          {forecast.phases.map(phase => <li key={phase.id} aria-current={currentPhase?.id === phase.id ? 'step' : undefined}>
-            <span className="monitor-phase-dot" aria-hidden="true" /><h3>{phaseNames[phase.id]}</h3>
-            <p>{number((Date.parse(phase.endsAt!) - Date.parse(phase.at)) / 3600000)} Std. · {phase.temperatureC} °C</p>
-            <small>{phase.state}</small>
-          </li>)}
-        </ol>
+        <ProcessTimeline schedule={plan.schedule} now={access.now} />
         <p className="monitor-caption">Geplanter Ablauf – kein gemessener Reifefortschritt. Termine werden nie automatisch geändert.</p>
       </section>
 
