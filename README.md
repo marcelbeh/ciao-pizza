@@ -4,6 +4,8 @@ Privater, offline-fähiger Pizzarechner im Fresh-Food-Design mit Hell-, Dunkel- 
 
 [Fresh-Food-Design, Theme-Verhalten und Prüfungen](docs/FRESH-FOOD.md) · [P3: Bedienung, Datenerhalt und Prüfung](docs/P3-PIZZA-NIGHT.md)
 
+[Premium-Oberfläche: Ansichten, Screenshots und Prüfung](docs/premium-ui/README.md)
+
 ## Entwickeln
 
 Node.js >=22.12 (empfohlen 24 LTS), npm:

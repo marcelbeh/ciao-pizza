@@ -17,7 +17,8 @@ function AutolyseEditor({ access, close }: { access: MonitorAccess; close: () =>
 export function ThermomixBatches({ ingredients, access }: { ingredients: { flour: number; water: number; salt: number; yeast: number }; access: MonitorAccess }) {
   const recipe = tm5Recipe(ingredients, access.state?.autolyseMinutes ?? 30);
   const [autolyseEditing,setAutolyseEditing] = useState(false); const [temperatureEditing,setTemperatureEditing] = useState(false);
-  return <section className="card saved-evening" aria-label="Thermomix-Chargen"><details onToggle={event=>{if(!event.currentTarget.open&&(autolyseEditing||temperatureEditing))event.currentTarget.open=true;}}><summary>TM5-Rezeptansicht (optional)</summary>
+  return <section className="card saved-evening tm5-card" aria-label="Thermomix-Chargen"><details onToggle={event=>{if(!event.currentTarget.open&&(autolyseEditing||temperatureEditing))event.currentTarget.open=true;}}><summary>TM5-Rezeptansicht (optional)</summary>
+    <p className="section-kicker">Dein kompakter Ablauf</p>
     <h2>Thermomix · {recipe.count} {recipe.count===1?'Charge':'Chargen'}</h2>
     <p className="field-hint">Persönliche Aufteilung: höchstens 400 g Mehl je Charge. Das ist keine validierte TM5-Maximalmenge. Gerätegrenze für dieses Rezept vor Ort prüfen.</p>
     <p>Je Charge: <strong>{grams(recipe.flourPerBatch)} g Mehl</strong> · <strong>{grams(recipe.waterPerBatch)} g Wasser</strong> · <strong>{grams(recipe.yeastPerBatch)} g Trockenhefe</strong> · <strong>{grams(recipe.saltPerBatch)} g Salz</strong>.</p>

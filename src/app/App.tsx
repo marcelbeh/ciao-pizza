@@ -48,6 +48,16 @@ function Dashboard({ evening, formula, schedule, scheduleError, now, pizzaNight,
       <h1>Deine Pizzaplanung<span className="accent-dot">.</span></h1>
       <p className="welcome-copy">Teig, Zeitplan und Pizzaabend – an einem Ort.</p>
       <span className="flourish" aria-hidden="true" /></div>
+    <section className="card dashboard-focus" aria-labelledby="next-bake-title">
+      <div className="dashboard-focus-heading"><span className="premium-icon"><Icon name="evening" /></span><div><p className="section-kicker" id="next-bake-title">Dein nächster Backtermin</p>
+        <h2>{scheduleError ? 'Zeitplan prüfen' : schedule ? new Intl.DateTimeFormat('de-DE', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date(schedule.bakeAt)) : 'Zeit für Pizza.'}</h2>
+        {schedule && !scheduleError && <time dateTime={schedule.bakeAt}>{new Intl.DateTimeFormat('de-DE', { hour: '2-digit', minute: '2-digit' }).format(new Date(schedule.bakeAt))} Uhr</time>}
+      </div><Link className="icon-link" to="/zeitplan" aria-label="Backtermin öffnen"><Icon name="arrow" /></Link></div>
+      <div className="dashboard-next"><span className="section-kicker">{scheduleError ? 'Hinweis' : next.length ? 'Als Nächstes geplant' : 'Deine Planung'}</span>
+        <p>{scheduleError ? 'Gespeicherten Zeitplan prüfen.' : next.length ? next[0].label : schedule ? 'Backtermin erreicht. Zeitplan bei Bedarf aktualisieren.' : 'Lege deinen Backtermin fest und plane den Teig in Ruhe.'}</p>
+      </div>
+    </section>
+    <MaturityCompact access={monitoring} />
     <div className="dashboard-grid">
       <section className="card plan-summary" aria-labelledby="current-plan-title">
         <div className="card-heading"><h2 id="current-plan-title"><Icon name="dough" />Aktuelle Teigplanung</h2>
@@ -63,8 +73,7 @@ function Dashboard({ evening, formula, schedule, scheduleError, now, pizzaNight,
       <Link to="/zeitplan" className={`card feature-card time-scene ${schedule || scheduleError ? "has-time-plan" : "no-time-plan"}`}>
         <img className="feature-photo" src={`${import.meta.env.BASE_URL}food/dough.webp`} alt="" width="710" height="800" loading="lazy" />
         <div className="feature-copy"><h2><Icon name="evening" />Zeitplan</h2>
-          <p>{scheduleError ? "Gespeicherten Zeitplan prüfen." : next.length ? next.map(step => step.label).join(" / ")
-            : schedule ? "Backtermin erreicht. Zeitplan bei Bedarf aktualisieren." : "Backtermin und Teigphasen festlegen."}</p>
+          <p>Gärphasen und Arbeitsschritte im Überblick.</p>
           <span className="feature-status">{next.length ? `Geplant: ${formatScheduleTime(next[0].at)}` : scheduleError ? "Hinweis öffnen" : schedule ? "Zeitplan öffnen" : "Jetzt planen"}</span>
         </div><Icon name="chevron" />
       </Link>
@@ -75,7 +84,6 @@ function Dashboard({ evening, formula, schedule, scheduleError, now, pizzaNight,
             {scheduleError ? "Zeitplan nicht lesbar – bitte prüfen." : schedule ? formatScheduleTime(schedule.bakeAt) : "Noch kein Backtermin"}</p> : <span className="feature-status">Pizzaabend planen</span>}
         </div></Link>
     </div>
-    <MaturityCompact access={monitoring} />
     <section className="quick-section" aria-labelledby="quick-title">
       <h2 className="section-label" id="quick-title">Schnellzugriff<span /></h2>
       <div className="quick-grid">
@@ -123,7 +131,7 @@ function Calculator({ formula, save, status, invalidChanged, monitoring }: {
     <PageHeading title="Teigrechner" description="Stimme deine Rezeptur ab. Die Zutatenmengen passen sich direkt an." />
     <div className="calculator-layout">
     <section className="card calculator" aria-label="Teig einstellen">
-      <div className="card-heading"><h2>Deine Rezeptur</h2></div>
+      <div className="card-heading"><h2>Deine Rezeptur</h2><span className="section-kicker">01 · Einstellen</span></div>
       <div className="quantity-grid">{field("count", "Pizzen", true)}{field("ballGrams", "g", true)}</div>
       <div className="hydration-field">{field("hydration", "%")}
         <input className="hydration-slider" type="range" disabled={monitoring.editing} aria-label="Hydration per Schieberegler"
@@ -142,7 +150,7 @@ function Calculator({ formula, save, status, invalidChanged, monitoring }: {
       </details>
     </section>
     <section className="card ingredients" id="zutaten" tabIndex={-1} aria-label="Deine Zutaten">
-      <div className="card-heading"><h2>Zutaten</h2></div>
+      <div className="card-heading"><h2>Zutaten</h2><span className="section-kicker">02 · Abwiegen</span></div>
       {result ? <><dl>{([ ["Mehl", result.ingredients.flour, 1], ["Wasser", result.ingredients.water, 1],
         ["Salz", result.ingredients.salt, 2], ["Trockenhefe", result.ingredients.yeast, 2] ] as const).map(([label, amount, digits]) =>
         <div key={label}><dt>{label}</dt><dd>{label === "Trockenhefe" && amount > 0 && amount < .01 ? "< 0,01" : number(amount, digits)} <span>g</span></dd></div>)}</dl>

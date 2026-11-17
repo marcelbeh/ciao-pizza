@@ -1,4 +1,4 @@
-import { useState, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { PageHeading } from '../components/PageHeading';
 import { Icon } from '../components/Icon';
@@ -20,7 +20,7 @@ function LoadFailure({ message }: { message: string }) {
     <div className="p3-actions"><button onClick={() => window.location.reload()}>Erneut laden</button><Link className="button" to="/einstellungen">Zur Sicherung</Link></div></section>;
 }
 function RecipeDetails({ recipe }: { recipe: Pick<ToppingRecipe, 'name' | 'ingredients' | 'preparation'> }) {
-  return <div className="p3-recipe-detail"><h3>{recipe.name}</h3><ul>{recipe.ingredients.map((ingredient, index) => <li key={index}>{ingredient}</li>)}</ul>
+  return <div className="p3-recipe-detail"><div className="recipe-detail-heading"><span className="premium-icon"><Icon name="pizza" /></span><div><p className="section-kicker">Belagrezept</p><h3>{recipe.name}</h3></div></div><ul>{recipe.ingredients.map((ingredient, index) => <li key={index}>{ingredient}</li>)}</ul>
     {recipe.preparation && <p className="p3-multiline">{recipe.preparation}</p>}</div>;
 }
 function RecipeForm({ original, busy, save, cancel, changed }: { original: ToppingRecipe | null; busy: boolean;
@@ -58,6 +58,14 @@ export function RecipesPage(props: Common) {
   const [notice, setNotice] = useState(''); const [error, setError] = useState('');
   useDraftProtection(dirty, busy, !!editing, editingChanged);
   const selectedRecipe = saved?.recipes.find(recipe => recipe.id === selected);
+  const detail = useRef<HTMLElement>(null);
+  const library = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (selected && detail.current) {
+      detail.current.focus({ preventScroll: true });
+      detail.current.scrollIntoView?.({ block: 'start', behavior: 'auto' });
+    }
+  }, [selected]);
   function close() { setEditing(null); setDirty(false); }
   async function remove(recipe: ToppingRecipe) {
     if (!window.confirm(`„${recipe.name}“ wirklich löschen? Gespeicherte Pizzaabend-Positionen bleiben unverändert.`)) return;
@@ -76,16 +84,17 @@ export function RecipesPage(props: Common) {
       {editing ? <RecipeForm original={editing.original} busy={busy} changed={setDirty} cancel={close} save={async recipe => {
         await run(() => repository.saveRecipe(recipe, editing.original)); close(); setSelected(recipe.id); setNotice('Rezept auf diesem Gerät gespeichert.');
       }} /> : <div className="p3-layout">
-        <section className="card p3-panel"><div className="card-heading"><h2>Deine Belagrezepte</h2></div>
+        <section className="card p3-panel" ref={library} tabIndex={-1}><div className="card-heading"><h2>Deine Belagrezepte</h2></div>
           <button className="primary" disabled={busy || saved.recipes.length >= pizzaLimits.recipes} onClick={() => { setEditing({ original: null }); setNotice(''); setError(''); }}>Rezept anlegen</button>
           {saved.standardRecipesVersion === undefined && <div className="p3-actions">
             <button disabled={busy} onClick={() => void addStandards()}>Standardpizzen ergänzen</button>
           </div>}
           {!saved.recipes.length ? <p>Noch keine Belagrezepte. Lege dein erstes Rezept an.</p> : <ul className="p3-list">{saved.recipes.map(recipe => <li key={recipe.id}>
-            <button className="p3-list-button" aria-pressed={selected === recipe.id} disabled={busy} onClick={() => { setSelected(recipe.id); setNotice(''); setError(''); }}>{recipe.name}<Icon name="chevron" /></button>
+            <button className="p3-list-button" aria-label={recipe.name} aria-pressed={selected === recipe.id} disabled={busy} onClick={() => { setSelected(recipe.id); setNotice(''); setError(''); }}><span className="recipe-mark" aria-hidden="true"><Icon name="pizza" /></span><span className="recipe-card-copy"><strong>{recipe.name}</strong><small>{recipe.ingredients.join(" · ")}</small></span><Icon name="chevron" /></button>
           </li>)}</ul>}
         </section>
-        {selectedRecipe && <section className="card p3-panel" aria-label="Rezeptdetails"><RecipeDetails recipe={selectedRecipe} />
+        {selectedRecipe && <section className="card p3-panel" aria-label="Rezeptdetails" ref={detail} tabIndex={-1}><RecipeDetails recipe={selectedRecipe} />
+          <button className="text-link recipe-back" disabled={busy} onClick={() => { setSelected(null); library.current?.focus({ preventScroll: true }); library.current?.scrollIntoView?.({ block: 'start', behavior: 'auto' }); }}>Zur Rezeptübersicht</button>
           <div className="p3-actions"><button disabled={busy} onClick={() => { setEditing({ original: selectedRecipe }); setNotice(''); setError(''); }}>Rezept bearbeiten</button>
             <button disabled={busy} onClick={() => void remove(selectedRecipe)}>Rezept löschen</button></div></section>}
       </div>}
