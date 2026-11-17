@@ -701,3 +701,17 @@ input[aria-invalid='true'] { border-color: var(--error); }
   .dashboard-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .dashboard-grid .plan-summary { grid-column: 1 / -1; }
 }
+
+/* Keep generic card padding from squeezing the dashboard shortcuts. */
+.quick-grid > .quick-card { min-width: 0; min-height: 104px; padding: 12px 6px; gap: 6px; justify-content: flex-start; overflow-wrap: normal; word-break: normal; hyphens: none; }
+.quick-grid > .quick-card > span { font-size: 12px; line-height: 1.35; }
+.quick-grid > .quick-card > small { font-size: 10px; line-height: 1.4; }
+@media (max-width: 374px) {
+  .quick-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .quick-grid > .quick-card { min-height: 96px; padding-inline: 12px; }
+}
+@media (min-width: 800px) {
+  .quick-grid > .quick-card { min-height: 112px; padding: 16px; }
+  .quick-grid > .quick-card > span { font-size: 14px; }
+  .quick-grid > .quick-card > small { font-size: 12px; }
+}
