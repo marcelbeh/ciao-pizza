@@ -715,3 +715,77 @@ input[aria-invalid='true'] { border-color: var(--error); }
   .quick-grid > .quick-card > span { font-size: 14px; }
   .quick-grid > .quick-card > small { font-size: 12px; }
 }
+
+/* P5: focused monitor and a single-step cooking surface. */
+.monitor-page { gap: 16px; }
+.monitor-page .page-heading > p { font-size: 13px; }
+.monitor-page .monitor-hero { gap: 10px 16px; padding: 20px; }
+.monitor-hero .monitor-dial-area > p { margin-top: 4px; }
+.monitor-hero .monitor-dial-area > small { margin-top: 2px; }
+.monitor-hero .monitor-next-check { margin-top: 0; padding-top: 12px; }
+.monitor-hero .monitor-advice { padding: 12px; }
+.monitor-hero .monitor-confidence > :last-child { display: none; }
+.monitor-hero .monitor-explanation { border-top: 0; padding-top: 0; }
+.monitor-flow-summary { display: flex; align-items: center; gap: 12px; min-height: 52px; cursor: pointer; list-style: none; }
+.monitor-flow-summary::-webkit-details-marker { display: none; }
+.monitor-flow-summary h2 { font-size: 16px; }
+.monitor-flow-summary > span { margin-left: auto; font-size: 11px; color: var(--text-secondary); }
+.monitor-flow-summary > svg { width: 16px; height: 16px; color: var(--accent); transition: transform var(--transition); }
+.monitor-phase-section[open] .monitor-flow-summary > svg { transform: rotate(90deg); }
+.monitor-phase-section { border-block: 1px solid var(--border); }
+.monitor-observation { font-size: 12px; }
+.monitor-observation summary { min-height: 44px; align-content: center; color: var(--accent); cursor: pointer; }
+.monitor-check-list { margin-top: 8px; }
+.monitor-check-list > li { padding-block: 12px; }
+.monitor-check-button { margin-top: 8px; }
+.monitor-layout .monitor-measurements { order: -1; }
+.monitor-measurements > .monitor-caption { font-size: 11px; }
+.monitor-paused > p, .monitor-paused > details, .schedule-empty > p, .schedule-empty > button { margin-top: 16px; }
+.monitor-paused > h2 { margin-top: 12px; }
+.monitor-paused details summary { min-height: 44px; cursor: pointer; color: var(--accent); }
+.schedule-manage { margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between; }
+.schedule-manage h2 { font-size: 18px; }
+.schedule-manage p { color: var(--text-secondary); font-size: 13px; margin-top: 6px; }
+.schedule-manage > .error, .schedule-manage > .field-hint { flex-basis: 100%; margin-top: 0; }
+.destructive { color: var(--error); background: transparent; border-color: var(--error); }
+.schedule-controls { padding: 0; margin: 0; border: 0; min-width: 0; }
+.schedule-controls > button { margin-top: 16px; }
+.cook-launch { padding: 20px 0; }
+.cook-launch > p:not(.section-kicker) { margin-top: 8px; font-size: 14px; }
+.tm5-overview { border-top: 1px solid var(--border); padding-top: 8px; }
+.tm5-overview > summary { min-height: 48px; align-content: center; color: var(--accent); cursor: pointer; font-size: 13px; }
+.cook-mode { padding-top: 16px; }
+.cook-topline { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.cook-topline > button { min-height: 44px; font-size: 12px; padding: 8px; }
+.cook-progress { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 5px; margin: 20px 0; }
+.cook-progress > span { height: 4px; border-radius: 4px; background: var(--border); }
+.cook-progress > [data-state='reached'] { background: var(--accent); }
+.cook-mode h2 { margin: 8px 0 20px; font-size: clamp(25px, 6vw, 36px); line-height: 1.2; }
+.cook-amounts { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 16px; margin: 0 0 20px; }
+.cook-amounts:empty { display: none; }
+.cook-amounts > div { padding: 16px; background: var(--accent-soft); border-radius: 16px; }
+.cook-amounts dt { color: var(--text-secondary); font-size: 12px; }
+.cook-amounts dd { margin: 8px 0 0; font-size: clamp(26px, 6vw, 38px); font-weight: 550; letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
+.cook-amounts dd > span { font-size: 16px; color: var(--text-secondary); }
+.cook-instruction { font-size: 16px; line-height: 1.65; }
+.cook-mode .field-hint { margin-top: 16px; }
+.cook-timer { margin-top: 20px; padding: 20px; background: var(--field-bg); border: 1px solid var(--border); border-radius: 16px; }
+.cook-timer > span { font-size: 12px; color: var(--text-secondary); }
+.cook-timer > strong { display: block; font-size: 48px; line-height: 1.3; letter-spacing: -.04em; font-variant-numeric: tabular-nums; font-weight: 500; }
+.cook-navigation { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 12px; margin-top: 24px; }
+.cook-navigation > button { min-height: 54px; }
+.cook-batch-select { display: grid; gap: 8px; margin-top: 20px; font-size: 12px; color: var(--text-secondary); }
+.cook-batch-select > select { width: 100%; font-size: 16px; }
+.cook-device { margin-top: 16px; font-size: 13px; }
+.cook-device > summary { min-height: 44px; align-content: center; color: var(--accent); cursor: pointer; }
+@media (min-width: 800px) {
+  .monitor-page .monitor-hero { padding: 28px !important; }
+  .monitor-layout .monitor-measurements { order: 0; }
+  .cook-mode { max-width: 760px; margin-inline: auto; }
+}
+@media (min-width: 375px) and (max-width: 799px) {
+  .monitor-page .monitor-hero { grid-template-columns: 140px minmax(0, 1fr); }
+  .monitor-page .monitor-dial-area .phase-dial { width: 140px; }
+  .monitor-page .monitor-dial-area .phase-dial-center strong { font-size: 23px; }
+}
+.cook-mode { scroll-margin-top: 16px; }

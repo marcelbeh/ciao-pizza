@@ -12,6 +12,8 @@ import { RecipesPage, PizzaEveningPage } from "./PizzaNightPages";
 import { pizzaCount, type PizzaNightState } from "../core/pizzaNight/model";
 import { ThermomixBatches } from "../components/ThermomixBatches";
 import { MaturityCompact, MaturityPage, type MonitorAccess } from "./MaturityPage";
+import type { CookAccess } from '../components/CookMode';
+import type { CookSession } from '../core/dough/cookSession';
 import type { MaturityState } from "../core/maturity/model";
 import { ThemeSwitch } from "../components/ThemeSwitch";
 
@@ -53,6 +55,7 @@ function Dashboard({ evening, formula, schedule, scheduleError, now, pizzaNight,
         <h2>{scheduleError ? 'Zeitplan prüfen' : schedule ? new Intl.DateTimeFormat('de-DE', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date(schedule.bakeAt)) : 'Zeit für Pizza.'}</h2>
         {schedule && !scheduleError && <time dateTime={schedule.bakeAt}>{new Intl.DateTimeFormat('de-DE', { hour: '2-digit', minute: '2-digit' }).format(new Date(schedule.bakeAt))} Uhr</time>}
       </div><Link className="icon-link" to="/zeitplan" aria-label="Backtermin öffnen"><Icon name="arrow" /></Link></div>
+      {!schedule && !scheduleError && <Link className="text-link" to="/zeitplan">Backtermin planen <Icon name="arrow" /></Link>}
       <div className="dashboard-next"><span className="section-kicker">{scheduleError ? 'Hinweis' : next.length ? 'Als Nächstes geplant' : 'Deine Planung'}</span>
         <p>{scheduleError ? 'Gespeicherten Zeitplan prüfen.' : next.length ? next[0].label : schedule ? 'Backtermin erreicht. Zeitplan bei Bedarf aktualisieren.' : 'Lege deinen Backtermin fest und plane den Teig in Ruhe.'}</p>
       </div>
@@ -101,8 +104,8 @@ function Dashboard({ evening, formula, schedule, scheduleError, now, pizzaNight,
 const fieldLabels: Record<NumericField, string> = {
   count: "Pizzaanzahl", ballGrams: "Teiglingsgewicht", hydration: "Hydration", salt: "Salz", yeastPercent: "Trockenhefe",
 };
-function Calculator({ formula, save, status, invalidChanged, monitoring }: {
-  formula: Formula; save: (next: Formula) => void; status: string; invalidChanged: (invalid: boolean) => void; monitoring: MonitorAccess;
+function Calculator({ formula, save, status, invalidChanged, monitoring, cooking }: {
+  formula: Formula; save: (next: Formula) => void; status: string; invalidChanged: (invalid: boolean) => void; monitoring: MonitorAccess; cooking: CookAccess;
 }) {
   const [draft, setDraft] = useState(() => toDraft(formula));
   const [flourDraft, setFlourDraft] = useState(formula.flourProfile);
@@ -159,7 +162,7 @@ function Calculator({ formula, save, status, invalidChanged, monitoring }: {
         : <p role="status" className="error">Bitte korrigiere die markierten Eingaben. Es werden keine ungültigen Mengen berechnet oder gespeichert.</p>}
     </section>
     </div>
-    {result && <ThermomixBatches ingredients={result.ingredients} access={{...monitoring, formula:candidate}} />}
+    {result && <ThermomixBatches cook={cooking} ingredients={result.ingredients} access={{...monitoring, formula:candidate}} />}
     <p className={`save-status ${status.includes("fehlgeschlagen") ? "error" : "muted"}`} role="status">{status}</p>
   </>;
 }
@@ -252,6 +255,16 @@ function Workspace({ repo }: { repo: FornoRepository }) {
       if (revision.current === current) setStatus("Auf diesem Gerät gespeichert.");
     } finally { if (revision.current === current) setBusy(false); }
   }
+  async function deleteTimePlan(expected: SchedulePlan) {
+    setBusy(true); const current = ++revision.current;
+    const task = queue.current.catch(() => {}).then(() => repo.deleteSchedule(expected));
+    queue.current = task.then(() => {}, () => {});
+    try {
+      await task;
+      setData(previous => previous ? { ...previous, schedule: null, scheduleError: '' } : previous);
+      setNow(Date.now());
+    } finally { if (revision.current === current) setBusy(false); }
+  }
   async function runPizza(task: () => Promise<PizzaNightState>) {
     if (!data || data.pizzaNightError) throw Error("Pizzaabend-/Rezeptdaten sind schreibgeschützt.");
     setBusy(true);
@@ -270,6 +283,14 @@ function Workspace({ repo }: { repo: FornoRepository }) {
     try { const maturity = await operation; setData(previous => previous ? { ...previous, maturity, maturityError: "" } : previous); setNow(Date.now()); }
     finally { if (revision.current === current) setBusy(false); }
   }
+  async function runCook(task: () => Promise<CookSession>) {
+    if (!data || data.cookError) throw Error('Kochfortschritt ist schreibgeschützt.');
+    setBusy(true); const current = ++revision.current;
+    const operation = queue.current.catch(() => {}).then(task); queue.current = operation.then(() => {}, () => {});
+    try { const cookSession = await operation; setData(previous => previous ? { ...previous, cookSession, cookError: '' } : previous); }
+    finally { if (revision.current === current) setBusy(false); }
+  }
+  const cooking: CookAccess = { session: data?.cookSession ?? null, error: data?.cookError ?? '', repository: repo.cook, run: runCook };
   const monitoring: MonitorAccess = { state: data?.maturity ?? null, loadError: data?.maturityError ?? "", repository: repo.maturity,
     busy, editing: monitorEditing, run: runMaturity, editingChanged: setMonitorEditing, formula: data?.formula ?? defaults,
     schedule: data?.schedule ?? null, scheduleError: data?.scheduleError ?? "", now };
@@ -289,8 +310,8 @@ function Workspace({ repo }: { repo: FornoRepository }) {
         <button onClick={() => window.location.reload()}>Erneut laden</button></div>}
       {!data ? !error && <p role="status">Deine Daten werden geladen …</p> : <Routes>
         <Route path="/" element={<Dashboard evening={data.evening} formula={data.formula} schedule={data.schedule} scheduleError={data.scheduleError} now={now} pizzaNight={data.pizzaNight} pizzaNightError={data.pizzaNightError} monitoring={monitoring} />} />
-        <Route path="/teig" element={<Calculator formula={data.formula} save={save} status={status} invalidChanged={setInvalid} monitoring={monitoring} />} />
-        <Route path="/zeitplan" element={<SchedulePage saved={data.schedule} loadError={data.scheduleError} save={saveTimePlan} busy={busy} now={now} editingChanged={setInvalid} />} />
+        <Route path="/teig" element={<Calculator formula={data.formula} save={save} status={status} invalidChanged={setInvalid} monitoring={monitoring} cooking={cooking} />} />
+        <Route path="/zeitplan" element={<SchedulePage saved={data.schedule} loadError={data.scheduleError} save={saveTimePlan} remove={deleteTimePlan} hasMonitor={!!data.maturity?.activeId} busy={busy} now={now} editingChanged={setInvalid} />} />
         <Route path="/pizzaabend" element={<PizzaEveningPage saved={data.pizzaNight} loadError={data.pizzaNightError} repository={repo.pizzaNight} busy={busy} run={runPizza} editingChanged={setInvalid} hasLegacy={data.hasLegacy}
           doughCount={data.formula.count} schedule={data.schedule} scheduleError={data.scheduleError}
           legacyEvening={data.evening && <section className="card saved-evening"><h2>Bisheriger Pizzaabend</h2><EveningDetails evening={data.evening} /><p className="field-hint">Dieser bisherige Abend bleibt unverändert erhalten und ist in deiner Sicherung enthalten. Er kann hier noch nicht bearbeitet werden.</p></section>} />} />

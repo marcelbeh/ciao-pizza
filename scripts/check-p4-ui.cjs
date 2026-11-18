@@ -16,7 +16,7 @@ for(const width of [390,1280])for(const theme of ['light','dark']){
  const schedule={version:2,method:'cold-staged',bakeAt:new Date(Math.floor((Date.now()+26*3600000)/60000)*60000).toISOString(),coldBulkHours:24,coldBallHours:20,acclimationHours:4,mixMinutes:20,preheatMinutes:30,roomC:22,fridgeC:4};
  await storage(p,{'forno:calculator:v1':{version:1,formula},'forno:schedule:v1':schedule,'archive:personal':{unchanged:true}});await p.reload({waitUntil:'networkidle'});const before=await storage(p);
  await nav(p,'Home');await nav(p,'Teig');
- const card=p.getByRole('region',{name:'Thermomix-Chargen'});await card.getByText('TM5-Rezeptansicht (optional)',{exact:true}).click();
+ const card=p.getByRole('region',{name:'Thermomix-Chargen'});await card.getByText('TM5-Rezeptansicht (optional)',{exact:true}).click();await card.getByText('Rezeptübersicht und Gerätehinweise',{exact:true}).click();
  await card.getByText('Autolyse · 30 Minuten',{exact:true}).waitFor();assert.equal(await card.locator('.tm5-phases > li').count(),8);
  await card.getByRole('button',{name:'Reifemonitor starten',exact:true}).click();await card.getByText('Monitor-Planung lokal gespeichert.',{exact:true}).waitFor();
  await card.getByRole('button',{name:'Temperaturen erfassen / korrigieren',exact:true}).click();
@@ -39,7 +39,7 @@ for(const width of [390,1280])for(const theme of ['light','dark']){
  const after=await storage(p);for(const [key,value]of Object.entries(before))assert.deepEqual(after[key],value);assert(after['forno:maturity:v1']);
  const active=after['forno:maturity:v1'].plans[0];assert.equal(active.conditions.doughC,22);assert.equal(active.temperatures[0].celsius,6);assert.equal(active.checks[0].skipped,false);assert.equal(active.checks[0].volume,'clear');
  await p.evaluate(()=>navigator.serviceWorker.ready);await p.reload({waitUntil:'networkidle'});await context.setOffline(true);await p.reload({waitUntil:'networkidle'});await p.getByRole('heading',{name:'Reife-Monitor',exact:true}).waitFor();assert.deepEqual(await storage(p),after);
- await nav(p,'Teig');await p.getByText('TM5-Rezeptansicht (optional)',{exact:true}).click();await p.getByText('22 °C',{exact:true}).first().waitFor();assert.deepEqual(await storage(p),after);
+ await nav(p,'Teig');await p.getByText('TM5-Rezeptansicht (optional)',{exact:true}).click();await p.getByText('Rezeptübersicht und Gerätehinweise',{exact:true}).click();await p.getByText('22 °C',{exact:true}).first().waitFor();assert.deepEqual(await storage(p),after);
  assert.deepEqual(errors,[]);report.checks.push(`${width}px ${theme}: optional 8-phase TM5 card, single shared temperature, Back discard protection, System/manual themes retain draft, corrections/skipped checks, unchanged P1/P2/P3/archive, offline restore, no overflow or page errors`);
  await context.close();console.log(`PASS ${width}px ${theme}`);
 }

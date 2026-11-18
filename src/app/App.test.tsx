@@ -10,10 +10,12 @@ import { createSchedule, createTeichnerSchedule } from "../core/schedule/plan";
 vi.mock("../infrastructure/pwa/PwaNotice", () => ({ PwaNotice: () => null }));
 function repository(): FornoRepository {
   return {
+    cook: createFornoRepository(createIndexedDbStore(`p5-mock-${crypto.randomUUID()}`)).cook,
     maturity: createFornoRepository(createIndexedDbStore(`p4-mock-${crypto.randomUUID()}`)).maturity,
     pizzaNight: createFornoRepository(createIndexedDbStore(`p3-mock-${crypto.randomUUID()}`)).pizzaNight,
-    load: vi.fn().mockResolvedValue({ maturity: { version: 1, modelVersion: 1, activeId: null, plans: [], autolyseMinutes: 30 }, maturityError: "", pizzaNight: { version: 1, recipes: [], evening: null }, pizzaNightError: "", formula: { ...defaults, count: 6, hydration: 67.5, flourProfile: "Mein gespeichertes Mehl" }, evening: null, copied: false, hasLegacy: true, schedule: null, scheduleError: "" }),
+    load: vi.fn().mockResolvedValue({ cookSession: null, cookError: "", maturity: { version: 1, modelVersion: 1, activeId: null, plans: [], autolyseMinutes: 30 }, maturityError: "", pizzaNight: { version: 1, recipes: [], evening: null }, pizzaNightError: "", formula: { ...defaults, count: 6, hydration: 67.5, flourProfile: "Mein gespeichertes Mehl" }, evening: null, copied: false, hasLegacy: true, schedule: null, scheduleError: "" }),
     save: vi.fn().mockResolvedValue(undefined),
+    deleteSchedule: vi.fn().mockResolvedValue(undefined),
     saveSchedule: vi.fn().mockResolvedValue(undefined),
     backup: vi.fn().mockResolvedValue({ format: "forno-preserved-data", version: 1, entries: { "ciao-workspace:v2": { recipes: [{ name: "Original" }] } } }),
   };
@@ -210,6 +212,7 @@ it("recalculates Thermomix batches with the existing recipe and hides them for i
   const repo = repository(); window.location.hash = "#/teig"; render(<App repo={repo} />);
   const section = await screen.findByRole("region", { name: "Thermomix-Chargen" });
   fireEvent.click(within(section).getByText("TM5-Rezeptansicht (optional)"));
+  fireEvent.click(within(section).getByText("Rezeptübersicht und Gerätehinweise"));
   expect(within(section).getByText(/keine validierte TM5-Maximalmenge/)).toBeVisible();
   expect(within(section).getByText(/Das gesamte Wasser der jeweiligen Charge/)).toBeVisible();
   const count = screen.getByRole("textbox", { name: /Pizzaanzahl/ });
