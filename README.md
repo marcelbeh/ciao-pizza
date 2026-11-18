@@ -6,6 +6,13 @@ Privater, offline-fähiger Pizzarechner im Fresh-Food-Design mit Hell-, Dunkel- 
 
 [Premium-Oberfläche: Ansichten, Screenshots und Prüfung](docs/premium-ui/README.md)
 
+## P5 · Kochmodus und Terminverwaltung
+
+TM5-Schrittführung mit lokal fortsetzbarem Kochfortschritt, Chargenwechsel und optionalem
+Autolyse-Timer. Unter Zeitplan lässt sich der gespeicherte Backtermin nach Bestätigung löschen;
+Monitor-Messungen bleiben erhalten, die Prognose pausiert ohne passenden Termin.
+[Bedienung, Datenerhalt, Prüfungen und Screenshots](docs/P5.md).
+
 ## Entwickeln
 
 Node.js >=22.12 (empfohlen 24 LTS), npm:

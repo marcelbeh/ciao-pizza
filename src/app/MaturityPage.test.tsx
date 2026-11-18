@@ -14,7 +14,7 @@ beforeEach(()=>{window.location.hash='#/reife-monitor';vi.spyOn(window,'confirm'
 describe('P4 UI and shared TM5 temperature',()=>{
   it('starts from the saved formula/schedule, records the temperature once in TM5 and restores it in the monitor',async()=>{
     const {db,repo}=await setup();window.location.hash='#/teig';const view=render(<App repo={repo}/>);
-    const panel=await screen.findByRole('region',{name:'Thermomix-Chargen'});fireEvent.click(within(panel).getByText('TM5-Rezeptansicht (optional)'));
+    const panel=await screen.findByRole('region',{name:'Thermomix-Chargen'});fireEvent.click(within(panel).getByText('TM5-Rezeptansicht (optional)'));fireEvent.click(within(panel).getByText('Rezeptübersicht und Gerätehinweise'));
     expect(within(panel).getByText('Mehl und Wasser mischen')).toBeVisible();expect(within(panel).getByText('Autolyse · 30 Minuten')).toBeVisible();
     expect(within(panel).getByText(/Das gesamte Wasser/)).toBeVisible();expect(within(panel).getByText(/keine validierte TM5-Maximalmenge/)).toBeVisible();
     fireEvent.click(within(panel).getByRole('button',{name:'Reifemonitor starten'}));await screen.findByText('Monitor-Planung lokal gespeichert.');
@@ -79,7 +79,7 @@ describe('P4 UI and shared TM5 temperature',()=>{
   });
   it('persists an explicitly changed autolyse pause without changing the recipe or time plan',async()=>{
     const {db,repo}=await setup();const before=await db.entries!();window.location.hash='#/teig';render(<App repo={repo}/>);
-    const card=await screen.findByRole('region',{name:'Thermomix-Chargen'});fireEvent.click(within(card).getByText('TM5-Rezeptansicht (optional)'));
+    const card=await screen.findByRole('region',{name:'Thermomix-Chargen'});fireEvent.click(within(card).getByText('TM5-Rezeptansicht (optional)'));fireEvent.click(within(card).getByText('Rezeptübersicht und Gerätehinweise'));
     fireEvent.click(within(card).getByRole('button',{name:'Autolyse anpassen'}));fireEvent.change(screen.getByLabelText('Autolyse (Minuten)'),{target:{value:'45'}});
     fireEvent.click(screen.getByRole('button',{name:'Autolyse speichern'}));await screen.findByText('Autolyse · 45 Minuten');
     expect(await db.entries!()).toEqual({...before,[MATURITY_KEY]:{version:1,modelVersion:1,activeId:null,plans:[],autolyseMinutes:45}});

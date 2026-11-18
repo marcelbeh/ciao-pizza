@@ -3,6 +3,8 @@ export interface KeyValueStore {
   get<T>(key: string): Promise<T | undefined>;
   set<T>(key: string, value: T): Promise<void>;
   update?<T>(key: string, change: (previous: T | undefined) => T): Promise<T>;
+  /** Atomic compare-and-delete; stale views cannot delete a newer value. */
+  compareAndRemove?<T>(key: string, expected: T): Promise<void>;
   remove(key: string): Promise<void>;
   /** Optional read-only snapshot, including legacy keys unknown to the current UI. */
   entries?(): Promise<Record<string, unknown>>;

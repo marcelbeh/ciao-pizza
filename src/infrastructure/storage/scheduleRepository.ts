@@ -24,3 +24,9 @@ export async function saveSchedule(store: KeyValueStore, plan: SchedulePlan) {
     await store.set(SCHEDULE_KEY, plan);
   }
 }
+
+export async function deleteSchedule(store: KeyValueStore, expected: SchedulePlan) {
+  assertSchedule(expected);
+  if (!store.compareAndRemove) throw Error('Sicheres Löschen ist in diesem Speicher nicht verfügbar.');
+  await store.compareAndRemove(SCHEDULE_KEY, expected);
+}

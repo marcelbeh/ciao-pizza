@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { tm5Recipe, TM5_SOURCE, TM5_MANUAL_SOURCE } from '../core/dough/tm5';
 import { SharedTemperatures, type MonitorAccess } from '../app/MaturityPage';
 import { useDraftProtection } from '../app/useDraftProtection';
+import { CookMode, type CookAccess } from './CookMode';
 import { Link } from 'react-router-dom';
 const grams = (value: number) => new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
 function AutolyseEditor({ access, close }: { access: MonitorAccess; close: () => void }) {
@@ -14,10 +15,13 @@ function AutolyseEditor({ access, close }: { access: MonitorAccess; close: () =>
   return <form className="p3-fields" onSubmit={e=>void save(e)} noValidate><label>Autolyse (Minuten)<input inputMode="numeric" value={value} disabled={access.busy} onChange={e=>setValue(e.target.value)} /></label>
     <div className="p3-actions"><button type="submit" disabled={access.busy}>Autolyse speichern</button><button type="button" disabled={access.busy} onClick={()=>{if(value===String(base)||window.confirm('Ungespeicherte Änderungen verwerfen?'))close();}}>Abbrechen</button></div>{error&&<p className="error" role="alert">{error}</p>}</form>;
 }
-export function ThermomixBatches({ ingredients, access }: { ingredients: { flour: number; water: number; salt: number; yeast: number }; access: MonitorAccess }) {
+export function ThermomixBatches({ ingredients, access, cook }: { cook: CookAccess; ingredients: { flour: number; water: number; salt: number; yeast: number }; access: MonitorAccess }) {
   const recipe = tm5Recipe(ingredients, access.state?.autolyseMinutes ?? 30);
+  const [cookOpen, setCookOpen] = useState(false);
   const [autolyseEditing,setAutolyseEditing] = useState(false); const [temperatureEditing,setTemperatureEditing] = useState(false);
   return <section className="card saved-evening tm5-card" aria-label="Thermomix-Chargen"><details onToggle={event=>{if(!event.currentTarget.open&&(autolyseEditing||temperatureEditing))event.currentTarget.open=true;}}><summary>TM5-Rezeptansicht (optional)</summary>
+    <CookMode cook={cook} access={access} open={cookOpen} setOpen={setCookOpen} temperatureEditing={setTemperatureEditing} />
+    <details className="tm5-overview" hidden={cookOpen} onToggle={event => { if (!event.currentTarget.open && (autolyseEditing || temperatureEditing)) event.currentTarget.open = true; }}><summary>Rezeptübersicht und Gerätehinweise</summary>
     <p className="section-kicker">Dein kompakter Ablauf</p>
     <h2>Thermomix · {recipe.count} {recipe.count===1?'Charge':'Chargen'}</h2>
     <p className="field-hint">Persönliche Aufteilung: höchstens 400 g Mehl je Charge. Das ist keine validierte TM5-Maximalmenge. Gerätegrenze für dieses Rezept vor Ort prüfen.</p>
@@ -42,5 +46,6 @@ export function ThermomixBatches({ ingredients, access }: { ingredients: { flour
     {autolyseEditing ? <AutolyseEditor access={access} close={()=>setAutolyseEditing(false)} /> : <button disabled={access.busy||temperatureEditing||!!access.loadError} onClick={()=>setAutolyseEditing(true)}>Autolyse anpassen</button>}
     <h3 className="save-status">Teigtemperatur an den Monitor übergeben</h3>
     <SharedTemperatures access={access} requireCurrent disabled={autolyseEditing} onEditingChange={setTemperatureEditing} />
+    </details>
   </details></section>;
 }

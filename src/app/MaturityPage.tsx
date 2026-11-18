@@ -19,7 +19,7 @@ const number = (n: number) => new Intl.NumberFormat('de-DE', { maximumFractionDi
 const failure = (e: unknown) => `Nicht gespeichert. Dein Entwurf bleibt erhalten. ${e instanceof Error ? e.message : 'Bitte erneut versuchen.'}`;
 const numeric = (s: string) => s.trim() === '' ? null : /^-?\d+(?:[.,]\d+)?$/.test(s.trim()) ? Number(s.replace(',', '.')) : NaN;
 function dateValue(s: string) { const iso = parseBakeInput(s); if (Date.parse(iso) > Date.now()) throw Error('Eine tatsächliche Messung darf nicht in der Zukunft liegen.'); return iso; }
-export function MonitorStart({ access, showActiveSummary = true }: { access: MonitorAccess; showActiveSummary?: boolean }) {
+export function MonitorStart({ access, showActiveSummary = true, concise = false }: { access: MonitorAccess; showActiveSummary?: boolean; concise?: boolean }) {
   const [error, setError] = useState(''); const [notice, setNotice] = useState(''); const plan = activeMonitor(access.state);
   const changed = plan && (JSON.stringify(plan.formula) !== JSON.stringify(recipeSnapshot(access.formula)) || JSON.stringify(plan.schedule) !== JSON.stringify(access.schedule));
   async function activate() {
@@ -31,10 +31,10 @@ export function MonitorStart({ access, showActiveSummary = true }: { access: Mon
   }
   return <>
     {access.loadError && <p className="error" role="alert">{access.loadError} <Link to="/einstellungen" className="text-link">Zur Sicherung</Link></p>}
-    {access.scheduleError ? <p className="error" role="alert">Aktueller Zeitplan nicht verfügbar: {access.scheduleError}</p> : !access.schedule ? <p>Lege zuerst einen Backtermin und Gärphasen im <Link className="text-link" to="/zeitplan">Zeitplan</Link> fest.</p> : null}
+    {!concise && (access.scheduleError ? <p className="error" role="alert">Aktueller Zeitplan nicht verfügbar: {access.scheduleError}</p> : !access.schedule ? <p>Lege zuerst einen Backtermin und Gärphasen im <Link className="text-link" to="/zeitplan">Zeitplan</Link> fest.</p> : null)}
     {showActiveSummary && plan && !changed && !access.loadError && <p className="field-hint">Aktive Planung · Backen: {formatScheduleTime(plan.schedule.bakeAt)}</p>}
-    {changed && <p className="schedule-warning">Rechner oder Zeitplan wurden geändert. Die aktive Monitor-Planung und ihre Messungen bleiben bei den gespeicherten Werten. Übernimm Änderungen nur bewusst.</p>}
-    {(!plan || changed) && <button className="primary" disabled={access.busy || access.editing || !access.schedule || !!access.scheduleError || !!access.loadError || !access.state} onClick={() => void activate()}>{plan ? 'Aktuelle Planung übernehmen' : 'Reifemonitor starten'}</button>}
+    {changed && !concise && <p className="schedule-warning">Rechner oder Zeitplan wurden geändert. Die aktive Monitor-Planung und ihre Messungen bleiben bei den gespeicherten Werten. Übernimm Änderungen nur bewusst.</p>}
+    {(!plan || changed) && (!concise || (access.schedule && !access.scheduleError)) && <button className="primary" disabled={access.busy || access.editing || !access.schedule || !!access.scheduleError || !!access.loadError || !access.state} onClick={() => void activate()}>{plan ? 'Aktuelle Planung übernehmen' : 'Reifemonitor starten'}</button>}
     {notice && <p className="save-status" role="status">{notice}</p>}{error && <p role="alert" className="error">{error}</p>}
   </>;
 }
@@ -127,14 +127,19 @@ function TemperatureEditor({ access, plan, original, close }: { access: MonitorA
     </fieldset>{error && <p role="alert" className="error">{error}</p>}
   </form>;
 }
+export function monitorIsPaused(access: MonitorAccess) {
+  const plan = activeMonitor(access.state);
+  return !!plan && (!access.schedule || !!access.scheduleError || JSON.stringify(plan.schedule) !== JSON.stringify(access.schedule));
+}
 export function MaturityCompact({ access }: { access: MonitorAccess }) {
   const plan = activeMonitor(access.state) ?? (access.schedule && !access.scheduleError ? newMonitor(access.formula, access.schedule, new Date(access.now).toISOString(), 'preview') : null);
-  const prediction = plan ? maturityForecast(plan, access.now) : null;
+  const paused = monitorIsPaused(access);
+  const prediction = plan && !paused ? maturityForecast(plan, access.now) : null;
   return <Link className="card maturity-summary" to="/reife-monitor">
-    {plan && !access.loadError ? <PhaseDial schedule={plan.schedule} now={access.now} compact /> : <span className="maturity-empty-icon"><Icon name="dough" /></span>}
+    {plan && !paused && !access.loadError ? <PhaseDial schedule={plan.schedule} now={access.now} compact /> : <span className="maturity-empty-icon"><Icon name="dough" /></span>}
     <div className="maturity-summary-copy"><span className="monitor-eyebrow">{plan?.id === 'preview' ? 'Planvorschau' : 'Dein aktiver Teig'}</span>
-      <strong>Reife: {access.loadError ? 'Daten prüfen' : prediction?.status ?? 'Noch kein Zeitplan'}</strong>
-      <span>{prediction ? `Zeitbogen · Sicherheit: ${prediction.certainty}` : 'Planung und freiwillige Teig-Checks öffnen'}</span>
+      <strong>Reife: {access.loadError ? 'Daten prüfen' : paused ? 'Monitor pausiert' : prediction?.status ?? 'Noch kein Zeitplan'}</strong>
+      <span>{prediction ? `Zeitbogen · Sicherheit: ${prediction.certainty}` : paused ? 'Backtermin prüfen · Messungen bleiben erhalten' : 'Planung und freiwillige Teig-Checks öffnen'}</span>
     </div><Icon name="chevron" />
   </Link>;
 }
@@ -152,7 +157,8 @@ export function MaturityPage({ access }: { access: MonitorAccess }) {
   const [temperature, setTemperature] = useState<{ original: TemperatureEvent | null } | null>(null);
   const [notice, setNotice] = useState('');
   const [basisEditing, setBasisEditing] = useState(false);
-  const forecast = plan ? maturityForecast(plan, access.now) : null;
+  const paused = monitorIsPaused(access);
+  const forecast = plan && !paused ? maturityForecast(plan, access.now) : null;
   const ingredients = plan ? calculateFormula(plan.formula).ingredients : null;
   const currentPhase = forecast?.phases.find(phase => Date.parse(phase.at) <= access.now && access.now < Date.parse(phase.endsAt!));
 
@@ -163,12 +169,20 @@ export function MaturityPage({ access }: { access: MonitorAccess }) {
   return <div className="monitor-page">
     <PageHeading title="Reife-Monitor" description="Dein Teig im Blick. Vom Kneten bis zum Backen." />
     <section className="card monitor-sync">
-      <MonitorStart access={access} showActiveSummary={false} />
+      <MonitorStart access={access} showActiveSummary={false} concise={paused} />
       {!plan && !access.loadError && <p className="field-hint">Rezeptur und Gärphasen aus deinem Zeitplan übernehmen. Danach kannst du Temperaturen und freiwillige Checks ergänzen.</p>}
     </section>
+    {plan && paused && !access.loadError && <section className="card monitor-paused"><span className="monitor-tag">Planung pausiert</span><h2>Monitor pausiert</h2>
+      <p>Der Backtermin fehlt, ist nicht lesbar oder wurde geändert. Bis zur bewussten Übernahme einer passenden Planung pausiert die Prognose.</p>
+      <p>Deine bisherige Planung und Messungen bleiben unverändert erhalten.</p><Link className="text-link" to="/zeitplan">Backtermin planen →</Link>
+      <details><summary>Bisherige Monitorplanung anzeigen</summary><p>Alter Backtermin: {formatScheduleTime(plan.schedule.bakeAt)}</p><p>{plan.formula.count} Teiglinge · {plan.formula.flourProfile} · {plan.formula.hydration} % Hydration</p>
+        <p>Teig nach Kneten: {plan.conditions.doughC === null ? 'nicht gemessen' : `${number(plan.conditions.doughC)} °C`}</p>
+        <p>{plan.temperatures.length} Temperaturänderungen · {plan.checks.length} gespeicherte oder übersprungene Checks</p><Link className="text-link" to="/einstellungen">Vollständige Daten sichern →</Link>
+      </details>
+    </section>}
     {plan && forecast && ingredients && !access.loadError && <>
       <section className={`card monitor-hero ${forecast.status === 'Möglicherweise überreif' ? 'monitor-caution' : ''}`} aria-label="Reifeeinschätzung">
-        <div className="monitor-dial-area"><PhaseDial schedule={plan.schedule} now={access.now} /><p>Zeitlicher Phasenfortschritt</p><small>Keine gemessene Teigreife</small></div>
+        <div className="monitor-dial-area"><PhaseDial schedule={plan.schedule} now={access.now} /><p>Planzeit in dieser Phase</p><small>Keine gemessene Teigreife</small></div>
         <div className="monitor-hero-heading">
           <span className="monitor-status-icon"><Icon name="dough" /></span>
           <div><p className="monitor-eyebrow">{currentPhase ? phaseNames[currentPhase.id] : access.now < Date.parse(forecast.phases[0].at) ? 'Vor dem Gärbeginn' : 'Backtermin erreicht'}</p>
@@ -186,11 +200,11 @@ export function MaturityPage({ access }: { access: MonitorAccess }) {
         </details>
       </section>
 
-      <section className="monitor-phase-section" aria-labelledby="monitor-phases-title">
-        <div className="monitor-section-heading"><h2 id="monitor-phases-title">Dein Gärverlauf</h2><Link className="text-link" to="/zeitplan">Zeitplan <Icon name="arrow" /></Link></div>
+      <details className="monitor-phase-section" aria-labelledby="monitor-phases-title"><summary className="monitor-flow-summary"><h2 id="monitor-phases-title">Gärphasen</h2><span>Dein geplanter Ablauf</span><Icon name="chevron" /></summary>
+        <Link className="text-link" to="/zeitplan">Zeitplan öffnen <Icon name="arrow" /></Link>
         <ProcessTimeline schedule={plan.schedule} now={access.now} />
         <p className="monitor-caption">Geplanter Ablauf – kein gemessener Reifefortschritt. Termine werden nie automatisch geändert.</p>
-      </section>
+      </details>
 
       <div className="monitor-layout">
         <section className="card monitor-checks" aria-labelledby="monitor-checks-title">
@@ -206,7 +220,7 @@ export function MaturityPage({ access }: { access: MonitorAccess }) {
                     <time dateTime={suggestion.at}>{shortDate(suggestion.at)}</time>
                   </div><span className="monitor-check-state">{saved ? saved.skipped ? 'Übersprungen' : 'Erfasst' : due ? 'Jetzt optional' : 'Geplant'}</span>
                 </div>
-                {saved && !saved.skipped && <p className="monitor-observation">{[saved.volume && volumes[saved.volume], saved.surface && surfaces[saved.surface], saved.elasticity && elasticities[saved.elasticity]].filter(Boolean).join(' · ')}<br /><small>Beobachtet: {formatScheduleTime(saved.at)}</small></p>}
+                {saved && !saved.skipped && <details className="monitor-observation"><summary>Beobachtungen ansehen</summary><p>{[saved.volume && volumes[saved.volume], saved.surface && surfaces[saved.surface], saved.elasticity && elasticities[saved.elasticity]].filter(Boolean).join(' · ')}<br /><small>Beobachtet: {formatScheduleTime(saved.at)}</small></p></details>}
                 {checkSlot === suggestion.slot ? <CheckEditor key={checkSlot} access={access} plan={plan} slot={checkSlot} close={saved => { setCheckSlot(null); setNotice(saved ? 'Check lokal gespeichert.' : ''); }} /> :
                   <button className="monitor-check-button" aria-label={saved ? 'Check korrigieren' : 'Check öffnen oder überspringen'} disabled={access.busy || basisEditing || !!checkSlot || !!temperature} onClick={() => { setNotice(''); setCheckSlot(suggestion.slot); }}>{saved ? 'Check korrigieren' : 'Check öffnen'}<Icon name="chevron" /></button>}
               </li>;

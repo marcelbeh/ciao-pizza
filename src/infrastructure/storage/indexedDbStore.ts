@@ -105,6 +105,20 @@ export function createIndexedDbStore(name = "ciao-pizza"): KeyValueStore {
           reject(failure ?? tx.error ?? new Error("Speichern fehlgeschlagen."));
       });
     },
+    async compareAndRemove<T>(key: string, expected: T): Promise<void> {
+      const db = await open();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE, 'readwrite'); const store = tx.objectStore(STORE);
+        let failure: unknown; const request = store.get(key);
+        request.onsuccess = () => {
+          if (request.result === undefined || JSON.stringify(request.result) !== JSON.stringify(expected)) {
+            failure = new Error('Die gespeicherten Daten wurden inzwischen geändert oder gelöscht. Bitte neu laden.'); tx.abort();
+          } else store.delete(key);
+        };
+        tx.oncomplete = () => resolve();
+        tx.onabort = tx.onerror = () => reject(failure ?? tx.error ?? new Error('Löschen fehlgeschlagen.'));
+      });
+    },
     get: <T>(key: string) =>
       run<T | undefined>("readonly", (store) => store.get(key)),
     set: <T>(key: string, value: T) =>

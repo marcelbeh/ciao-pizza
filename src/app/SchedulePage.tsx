@@ -17,6 +17,8 @@ type Props = {
   saved: SchedulePlan | null;
   loadError: string;
   save: (plan: SchedulePlan) => Promise<void>;
+  remove: (expected: SchedulePlan) => Promise<void>;
+  hasMonitor: boolean;
   busy: boolean;
   now: number;
   editingChanged: (editing: boolean) => void;
@@ -24,7 +26,7 @@ type Props = {
 function phaseDraft(plan: SchedulePlan): Partial<Record<ScheduleNumber, string>> {
   return Object.fromEntries(scheduleNumberKeys(plan).map(key => [key, String(Reflect.get(plan, key)).replace(".", ",")]));
 }
-export function SchedulePage({ saved, loadError, save, busy, now, editingChanged }: Props) {
+export function SchedulePage({ saved, loadError, save, remove, hasMonitor, busy, now, editingChanged }: Props) {
   const [original] = useState(() => {
     const initial = createSchedule(now);
     return saved ?? createTeichnerSchedule(initial.bakeAt, initial);
@@ -32,6 +34,7 @@ export function SchedulePage({ saved, loadError, save, busy, now, editingChanged
   const [base, setBase] = useState(original);
   const [dateInput, setDateInput] = useState(() => toLocalInput(base.bakeAt));
   const [draft, setDraft] = useState(() => phaseDraft(base));
+  const [cleared, setCleared] = useState(false);
   const [notice, setNotice] = useState("");
   const [saveError, setSaveError] = useState("");
   const numbers = Object.fromEntries(scheduleNumberKeys(base).map(key => {
@@ -49,9 +52,9 @@ export function SchedulePage({ saved, loadError, save, busy, now, editingChanged
   const valid = !Object.keys(issues).length;
   const dirty = !!dateError || !saved || (Object.keys(candidate) as (keyof SchedulePlan)[]).some(key => candidate[key] !== saved[key]);
   useEffect(() => {
-    editingChanged(!loadError && dirty);
+    editingChanged(!cleared && !loadError && dirty);
     return () => editingChanged(false);
-  }, [dirty, loadError, editingChanged]);
+  }, [cleared, dirty, loadError, editingChanged]);
   function changed() { setNotice(""); setSaveError(""); }
   function useTeichner() {
     changed();
@@ -83,6 +86,17 @@ export function SchedulePage({ saved, loadError, save, busy, now, editingChanged
     try { await save(candidate); setNotice("Zeitplan auf diesem Gerät gespeichert."); }
     catch { setSaveError("Der Zeitplan konnte nicht gespeichert werden. Deine bisherigen Daten bleiben erhalten. Bitte erneut versuchen."); }
   }
+  async function deleteSaved() {
+    if (!saved || busy || !window.confirm('Backtermin und zugehörige geplante Schritte wirklich löschen? Ungespeicherte Zeitplanänderungen werden verworfen. Rezeptur, Pizzaabend und Monitor-Messungen bleiben erhalten.')) return;
+    setSaveError(''); setNotice('');
+    try { await remove(saved); setCleared(true); setNotice('Backtermin gelöscht.'); }
+    catch (error) { setSaveError(`Nicht gelöscht. Dein Zeitplan und Entwurf bleiben erhalten. ${error instanceof Error ? error.message : 'Bitte erneut versuchen.'}`); }
+  }
+  if (cleared) return <><PageHeading title="Zeitplan" description="Dein nächster Pizzaabend beginnt mit einem Backtermin." />
+    <section className="card schedule-empty"><h2>Kein Backtermin gespeichert</h2><p role="status">{notice}</p>
+      {hasMonitor && <p>Dein Reifemonitor ist pausiert. Seine bisherige Planung und Messungen bleiben erhalten.</p>}
+      <button className="primary" onClick={() => { const initial = createSchedule(now); const fresh = createTeichnerSchedule(initial.bakeAt, initial); setBase(fresh); setDateInput(toLocalInput(fresh.bakeAt)); setDraft(phaseDraft(fresh)); setCleared(false); changed(); }}>Backtermin planen</button>
+    </section></>;
   const steps = valid ? calculateSchedule(candidate) : [];
   const next = valid ? nextScheduleSteps(candidate, now) : [];
   const warning = valid ? scheduleWarning(candidate, now) : null;
@@ -90,10 +104,14 @@ export function SchedulePage({ saved, loadError, save, busy, now, editingChanged
 
   return <>
     <PageHeading title="Zeitplan" description="Teichner · 48 Stunden. Vom Backtermin rückwärts planen." />
+    {saved && !loadError && <section className="card schedule-manage"><div><h2>Gespeicherter Backtermin</h2><p>Termin und geplante Schritte entfernen. Andere Daten bleiben erhalten.</p></div><button className="destructive" type="button" disabled={busy} onClick={() => void deleteSaved()}>Backtermin löschen</button>
+      {hasMonitor && <p className="field-hint">Der aktive Reifemonitor wird danach pausiert; seine Messungen werden nicht gelöscht.</p>}
+      {saveError.startsWith('Nicht gelöscht.') && <p className="error" role="alert">{saveError}</p>}
+    </section>}
     {loadError ? <section className="card" role="alert"><h2>Zeitplan nicht verfügbar</h2><p>{loadError}</p></section> : <>
       <div className="calculator-layout schedule-layout">
         <form className="card schedule-form" onSubmit={event => void submit(event)} noValidate>
-          <div className="card-heading"><h2>{base.version === 2 ? "Teichner · 48 Stunden" : "Bisheriger Zeitplan"}</h2></div>
+          <fieldset className="schedule-controls" disabled={busy}><div className="card-heading"><h2>{base.version === 2 ? "Teichner · 48 Stunden" : "Bisheriger Zeitplan"}</h2></div>
           {base.version === 1 && <><p>Dein bisheriger Ablauf bleibt unverändert und ist weiterhin im Zeitstrahl lesbar. Für neue Planungen verwenden wir ausschließlich Teichner.</p>
             <button type="button" disabled={busy} onClick={useTeichner}>Teichner · 48 Stunden verwenden</button>
             <p className="field-hint">Die Umstellung ist zunächst nur eine Vorschau. Dein bisheriger Plan wird erst mit Speichern ersetzt.</p></>}
@@ -117,7 +135,8 @@ export function SchedulePage({ saved, loadError, save, busy, now, editingChanged
           {saved && dirty && <button type="button" disabled={busy} onClick={reset}>Gespeicherten Plan wiederherstellen</button>}
           <p className="field-hint">Änderungen werden erst mit Speichern übernommen.</p>
           {notice && <p role="status" className="save-status">{notice}</p>}
-          {saveError && <p role="alert" className="error">{saveError}</p>}
+          {saveError && !saveError.startsWith('Nicht gelöscht.') && <p role="alert" className="error">{saveError}</p>}
+          </fieldset>
         </form>
         <section className="card schedule-preview" aria-labelledby="schedule-preview-title">
           <div className="card-heading"><h2 id="schedule-preview-title">{dirty ? "Vorschau deiner Schritte" : "Deine geplanten Schritte"}</h2></div>
