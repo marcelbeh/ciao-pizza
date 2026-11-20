@@ -308,7 +308,7 @@ function Workspace({ repo }: { repo: FornoRepository }) {
     <main id="content" className="app-content" ref={main} tabIndex={-1}>
       {error && <div className="card error" role="alert"><p>{error}</p>
         <button onClick={() => window.location.reload()}>Erneut laden</button></div>}
-      {!data ? !error && <p role="status">Deine Daten werden geladen …</p> : <Routes>
+      {!data ? !error && <div className="loading-state" role="status"><Icon name="dough" /><p>Deine Daten werden geladen …</p><small>Lokale Planung wird geöffnet.</small></div> : <Routes>
         <Route path="/" element={<Dashboard evening={data.evening} formula={data.formula} schedule={data.schedule} scheduleError={data.scheduleError} now={now} pizzaNight={data.pizzaNight} pizzaNightError={data.pizzaNightError} monitoring={monitoring} />} />
         <Route path="/teig" element={<Calculator formula={data.formula} save={save} status={status} invalidChanged={setInvalid} monitoring={monitoring} cooking={cooking} />} />
         <Route path="/zeitplan" element={<SchedulePage saved={data.schedule} loadError={data.scheduleError} save={saveTimePlan} remove={deleteTimePlan} hasMonitor={!!data.maturity?.activeId} busy={busy} now={now} editingChanged={setInvalid} />} />
@@ -339,5 +339,5 @@ export function App({ repo = repository }: { repo?: FornoRepository }) {
     setRouter(next);
     return () => next.dispose();
   }, [repo]);
-  return <ErrorBoundary>{router ? <RouterProvider router={router} /> : <p role="status">FORNO. wird geladen …</p>}</ErrorBoundary>;
+  return <ErrorBoundary>{router ? <RouterProvider router={router} /> : <div className="loading-state" role="status"><p>FORNO. wird geladen …</p></div>}</ErrorBoundary>;
 }

@@ -789,3 +789,106 @@ input[aria-invalid='true'] { border-color: var(--error); }
   .monitor-page .monitor-dial-area .phase-dial-center strong { font-size: 23px; }
 }
 .cook-mode { scroll-margin-top: 16px; }
+
+/* P6 refines the shared FORNO. system; status colours never encode plan-time progress. */
+:root { --status-early: var(--text-secondary); --status-developing: var(--accent); --status-ready: var(--accent); --status-caution: var(--terracotta); --control-height: 48px; }
+button, .button { min-height: var(--control-height); }
+summary { -webkit-user-select: none; user-select: none; }
+.p3-actions { row-gap: 12px; }
+.p3-actions button { min-height: var(--control-height); }
+.loading-state { display: grid; justify-items: center; align-content: center; gap: 12px; min-height: 200px; padding: 24px; color: var(--text-secondary); text-align: center; }
+.loading-state svg { color: var(--accent); width: 36px; height: 36px; }
+.loading-state small { font-size: 12px; }
+.monitor-page .monitor-cockpit { display: grid; grid-template-columns: 140px minmax(0, 1fr); gap: 16px; padding: 20px; }
+.monitor-cockpit .monitor-hero-heading { grid-column: 1 / -1; grid-row: 1; }
+.monitor-cockpit .monitor-hero-heading h2 { margin: 6px 0; font-size: clamp(24px, 6vw, 30px); font-weight: 550; }
+.monitor-state-description { font-size: 12px; line-height: 1.5; color: var(--text-secondary); }
+.monitor-cockpit .monitor-confidence { grid-column: 1 / -1; grid-row: 2; display: flex; margin: -8px 0 0; gap: 4px 12px; }
+.monitor-cockpit .monitor-confidence > :last-child { display: block; font-size: 11px; }
+.monitor-cockpit .monitor-dial-area { grid-column: 1; grid-row: 3; align-self: center; }
+.monitor-cockpit .monitor-dial-area > .monitor-eyebrow { margin-bottom: 8px; font-size: 11px; }
+.monitor-cockpit .monitor-dial-area .phase-dial { width: 140px; }
+.monitor-cockpit .phase-elapsed { stroke: var(--accent); }
+.monitor-cockpit .monitor-dial-area > small { font-size: 10px; }
+.status-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 6px; background: var(--status-developing); }
+.monitor-cockpit[data-tone='early'] .status-dot { background: var(--status-early); }
+.monitor-cockpit[data-tone='ready'] .status-dot { background: var(--status-ready); box-shadow: 0 0 0 3px var(--accent-soft); }
+.monitor-cockpit[data-tone='caution'] .status-dot { background: var(--status-caution); }
+.monitor-cockpit[data-tone='caution'] .monitor-hero-heading h2 { color: var(--status-caution); }
+.monitor-cockpit[data-tone='ready'] .monitor-hero-heading h2 { color: var(--status-ready); }
+.monitor-facts { grid-column: 2; grid-row: 3; display: grid; gap: 16px; align-content: center; padding: 0; margin: 0; min-width: 0; }
+.monitor-facts dt { font-size: 11px; color: var(--text-secondary); }
+.monitor-facts dd { margin: 4px 0; font-size: 24px; line-height: 1.25; letter-spacing: -.04em; font-weight: 550; font-variant-numeric: tabular-nums; }
+.monitor-facts div:last-child dd { font-size: 16px; line-height: 1.4; }
+.monitor-facts small { display: block; color: var(--text-secondary); font-size: 10px; line-height: 1.5; }
+.monitor-evidence { grid-column: 1 / -1; grid-row: 4; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; padding-top: 16px; border-top: 1px solid var(--border); }
+.source-label { display: inline-flex; align-self: start; padding: 4px 8px; border: 1px solid var(--border); border-radius: 8px; font-size: 10px; color: var(--text-secondary); }
+.monitor-evidence p { font-size: 12px; line-height: 1.5; }
+.monitor-evidence small { display: block; font-size: 10px; color: var(--text-secondary); margin-top: 6px; }
+.monitor-cockpit .monitor-next-check { grid-column: 1 / -1; grid-row: 5; display: flex; flex-wrap: wrap; padding-top: 0; border: 0; gap: 10px; }
+.monitor-cockpit .monitor-next-check > div { flex: 1; min-width: 100px; }
+.monitor-cockpit .monitor-next-check > button { flex: 1 1 100%; min-height: 48px; font-size: 14px; }
+.monitor-cockpit .monitor-next-check > button svg { width: 18px; height: 18px; margin-left: auto; }
+.monitor-cockpit .monitor-advice { grid-column: 1 / -1; grid-row: 6; padding: 14px; }
+.monitor-advice details > summary { min-height: 44px; align-content: center; cursor: pointer; font-size: 12px; color: var(--accent); }
+.monitor-cockpit .monitor-explanation { grid-column: 1 / -1; grid-row: 7; }
+.monitor-editor { scroll-margin-top: 20px; }
+.monitor-section-heading h2 { font-size: 17px; }
+.monitor-temperatures { padding-block: 18px; }
+.monitor-check-number { border-radius: 50%; }
+.monitor-check-button { min-height: 48px; }
+.cook-topline .monitor-tag { font-size: 12px; padding: 6px 10px; }
+.cook-topline > button { border-color: var(--border); border-radius: 12px; padding: 8px 12px; }
+.cook-mode h2 { font-weight: 550; margin-bottom: 16px; }
+.cook-progress { margin-block: 16px; }
+.cook-progress > span { height: 5px; }
+.cook-amounts { gap: 12px; }
+.cook-amounts > div { background: var(--field-bg); border: 1px solid var(--border); }
+.cook-amounts dd { font-weight: 500; font-size: clamp(30px, 7vw, 42px); }
+.cook-instruction { font-size: 15px; line-height: 1.6; }
+.cook-settings { margin: 20px 0; display: grid; gap: 0; border-block: 1px solid var(--border); }
+.cook-settings > div { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); align-items: baseline; gap: 4px 12px; padding: 12px 0; }
+.cook-settings > div + div { border-top: 1px solid var(--border); }
+.cook-settings dt { font-size: 12px; color: var(--text-secondary); }
+.cook-settings dd { margin: 0; font-size: 18px; font-weight: 550; letter-spacing: -.02em; }
+.cook-settings small { grid-column: 1 / -1; color: var(--text-secondary); font-size: 11px; line-height: 1.5; }
+.cook-up-next { margin-top: 20px; font-size: 11px; color: var(--text-secondary); }
+.cook-up-next strong { display: block; margin-top: 4px; color: var(--text); font-size: 13px; font-weight: 550; }
+.cook-navigation { margin-top: 12px; }
+.cook-navigation > button { min-height: 56px; }
+.cook-help { font-size: 12px; color: var(--text-secondary); margin-top: 12px; }
+.cook-help > summary { min-height: 44px; align-content: center; cursor: pointer; color: var(--accent); }
+.cook-timer { padding: 16px; }
+.cook-timer > strong { font-size: 52px; font-weight: 450; }
+.cook-timer .p3-actions { display: grid; grid-template-columns: 1fr 1fr; }
+.cook-timer .p3-actions > button { font-size: 12px; padding: 10px; min-height: 48px; }
+@media (min-width: 800px) {
+  .monitor-page .monitor-cockpit { grid-template-columns: 180px minmax(0, 1fr) minmax(0, 1fr); gap: 16px 24px; padding: 28px !important; }
+  .monitor-cockpit .monitor-hero-heading { grid-column: 2 / -1; grid-row: 1; }
+  .monitor-cockpit .monitor-confidence { grid-column: 2 / -1; grid-row: 2; }
+  .monitor-cockpit .monitor-dial-area { grid-column: 1; grid-row: 1 / 4; }
+  .monitor-cockpit .monitor-dial-area .phase-dial { width: 180px; }
+  .monitor-facts { grid-column: 2; grid-row: 3; grid-template-columns: 1fr 1fr; align-content: start; }
+  .monitor-evidence { grid-column: 3; grid-row: 3; padding-top: 0; border: 0; }
+  .monitor-cockpit .monitor-next-check { grid-column: 1 / 3; grid-row: 4; padding-top: 16px; border-top: 1px solid var(--border); }
+  .monitor-cockpit .monitor-next-check > button { flex-basis: auto; }
+  .monitor-cockpit .monitor-advice { grid-column: 3; grid-row: 4; }
+  .monitor-cockpit .monitor-explanation { grid-row: 5; }
+}
+@media (max-width: 374px) {
+  .monitor-page .monitor-cockpit { grid-template-columns: 112px minmax(0, 1fr); padding: 16px; gap: 14px; }
+  .monitor-cockpit .monitor-dial-area .phase-dial { width: 112px; }
+  .monitor-facts dd { font-size: 21px; }
+  .monitor-facts div:last-child dd { font-size: 14px; }
+  .monitor-evidence { grid-template-columns: 1fr; gap: 8px; }
+}
+.monitor-page .monitor-cockpit { row-gap: 12px; }
+.monitor-cockpit .monitor-confidence > :last-child { display: none; }
+.monitor-evidence summary { min-height: 44px; align-content: center; cursor: pointer; font-size: 12px; color: var(--accent); }
+.monitor-evidence > details { margin-top: -10px; }
+.cook-amounts dd { font-size: clamp(26px, 6.5vw, 36px); white-space: nowrap; }
+.cook-up-next { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: baseline; margin-top: 12px; }
+.cook-up-next strong { display: inline; margin: 0; }
+.empty-state-heading { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.empty-state-heading h2, .empty-state-heading h3 { font-size: 18px; font-weight: 550; }
+.empty-state-heading p { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
