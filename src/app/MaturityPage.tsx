@@ -11,6 +11,7 @@ import { parseBakeInput } from '../core/schedule/plan';
 import { toLocalInput } from '../core/dough/calculations';
 import type { MaturityRepository } from '../infrastructure/storage/maturityRepository';
 import { formatScheduleTime } from './ScheduleTimeline';
+import { monitorPresentation } from './monitorPresentation';
 import { useDraftProtection } from './useDraftProtection';
 export type MonitorAccess = { state: MaturityState | null; loadError: string; repository: MaturityRepository; busy: boolean; editing: boolean;
   run: (task: () => Promise<MaturityState>) => Promise<void>; editingChanged: (editing: boolean) => void;
@@ -157,8 +158,12 @@ export function MaturityPage({ access }: { access: MonitorAccess }) {
   const [temperature, setTemperature] = useState<{ original: TemperatureEvent | null } | null>(null);
   const [notice, setNotice] = useState('');
   const [basisEditing, setBasisEditing] = useState(false);
+  useEffect(() => {
+    if (checkSlot) document.querySelector<HTMLElement>('[aria-label="Freiwilliger Teig-Check"]')?.scrollIntoView?.({ block: 'start' });
+  }, [checkSlot]);
   const paused = monitorIsPaused(access);
-  const forecast = plan && !paused ? maturityForecast(plan, access.now) : null;
+  const presentation = plan && !paused ? monitorPresentation(plan, access.now) : null;
+  const forecast = presentation?.forecast ?? null;
   const ingredients = plan ? calculateFormula(plan.formula).ingredients : null;
   const currentPhase = forecast?.phases.find(phase => Date.parse(phase.at) <= access.now && access.now < Date.parse(phase.endsAt!));
 
@@ -169,6 +174,7 @@ export function MaturityPage({ access }: { access: MonitorAccess }) {
   return <div className="monitor-page">
     <PageHeading title="Reife-Monitor" description="Dein Teig im Blick. Vom Kneten bis zum Backen." />
     <section className="card monitor-sync">
+      {!plan && !access.loadError && <div className="empty-state-heading"><span className="premium-icon"><Icon name="dough" /></span><div><h2>Dein erster Teigplan</h2><p>Rezeptur, Termin und Beobachtungen verbinden.</p></div></div>}
       <MonitorStart access={access} showActiveSummary={false} concise={paused} />
       {!plan && !access.loadError && <p className="field-hint">Rezeptur und Gärphasen aus deinem Zeitplan übernehmen. Danach kannst du Temperaturen und freiwillige Checks ergänzen.</p>}
     </section>
@@ -181,18 +187,28 @@ export function MaturityPage({ access }: { access: MonitorAccess }) {
       </details>
     </section>}
     {plan && forecast && ingredients && !access.loadError && <>
-      <section className={`card monitor-hero ${forecast.status === 'Möglicherweise überreif' ? 'monitor-caution' : ''}`} aria-label="Reifeeinschätzung">
-        <div className="monitor-dial-area"><PhaseDial schedule={plan.schedule} now={access.now} /><p>Planzeit in dieser Phase</p><small>Keine gemessene Teigreife</small></div>
-        <div className="monitor-hero-heading">
-          <span className="monitor-status-icon"><Icon name="dough" /></span>
-          <div><p className="monitor-eyebrow">{currentPhase ? phaseNames[currentPhase.id] : access.now < Date.parse(forecast.phases[0].at) ? 'Vor dem Gärbeginn' : 'Backtermin erreicht'}</p>
-            <h2>{forecast.status}</h2></div>
+      <section className="card monitor-hero monitor-cockpit" data-tone={presentation?.tone} aria-label="Reifeeinschätzung">
+        <div className="monitor-hero-heading"><div>
+          <p className="monitor-eyebrow"><span className="status-dot" aria-hidden="true" />Qualitative Reifeeinschätzung</p>
+          <h2>{forecast.status}</h2><p className="monitor-state-description">{presentation?.description}</p>
+        </div></div>
+        <div className="monitor-confidence"><span>Sicherheit: <strong>{forecast.certainty}</strong></span><span>Aus Zeitplan und Beobachtungen</span></div>
+        <div className="monitor-dial-area"><p className="monitor-eyebrow">{currentPhase ? phaseNames[currentPhase.id] : access.now < Date.parse(forecast.phases[0].at) ? 'Vor dem Gärbeginn' : 'Backtermin erreicht'}</p>
+          <PhaseDial schedule={plan.schedule} now={access.now} /><p>Planzeit dieser Phase</p><small>Keine gemessene Teigreife</small>
         </div>
-        <div className="monitor-confidence"><span>Sicherheit: <strong>{forecast.certainty}</strong></span><span>Qualitative Einschätzung</span></div>
-        <div className="monitor-next-check"><Icon name="clock" /><div><span>Nächster freiwilliger Check</span><strong>{nextCheck ? nextCheck.label : 'Alle Checks erfasst oder übersprungen'}</strong>{nextCheck && <time dateTime={nextCheck.at}>{shortDate(nextCheck.at)}</time>}</div></div>
-        <p className="monitor-bake"><Icon name="evening" /><span>Backtermin <time dateTime={plan.schedule.bakeAt}>{shortDate(plan.schedule.bakeAt)}</time></span></p>
-        <div className="monitor-advice"><p className="monitor-eyebrow">Was du jetzt tun kannst</p><p>{forecast.recommendations[0]}</p>
-          {forecast.recommendations.length > 1 && <ul>{forecast.recommendations.slice(1).map(reason => <li key={reason}>{reason}</li>)}</ul>}
+        <dl className="monitor-facts" aria-label="Messung und geplanter Verarbeitungstermin">
+          <div><dt>Letzte Teigmessung</dt><dd>{presentation?.lastTemperature ? `${number(presentation.lastTemperature.celsius)} °C` : 'Noch offen'}</dd><small>{presentation?.lastTemperature ? shortDate(presentation.lastTemperature.at) : 'Mit Thermometer messen'}</small></div>
+          <div><dt>Geplant verarbeiten</dt><dd><time dateTime={plan.schedule.bakeAt}>{shortDate(plan.schedule.bakeAt)}</time></dd><small>Backtermin · kein gemessenes Reifefenster</small></div>
+        </dl>
+        <div className="monitor-evidence" role="group" aria-label="Tatsächliche Teigbeobachtung"><span className="source-label">Beobachtet</span>
+          {presentation?.lastCheck ? <details><summary>{presentation.lastCheck.slot === 'bulk' ? 'Stockgare' : presentation.lastCheck.slot === 'piece' ? 'Stückgare' : 'Vor dem Backen'} · {shortDate(presentation.lastCheck.at)}</summary><p>{[presentation.lastCheck.volume && volumes[presentation.lastCheck.volume], presentation.lastCheck.surface && surfaces[presentation.lastCheck.surface], presentation.lastCheck.elasticity && elasticities[presentation.lastCheck.elasticity]].filter(Boolean).join(' · ')}</p>
+            <small>{presentation.lastCheck.slot === 'bulk' ? 'Stockgare' : presentation.lastCheck.slot === 'piece' ? 'Stückgare' : 'Vor dem Backen'} · {shortDate(presentation.lastCheck.at)} · gespeicherter Check, kein Messbeweis</small></details> : <p>Noch kein beobachteter Check. Die Einschätzung folgt vor allem dem Plan.</p>}
+        </div>
+        <div className="monitor-next-check"><Icon name="clock" /><div><span>Nächster freiwilliger Check</span><strong>{nextCheck ? nextCheck.label : 'Alle Checks erfasst oder übersprungen'}</strong>{nextCheck && <time dateTime={nextCheck.at}>{shortDate(nextCheck.at)}</time>}</div>
+          {nextCheck && <button className="primary" aria-label="Nächsten Teig-Check öffnen" disabled={access.busy || basisEditing || !!checkSlot || !!temperature} onClick={() => { setNotice(''); setCheckSlot(nextCheck.slot); }}>Teig prüfen <Icon name="arrow" /></button>}
+        </div>
+        <div className="monitor-advice"><p className="monitor-eyebrow">Dein nächster Handgriff</p><p>{forecast.recommendations[0]}</p>
+          {forecast.recommendations.length > 1 && <details><summary>Weitere Hinweise ({forecast.recommendations.length - 1})</summary><ul>{forecast.recommendations.slice(1).map(reason => <li key={reason}>{reason}</li>)}</ul></details>}
         </div>
         <details className="monitor-explanation"><summary>Warum diese Einschätzung?</summary>
           <p>Der Zeitplan und deine Beobachtungen liefern Hinweise, keine exakte Messung. Die Stärke des Mehls lässt sich aus dem Namen allein nicht ableiten.</p>
@@ -229,7 +245,7 @@ export function MaturityPage({ access }: { access: MonitorAccess }) {
         </section>
 
         <section className="card monitor-measurements" aria-labelledby="monitor-temperatures-title">
-          <div className="monitor-section-heading"><h2 id="monitor-temperatures-title">Gemessene Temperaturen</h2></div>
+          <div className="monitor-section-heading"><h2 id="monitor-temperatures-title">Temperaturbasis</h2></div>
           <SharedTemperatures access={access} tiles disabled={!!checkSlot || !!temperature} onEditingChange={setBasisEditing} />
           <p className="monitor-caption">Teigtemperatur mit der TM5-Ansicht geteilt. Die Werte oben sind Basiswerte; spätere Messungen stehen im Verlauf.</p>
           {temperature ? <TemperatureEditor key={temperature.original?.id ?? 'new'} access={access} plan={plan} original={temperature.original} close={saved => { setTemperature(null); setNotice(saved ? 'Temperaturänderung lokal gespeichert.' : ''); }} /> :

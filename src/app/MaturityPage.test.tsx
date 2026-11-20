@@ -26,8 +26,8 @@ describe('P4 UI and shared TM5 temperature',()=>{
     fireEvent.click(screen.getByRole('button',{name:'Temperaturen speichern'}));await screen.findByText('Temperaturen im aktiven Reifemonitor gespeichert.');
     expect(activeMonitor((await repo.maturity.load()).maturity)?.conditions.doughC).toBe(23.5);
     fireEvent.click(navigation('Home'));fireEvent.click(await screen.findByRole('link',{name:/Reife-Monitor/}));
-    expect(await screen.findByText('23,5 °C')).toBeVisible();expect(screen.queryByLabelText('Teigtemperatur nach dem Kneten (°C)')).not.toBeInTheDocument();
-    view.unmount();render(<App repo={createFornoRepository(db)}/>);expect(await screen.findByText('23,5 °C')).toBeVisible();
+    expect(within(await screen.findByRole('region',{name:'Reifeeinschätzung'})).getByText('23,5 °C')).toBeVisible();expect(screen.queryByLabelText('Teigtemperatur nach dem Kneten (°C)')).not.toBeInTheDocument();
+    view.unmount();render(<App repo={createFornoRepository(db)}/>);expect(within(await screen.findByRole('region',{name:'Reifeeinschätzung'})).getByText('23,5 °C')).toBeVisible();
   });
   it('records, skips and corrects optional checks without touching the schedule',async()=>{
     const {db,repo}=await setup();const before=(await repo.load()).schedule;render(<App repo={repo}/>);

@@ -13,6 +13,12 @@ Autolyse-Timer. Unter Zeitplan lässt sich der gespeicherte Backtermin nach Best
 Monitor-Messungen bleiben erhalten, die Prognose pausiert ohne passenden Termin.
 [Bedienung, Datenerhalt, Prüfungen und Screenshots](docs/P5.md).
 
+## P6 · Premium Design & UX
+
+Reifemonitor mit getrennter Planzeit, letzter Messung und Beobachtung sowie direktem Check-Zugang.
+Kochmodus mit strukturierten Gerätefeldern und klarer nächster Aktion; bestehende Fachlogik und
+Offline-Speicherung unverändert. [Änderungen, Screenshots und Prüfungen](docs/P6.md).
+
 ## Entwickeln
 
 Node.js >=22.12 (empfohlen 24 LTS), npm:
