@@ -1,4 +1,4 @@
-import { Component, useEffect, useRef, useState, type ReactNode } from "react";
+import { Component, lazy, Suspense, useEffect, useRef, useState, type ReactNode } from "react";
 import { createHashRouter, RouterProvider, Link, NavLink, Route, Routes, useLocation } from "react-router-dom";
 import { Icon } from "../components/Icon";
 import { calculateFormula, defaults, formulaIssues, ranges, type Formula, type NumericField } from "../core/dough/forno";
@@ -15,6 +15,11 @@ import { MaturityCompact, MaturityPage, type MonitorAccess } from "./MaturityPag
 import type { CookAccess } from '../components/CookMode';
 import type { CookSession } from '../core/dough/cookSession';
 import type { MaturityState } from "../core/maturity/model";
+import { activeSession, type SessionState } from '../core/session/model';
+import { legacySession } from '../core/session/migration';
+import { sessionMonitor, type SessionAccess } from './sessionAccess';
+import { DeviceSelect, SessionDashboard, SessionDetail, SessionPlanner, errorText } from './SessionPages';
+const SessionCook = lazy(() => import('./SessionCook').then(module => ({default: module.SessionCook})));
 import { ThemeSwitch } from "../components/ThemeSwitch";
 
 const repository = createFornoRepository(createIndexedDbStore());
@@ -179,9 +184,10 @@ function Placeholder({ kind }: { kind: "journal" }) {
     </section>
   </>;
 }
-function Settings({ hasLegacy, busy, backup }: { hasLegacy: boolean; busy: boolean; backup: () => Promise<void> }) {
+function Settings({ hasLegacy, busy, backup, sessions }: { hasLegacy: boolean; busy: boolean; backup: () => Promise<void>; sessions?: SessionAccess }) {
+  const [deviceError,setDeviceError] = useState('');
   return <><PageHeading title="Einstellungen" description="Deine Daten. Dein Gerät. Deine Pizzaplanung." />
-    <div className="settings-grid"><section className="card settings-card theme-settings"><div className="card-heading"><h2>Darstellung</h2></div>
+    <div className="settings-grid">{sessions && <section className="card settings-card"><h2>Dein Zubereitungsgerät</h2><DeviceSelect value={sessions.state.defaultDevice} disabled={busy} change={device=>{setDeviceError('');void sessions.run(()=>sessions.repository.device(device)).catch(e=>setDeviceError(errorText(e)))}}/><p className="field-hint">Standard für neue Sessions. Vorbereitete Sessions übernehmen die Auswahl; begonnene Rezepturen behalten ihr Gerät.</p>{deviceError&&<p role="alert" className="error">{deviceError}</p>}</section>}<section className="card settings-card theme-settings"><div className="card-heading"><h2>Darstellung</h2></div>
       <p className="muted">Hell, dunkel oder automatisch passend zu deinem Gerät. Deine Auswahl bleibt auf diesem Gerät gespeichert.</p><ThemeSwitch />
     </section><section className="card settings-card"><div className="card-heading"><Icon name="download" /><h2>Daten & Sicherung</h2></div>
       <p>Deine Daten bleiben in diesem Browser. Sichere sie regelmäßig, bevor du Browserdaten löschst.</p>
@@ -193,6 +199,11 @@ function Settings({ hasLegacy, busy, backup }: { hasLegacy: boolean; busy: boole
       <p className="muted">Auf dem iPhone: Safari öffnen → Teilen → Zum Home-Bildschirm. Die App speichert deine gültigen Teigeingaben automatisch auf diesem Gerät.</p>
       <span className="local-label"><span aria-hidden="true" />Lokal. Ohne Konto.</span>
     </section></div></>;
+}
+
+function LegacyAdoption({access,data}:{access:SessionAccess;data:Loaded}){
+  const [error,setError]=useState(''),[preview,setPreview]=useState<ReturnType<typeof legacySession>|null>(null);
+  return <div className="legacy-adoption"><button disabled={access.busy} onClick={()=>{try{setPreview(legacySession(data,access.state.defaultDevice));setError('')}catch(e){setError(errorText(e))}}}>Bisherige Planung übernehmen</button>{preview&&<div><h3>Übernahme als neue Session</h3><p>{preview.session.monitor.formula.count} Pizzen · {formatScheduleTime(preview.session.monitor.schedule.bakeAt)}</p><ul>{preview.warnings.map(w=><li key={w}>{w}</li>)}</ul><div className="p3-actions"><button className="primary" disabled={access.busy} onClick={()=>{void access.run(()=>access.repository.create(preview.session,access.state.activeId,true)).catch(e=>setError(errorText(e)))}}>Übernahme ausdrücklich speichern</button><button disabled={access.busy} onClick={()=>setPreview(null)}>Abbrechen</button></div></div>}{error&&<p role="alert" className="error">{error}</p>}</div>;
 }
 
 class ErrorBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
@@ -227,7 +238,7 @@ function Workspace({ repo }: { repo: FornoRepository }) {
     return () => { active = false; };
   }, [repo]);
   useEffect(() => {
-    const titles: Record<string, string> = { "/": "Home", "/teig": "Teig", "/zeitplan": "Zeitplan", "/pizzaabend": "Pizzaabend", "/rezepte": "Rezepte", "/einstellungen": "Einstellungen", "/reife-monitor": "Reife-Monitor", "/journal": "Mein Journal" };
+    const titles: Record<string, string> = { "/": "Home", "/teig": "Teig", "/zeitplan": "Zeitplan", "/pizzaabend": "Pizzaabend", "/rezepte": "Rezepte", "/einstellungen": "Einstellungen", "/reife-monitor": "Reife-Monitor", "/session": "Pizza-Session", "/session/planen": "Pizza-Session planen", "/kochen": "Guided Cooking", "/journal": "Mein Journal" };
     document.title = `${titles[location.pathname] ?? "Seite nicht gefunden"} · FORNO. by Marcel`;
     const target = location.hash === "#zutaten" ? document.getElementById("zutaten") : null;
     (target ?? main.current)?.focus();
@@ -290,10 +301,25 @@ function Workspace({ repo }: { repo: FornoRepository }) {
     try { const cookSession = await operation; setData(previous => previous ? { ...previous, cookSession, cookError: '' } : previous); }
     finally { if (revision.current === current) setBusy(false); }
   }
+  async function runSessions(task: () => Promise<SessionState>) {
+    if (!data?.sessions || data.sessionError) throw Error('Session-Daten sind schreibgeschützt.');
+    setBusy(true); const current=++revision.current;
+    const operation=queue.current.catch(()=>{}).then(task);queue.current=operation.then(()=>{},()=>{});
+    try {const sessions=await operation;setData(previous=>previous?{...previous,sessions,sessionError:''}:previous);setNow(Date.now());}
+    finally{if(revision.current===current)setBusy(false)}
+  }
+  const canonical=activeSession(data?.sessions);
+  const sessions:SessionAccess|null=data?.sessions?{state:data.sessions,session:canonical,repository:repo.sessions,busy,now,run:runSessions,editingChanged:setMonitorEditing}:null;
+  const useSession=!!canonical&&new URLSearchParams(location.search).get('legacy')!=='1';
   const cooking: CookAccess = { session: data?.cookSession ?? null, error: data?.cookError ?? '', repository: repo.cook, run: runCook };
   const monitoring: MonitorAccess = { state: data?.maturity ?? null, loadError: data?.maturityError ?? "", repository: repo.maturity,
     busy, editing: monitorEditing, run: runMaturity, editingChanged: setMonitorEditing, formula: data?.formula ?? defaults,
     schedule: data?.schedule ?? null, scheduleError: data?.scheduleError ?? "", now };
+  const currentMonitor=useSession&&sessions?sessionMonitor(sessions):monitoring;
+  const currentSchedule=useSession?(canonical!.scheduleRemoved?null:canonical!.monitor.schedule):data?.schedule??null;
+  const currentFormula=useSession?canonical!.monitor.formula:data?.formula??defaults;
+  const currentScheduleError=useSession?'':data?.scheduleError??'';
+  const legacyNotice=data?.evening?<section className="card saved-evening"><h2>Bisheriger Pizzaabend</h2><EveningDetails evening={data.evening}/><p className="field-hint">Altbestand bleibt in deiner Sicherung erhalten.</p></section>:null;
   async function backup() {
     try {
       await queue.current;
@@ -308,20 +334,24 @@ function Workspace({ repo }: { repo: FornoRepository }) {
     <main id="content" className="app-content" ref={main} tabIndex={-1}>
       {error && <div className="card error" role="alert"><p>{error}</p>
         <button onClick={() => window.location.reload()}>Erneut laden</button></div>}
+      {data?.sessionError && <p className="card error" role="alert">{data.sessionError} <Link to="/einstellungen">Zur Sicherung</Link></p>}
       {!data ? !error && <div className="loading-state" role="status"><Icon name="dough" /><p>Deine Daten werden geladen …</p><small>Lokale Planung wird geöffnet.</small></div> : <Routes>
-        <Route path="/" element={<Dashboard evening={data.evening} formula={data.formula} schedule={data.schedule} scheduleError={data.scheduleError} now={now} pizzaNight={data.pizzaNight} pizzaNightError={data.pizzaNightError} monitoring={monitoring} />} />
-        <Route path="/teig" element={<Calculator formula={data.formula} save={save} status={status} invalidChanged={setInvalid} monitoring={monitoring} cooking={cooking} />} />
-        <Route path="/zeitplan" element={<SchedulePage saved={data.schedule} loadError={data.scheduleError} save={saveTimePlan} remove={deleteTimePlan} hasMonitor={!!data.maturity?.activeId} busy={busy} now={now} editingChanged={setInvalid} />} />
+        <Route path="/" element={useSession&&sessions?<SessionDashboard access={sessions} legacy={legacyNotice}/>:<>{sessions&&<section className="card session-entry"><h2>Dein Abend. Ein gemeinsamer Plan.</h2><p className="muted">Rezept, Backtermin, Kochmodus und Reife verbinden.</p><Link className="button primary" to="/session/planen">Pizza-Session planen<Icon name="arrow"/></Link>{!canonical&&data.schedule&&!data.scheduleError&&!sessions.state.legacyAdopted&&<LegacyAdoption access={sessions} data={data}/>}</section>}<Dashboard evening={data.evening} formula={data.formula} schedule={data.schedule} scheduleError={data.scheduleError} now={now} pizzaNight={data.pizzaNight} pizzaNightError={data.pizzaNightError} monitoring={monitoring} /></>} />
+        <Route path="/teig" element={useSession&&sessions?<SessionDetail access={sessions} view="recipe"/>:<Calculator formula={data.formula} save={save} status={status} invalidChanged={setInvalid} monitoring={monitoring} cooking={cooking} />} />
+        <Route path="/zeitplan" element={useSession&&sessions?<SessionDetail access={sessions} view="timeline"/>:<SchedulePage saved={data.schedule} loadError={data.scheduleError} save={saveTimePlan} remove={deleteTimePlan} hasMonitor={!!data.maturity?.activeId} busy={busy} now={now} editingChanged={setInvalid} />} />
         <Route path="/pizzaabend" element={<PizzaEveningPage saved={data.pizzaNight} loadError={data.pizzaNightError} repository={repo.pizzaNight} busy={busy} run={runPizza} editingChanged={setInvalid} hasLegacy={data.hasLegacy}
-          doughCount={data.formula.count} schedule={data.schedule} scheduleError={data.scheduleError}
+          doughCount={currentFormula.count} schedule={currentSchedule} scheduleError={currentScheduleError}
           legacyEvening={data.evening && <section className="card saved-evening"><h2>Bisheriger Pizzaabend</h2><EveningDetails evening={data.evening} /><p className="field-hint">Dieser bisherige Abend bleibt unverändert erhalten und ist in deiner Sicherung enthalten. Er kann hier noch nicht bearbeitet werden.</p></section>} />} />
         <Route path="/rezepte" element={<RecipesPage saved={data.pizzaNight} loadError={data.pizzaNightError} repository={repo.pizzaNight} busy={busy} run={runPizza} editingChanged={setInvalid} hasLegacy={data.hasLegacy} />} />
-        <Route path="/reife-monitor" element={<MaturityPage access={monitoring} />} />
+        <Route path="/reife-monitor" element={<>{useSession&&canonical&&<section className="card session-monitor-source"><Link to="/session">{canonical.name} · gemeinsame Session</Link><p className="field-hint">{canonical.actual.bulk?`Stockgare tatsächlich gestartet: ${formatScheduleTime(canonical.actual.bulk)}`:"Stockgare noch nicht tatsächlich gestartet. Zeitbogen zeigt ausschließlich den Plan."} {canonical.completed&&"Session abgeschlossen; weitere Messungen sind gesperrt."}</p></section>}<MaturityPage access={currentMonitor} /></>} />
+        <Route path="/session/planen" element={sessions?<SessionPlanner key={`planner-${location.search}`} access={sessions} initialFormula={data.formula} initialSchedule={data.schedule}/>:<p>Session-Daten sind nicht verfügbar. Bitte Sicherung herunterladen.</p>}/>
+        <Route path="/session" element={canonical&&sessions?<SessionDetail access={sessions}/>:<section className="card"><h1>Deine Pizza-Session</h1><p>Noch keine aktive Session.</p><Link className="button primary" to="/session/planen">Pizza-Session planen</Link></section>}/>
+        <Route path="/kochen" element={canonical&&sessions?<Suspense fallback={<p role="status">Kochmodus wird geöffnet …</p>}><SessionCook access={sessions}/></Suspense>:<section className="card"><h1>Zuerst eine Session planen</h1><Link className="button primary" to="/session/planen">Pizza-Session planen</Link></section>}/>
         <Route path="/journal" element={<Placeholder kind="journal" />} />
-        <Route path="/einstellungen" element={<Settings hasLegacy={data.hasLegacy} busy={busy} backup={backup} />} />
+        <Route path="/einstellungen" element={<Settings hasLegacy={data.hasLegacy} busy={busy} backup={backup} sessions={sessions??undefined} />} />
         <Route path="*" element={<><PageHeading title="Seite nicht gefunden" description="Diese Adresse ist nicht verfügbar." /><Link className="button" to="/">Zum Dashboard</Link></>} />
       </Routes>}
-      <footer className="app-footer"><p><span className="local-dot" aria-hidden="true" />Lokal gespeichert. Mit Liebe gemacht.</p>
+      <footer className="app-footer">{canonical&&<p><Link to="/teig?legacy=1">Bisheriger Rechner / TM5</Link> · <Link to="/zeitplan?legacy=1">Bisheriger Zeitplan</Link> · <Link to="/reife-monitor?legacy=1">Bisheriger Monitor</Link></p>}<p><span className="local-dot" aria-hidden="true" />Lokal gespeichert. Mit Liebe gemacht.</p>
         <Link to="/einstellungen" className="text-link">Daten & Offline <Icon name="chevron" /></Link><PwaNotice busy={busy || invalid || monitorEditing} />
         {!data && error && <button onClick={() => void backup()} disabled={busy}>Sicherung herunterladen</button>}
       </footer>

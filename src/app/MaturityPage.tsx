@@ -15,7 +15,7 @@ import { monitorPresentation } from './monitorPresentation';
 import { useDraftProtection } from './useDraftProtection';
 export type MonitorAccess = { state: MaturityState | null; loadError: string; repository: MaturityRepository; busy: boolean; editing: boolean;
   run: (task: () => Promise<MaturityState>) => Promise<void>; editingChanged: (editing: boolean) => void;
-  formula: Formula; schedule: SchedulePlan | null; scheduleError: string; now: number };
+  formula: Formula; schedule: SchedulePlan | null; scheduleError: string; now: number; preparationStart?: string; readOnly?: boolean; forecastOverride?: ReturnType<typeof maturityForecast> };
 const number = (n: number) => new Intl.NumberFormat('de-DE', { maximumFractionDigits: 2 }).format(n);
 const failure = (e: unknown) => `Nicht gespeichert. Dein Entwurf bleibt erhalten. ${e instanceof Error ? e.message : 'Bitte erneut versuchen.'}`;
 const numeric = (s: string) => s.trim() === '' ? null : /^-?\d+(?:[.,]\d+)?$/.test(s.trim()) ? Number(s.replace(',', '.')) : NaN;
@@ -35,7 +35,7 @@ export function MonitorStart({ access, showActiveSummary = true, concise = false
     {!concise && (access.scheduleError ? <p className="error" role="alert">Aktueller Zeitplan nicht verfügbar: {access.scheduleError}</p> : !access.schedule ? <p>Lege zuerst einen Backtermin und Gärphasen im <Link className="text-link" to="/zeitplan">Zeitplan</Link> fest.</p> : null)}
     {showActiveSummary && plan && !changed && !access.loadError && <p className="field-hint">Aktive Planung · Backen: {formatScheduleTime(plan.schedule.bakeAt)}</p>}
     {changed && !concise && <p className="schedule-warning">Rechner oder Zeitplan wurden geändert. Die aktive Monitor-Planung und ihre Messungen bleiben bei den gespeicherten Werten. Übernimm Änderungen nur bewusst.</p>}
-    {(!plan || changed) && (!concise || (access.schedule && !access.scheduleError)) && <button className="primary" disabled={access.busy || access.editing || !access.schedule || !!access.scheduleError || !!access.loadError || !access.state} onClick={() => void activate()}>{plan ? 'Aktuelle Planung übernehmen' : 'Reifemonitor starten'}</button>}
+    {(!plan || changed) && (!concise || (access.schedule && !access.scheduleError)) && <button className="primary" disabled={(access.busy || access.readOnly === true) || access.editing || !access.schedule || !!access.scheduleError || !!access.loadError || !access.state} onClick={() => void activate()}>{plan ? 'Aktuelle Planung übernehmen' : 'Reifemonitor starten'}</button>}
     {notice && <p className="save-status" role="status">{notice}</p>}{error && <p role="alert" className="error">{error}</p>}
   </>;
 }
@@ -44,7 +44,7 @@ function ConditionsEditor({ access, plan, close, saved }: { access: MonitorAcces
   const [room, setRoom] = useState(base.roomC?.toString() ?? ''); const [fridge, setFridge] = useState(base.fridgeC?.toString() ?? '');
   const [initialAt] = useState(() => toLocalInput(base.doughAt ?? new Date().toISOString())); const [at, setAt] = useState(initialAt); const [error, setError] = useState('');
   const dirty = dough !== (base.doughC?.toString() ?? '') || room !== (base.roomC?.toString() ?? '') || fridge !== (base.fridgeC?.toString() ?? '') || at !== initialAt;
-  useDraftProtection(dirty, access.busy, true, access.editingChanged);
+  useDraftProtection(dirty, (access.busy || access.readOnly === true), true, access.editingChanged);
   async function submit(e: FormEvent) {
     e.preventDefault(); setError('');
     try { const value: Conditions = { doughC: numeric(dough), doughAt: dough.trim() ? dateValue(at) : null, roomC: numeric(room), fridgeC: numeric(fridge) }; assertConditions(value);
@@ -52,7 +52,7 @@ function ConditionsEditor({ access, plan, close, saved }: { access: MonitorAcces
     catch (e) { setError(failure(e)); }
   }
   return <form onSubmit={e => void submit(e)} className="p3-fields" aria-label="Temperaturbasis bearbeiten" noValidate>
-    <fieldset className="p3-fields" disabled={access.busy}>
+    <fieldset className="p3-fields" disabled={(access.busy || access.readOnly === true)}>
       <label htmlFor="monitor-dough">Teigtemperatur nach dem Kneten (°C)<input id="monitor-dough" inputMode="decimal" value={dough} onChange={e => setDough(e.target.value)} /></label>
       <label htmlFor="monitor-dough-at">Zeitpunkt der Teigtemperatur<input id="monitor-dough-at" type="datetime-local" value={at} onChange={e => setAt(e.target.value)} /></label>
       <label htmlFor="monitor-room">Gemessene Raumtemperatur als Basis (°C)<input id="monitor-room" inputMode="decimal" placeholder={`Plan: ${plan.schedule.roomC}`} value={room} onChange={e => setRoom(e.target.value)} /></label>
@@ -71,8 +71,8 @@ export function SharedTemperatures({ access, disabled = false, onEditingChange, 
     {editing ? <ConditionsEditor access={access} plan={plan} close={() => { setEditing(false); onEditingChange?.(false); }} saved={() => { setEditing(false); onEditingChange?.(false); setNotice('Temperaturen im aktiven Reifemonitor gespeichert.'); }} /> : <>
       {tiles ? <dl className="monitor-temperatures" aria-label="Gemessene Temperaturwerte">
         {([['Teig', plan.conditions.doughC, 'Nach dem Kneten'], ['Raum', plan.conditions.roomC, `Plan: ${plan.schedule.roomC} °C`], ['Kühlschrank', plan.conditions.fridgeC, `Plan: ${plan.schedule.fridgeC} °C`]] as const).map(([label, value, hint]) => <div key={label}><dt>{label}</dt><dd>{value === null ? '—' : `${number(value)} °C`}</dd><small>{value === null ? 'Nicht gemessen' : hint}</small></div>)}
-      </dl> : <p className="field-hint">Teig nach Kneten: <strong>{plan.conditions.doughC === null ? 'noch nicht gemessen' : `${number(plan.conditions.doughC)} °C`}</strong>. Derselbe Wert wird in TM5-Ansicht und Monitor verwendet.</p>}
-      <button disabled={access.busy || disabled} onClick={() => { setNotice(''); setEditing(true); onEditingChange?.(true); }}>Temperaturen erfassen / korrigieren</button></>}
+      </dl> : <p className="field-hint">Teig nach Kneten: <strong>{plan.conditions.doughC === null ? 'noch nicht gemessen' : `${number(plan.conditions.doughC)} °C`}</strong>. Derselbe Wert wird in Kochmodus und Monitor verwendet.</p>}
+      <button disabled={(access.busy || access.readOnly === true) || disabled} onClick={() => { setNotice(''); setEditing(true); onEditingChange?.(true); }}>Temperaturen erfassen / korrigieren</button></>}
     {notice && <p role="status" className="save-status">{notice}</p>}
   </div>;
 }
@@ -91,7 +91,7 @@ function CheckEditor({ access, plan, slot, close }: { access: MonitorAccess; pla
   const [base] = useState<DoughCheck>(() => original ?? { id: crypto.randomUUID(), slot, at: new Date().toISOString(), skipped: false, volume: null, surface: null, elasticity: null });
   const [at, setAt] = useState(toLocalInput(base.at)); const [volume, setVolume] = useState(base.volume ?? ''); const [surface, setSurface] = useState(base.surface ?? ''); const [elasticity, setElasticity] = useState(base.elasticity ?? ''); const [error, setError] = useState('');
   const dirty = at !== toLocalInput(base.at) || volume !== (base.volume ?? '') || surface !== (base.surface ?? '') || elasticity !== (base.elasticity ?? '');
-  useDraftProtection(dirty, access.busy, true, access.editingChanged);
+  useDraftProtection(dirty, (access.busy || access.readOnly === true), true, access.editingChanged);
   async function save(skipped: boolean) {
     setError('');
     try { if (!skipped && !volume && !surface && !elasticity) throw Error('Bitte mindestens eine Beobachtung auswählen oder den Check überspringen.');
@@ -101,7 +101,7 @@ function CheckEditor({ access, plan, slot, close }: { access: MonitorAccess; pla
     catch (e) { setError(failure(e)); }
   }
   return <form className="monitor-editor" aria-label="Freiwilliger Teig-Check" onSubmit={e => { e.preventDefault(); void save(false); }} noValidate>
-    <h3>Freiwilliger Teig-Check</h3><fieldset className="p3-fields" disabled={access.busy}>
+    <h3>Freiwilliger Teig-Check</h3><fieldset className="p3-fields" disabled={(access.busy || access.readOnly === true)}>
       <label>Zeitpunkt der Beobachtung<input type="datetime-local" value={at} onChange={e => setAt(e.target.value)} /></label>
       <ObservationChoices label="Volumenzunahme" value={volume} choices={volumes} change={value => setVolume(value as typeof volume)} />
       <ObservationChoices label="Oberfläche" value={surface} choices={surfaces} change={value => setSurface(value as typeof surface)} />
@@ -117,11 +117,11 @@ function TemperatureEditor({ access, plan, original, close }: { access: MonitorA
   const [base] = useState<TemperatureEvent>(() => original ?? { id: crypto.randomUUID(), at: new Date().toISOString(), kind: 'room', celsius: plan.schedule.roomC });
   const [at,setAt] = useState(toLocalInput(base.at)); const [kind,setKind] = useState(base.kind); const [value,setValue] = useState(String(base.celsius)); const [error,setError] = useState('');
   const dirty = at !== toLocalInput(base.at) || kind !== base.kind || value !== String(base.celsius);
-  useDraftProtection(dirty, access.busy, true, access.editingChanged);
+  useDraftProtection(dirty, (access.busy || access.readOnly === true), true, access.editingChanged);
   async function submit(e: FormEvent) { e.preventDefault(); setError(''); try { const event = { ...base, at: dateValue(at), kind, celsius: numeric(value) as number }; assertTemperatureEvent(event);
       await access.run(() => access.repository.temperature(plan.id, event, original)); close(true); } catch(e) { setError(failure(e)); } }
   return <form className="monitor-editor" aria-label="Temperaturänderung bearbeiten" onSubmit={e => void submit(e)} noValidate><h3>Temperaturänderung</h3>
-    <fieldset className="p3-fields" disabled={access.busy}><label>Zeitpunkt der Änderung<input type="datetime-local" value={at} onChange={e=>setAt(e.target.value)} /></label>
+    <fieldset className="p3-fields" disabled={(access.busy || access.readOnly === true)}><label>Zeitpunkt der Änderung<input type="datetime-local" value={at} onChange={e=>setAt(e.target.value)} /></label>
       <label>Gemessen an<select aria-label="Gemessen an" value={kind} onChange={e=>setKind(e.target.value as typeof kind)}><option value="room">Raum</option><option value="fridge">Kühlschrank</option><option value="dough">Teig</option></select></label>
       <label>Neue Temperatur (°C)<input inputMode="decimal" value={value} onChange={e=>setValue(e.target.value)} /></label>
       <div className="p3-actions"><button className="primary" type="submit">Änderung speichern</button><button type="button" onClick={()=>{if(!dirty||window.confirm('Ungespeicherte Änderungen verwerfen?'))close();}}>Abbrechen</button></div>
@@ -162,7 +162,7 @@ export function MaturityPage({ access }: { access: MonitorAccess }) {
     if (checkSlot) document.querySelector<HTMLElement>('[aria-label="Freiwilliger Teig-Check"]')?.scrollIntoView?.({ block: 'start' });
   }, [checkSlot]);
   const paused = monitorIsPaused(access);
-  const presentation = plan && !paused ? monitorPresentation(plan, access.now) : null;
+  const presentation = plan && !paused ? monitorPresentation(plan, access.now, access.forecastOverride) : null;
   const forecast = presentation?.forecast ?? null;
   const ingredients = plan ? calculateFormula(plan.formula).ingredients : null;
   const currentPhase = forecast?.phases.find(phase => Date.parse(phase.at) <= access.now && access.now < Date.parse(phase.endsAt!));
@@ -194,7 +194,7 @@ export function MaturityPage({ access }: { access: MonitorAccess }) {
         </div></div>
         <div className="monitor-confidence"><span>Sicherheit: <strong>{forecast.certainty}</strong></span><span>Aus Zeitplan und Beobachtungen</span></div>
         <div className="monitor-dial-area"><p className="monitor-eyebrow">{currentPhase ? phaseNames[currentPhase.id] : access.now < Date.parse(forecast.phases[0].at) ? 'Vor dem Gärbeginn' : 'Backtermin erreicht'}</p>
-          <PhaseDial schedule={plan.schedule} now={access.now} /><p>Planzeit dieser Phase</p><small>Keine gemessene Teigreife</small>
+          <PhaseDial schedule={plan.schedule} now={access.now} preparationStart={access.preparationStart} /><p>Planzeit dieser Phase</p><small>Keine gemessene Teigreife</small>
         </div>
         <dl className="monitor-facts" aria-label="Messung und geplanter Verarbeitungstermin">
           <div><dt>Letzte Teigmessung</dt><dd>{presentation?.lastTemperature ? `${number(presentation.lastTemperature.celsius)} °C` : 'Noch offen'}</dd><small>{presentation?.lastTemperature ? shortDate(presentation.lastTemperature.at) : 'Mit Thermometer messen'}</small></div>
@@ -205,7 +205,7 @@ export function MaturityPage({ access }: { access: MonitorAccess }) {
             <small>{presentation.lastCheck.slot === 'bulk' ? 'Stockgare' : presentation.lastCheck.slot === 'piece' ? 'Stückgare' : 'Vor dem Backen'} · {shortDate(presentation.lastCheck.at)} · gespeicherter Check, kein Messbeweis</small></details> : <p>Noch kein beobachteter Check. Die Einschätzung folgt vor allem dem Plan.</p>}
         </div>
         <div className="monitor-next-check"><Icon name="clock" /><div><span>Nächster freiwilliger Check</span><strong>{nextCheck ? nextCheck.label : 'Alle Checks erfasst oder übersprungen'}</strong>{nextCheck && <time dateTime={nextCheck.at}>{shortDate(nextCheck.at)}</time>}</div>
-          {nextCheck && <button className="primary" aria-label="Nächsten Teig-Check öffnen" disabled={access.busy || basisEditing || !!checkSlot || !!temperature} onClick={() => { setNotice(''); setCheckSlot(nextCheck.slot); }}>Teig prüfen <Icon name="arrow" /></button>}
+          {nextCheck && <button className="primary" aria-label="Nächsten Teig-Check öffnen" disabled={(access.busy || access.readOnly === true) || basisEditing || !!checkSlot || !!temperature} onClick={() => { setNotice(''); setCheckSlot(nextCheck.slot); }}>Teig prüfen <Icon name="arrow" /></button>}
         </div>
         <div className="monitor-advice"><p className="monitor-eyebrow">Dein nächster Handgriff</p><p>{forecast.recommendations[0]}</p>
           {forecast.recommendations.length > 1 && <details><summary>Weitere Hinweise ({forecast.recommendations.length - 1})</summary><ul>{forecast.recommendations.slice(1).map(reason => <li key={reason}>{reason}</li>)}</ul></details>}
@@ -218,7 +218,7 @@ export function MaturityPage({ access }: { access: MonitorAccess }) {
 
       <details className="monitor-phase-section" aria-labelledby="monitor-phases-title"><summary className="monitor-flow-summary"><h2 id="monitor-phases-title">Gärphasen</h2><span>Dein geplanter Ablauf</span><Icon name="chevron" /></summary>
         <Link className="text-link" to="/zeitplan">Zeitplan öffnen <Icon name="arrow" /></Link>
-        <ProcessTimeline schedule={plan.schedule} now={access.now} />
+        <ProcessTimeline schedule={plan.schedule} now={access.now} preparationStart={access.preparationStart} />
         <p className="monitor-caption">Geplanter Ablauf – kein gemessener Reifefortschritt. Termine werden nie automatisch geändert.</p>
       </details>
 
@@ -238,7 +238,7 @@ export function MaturityPage({ access }: { access: MonitorAccess }) {
                 </div>
                 {saved && !saved.skipped && <details className="monitor-observation"><summary>Beobachtungen ansehen</summary><p>{[saved.volume && volumes[saved.volume], saved.surface && surfaces[saved.surface], saved.elasticity && elasticities[saved.elasticity]].filter(Boolean).join(' · ')}<br /><small>Beobachtet: {formatScheduleTime(saved.at)}</small></p></details>}
                 {checkSlot === suggestion.slot ? <CheckEditor key={checkSlot} access={access} plan={plan} slot={checkSlot} close={saved => { setCheckSlot(null); setNotice(saved ? 'Check lokal gespeichert.' : ''); }} /> :
-                  <button className="monitor-check-button" aria-label={saved ? 'Check korrigieren' : 'Check öffnen oder überspringen'} disabled={access.busy || basisEditing || !!checkSlot || !!temperature} onClick={() => { setNotice(''); setCheckSlot(suggestion.slot); }}>{saved ? 'Check korrigieren' : 'Check öffnen'}<Icon name="chevron" /></button>}
+                  <button className="monitor-check-button" aria-label={saved ? 'Check korrigieren' : 'Check öffnen oder überspringen'} disabled={(access.busy || access.readOnly === true) || basisEditing || !!checkSlot || !!temperature} onClick={() => { setNotice(''); setCheckSlot(suggestion.slot); }}>{saved ? 'Check korrigieren' : 'Check öffnen'}<Icon name="chevron" /></button>}
               </li>;
             })}
           </ol>
@@ -247,13 +247,13 @@ export function MaturityPage({ access }: { access: MonitorAccess }) {
         <section className="card monitor-measurements" aria-labelledby="monitor-temperatures-title">
           <div className="monitor-section-heading"><h2 id="monitor-temperatures-title">Temperaturbasis</h2></div>
           <SharedTemperatures access={access} tiles disabled={!!checkSlot || !!temperature} onEditingChange={setBasisEditing} />
-          <p className="monitor-caption">Teigtemperatur mit der TM5-Ansicht geteilt. Die Werte oben sind Basiswerte; spätere Messungen stehen im Verlauf.</p>
+          <p className="monitor-caption">Teigtemperatur mit dem Kochmodus geteilt. Die Werte oben sind Basiswerte; spätere Messungen stehen im Verlauf.</p>
           {temperature ? <TemperatureEditor key={temperature.original?.id ?? 'new'} access={access} plan={plan} original={temperature.original} close={saved => { setTemperature(null); setNotice(saved ? 'Temperaturänderung lokal gespeichert.' : ''); }} /> :
-            <button className="quiet monitor-event-button" disabled={access.busy || basisEditing || !!checkSlot} onClick={() => { setNotice(''); setTemperature({ original: null }); }}>Temperaturänderung erfassen</button>}
+            <button className="quiet monitor-event-button" disabled={(access.busy || access.readOnly === true) || basisEditing || !!checkSlot} onClick={() => { setNotice(''); setTemperature({ original: null }); }}>Temperaturänderung erfassen</button>}
           {plan.temperatures.length > 0 && <details className="monitor-history"><summary>Temperaturverlauf ({plan.temperatures.length})</summary>
             <ul>{[...plan.temperatures].sort((a, b) => Date.parse(a.at) - Date.parse(b.at)).map(event => <li key={event.id}>
               <div><strong>{event.kind === 'room' ? 'Raum' : event.kind === 'fridge' ? 'Kühlschrank' : 'Teig'} · {number(event.celsius)} °C</strong><time dateTime={event.at}>{shortDate(event.at)}</time></div>
-              <button className="quiet" disabled={access.busy || basisEditing || !!checkSlot || !!temperature} onClick={() => { setNotice(''); setTemperature({ original: event }); }}>Korrigieren</button>
+              <button className="quiet" disabled={(access.busy || access.readOnly === true) || basisEditing || !!checkSlot || !!temperature} onClick={() => { setNotice(''); setTemperature({ original: event }); }}>Korrigieren</button>
             </li>)}</ul>
           </details>}
         </section>

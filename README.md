@@ -19,6 +19,18 @@ Reifemonitor mit getrennter Planzeit, letzter Messung und Beobachtung sowie dire
 Kochmodus mit strukturierten Gerätefeldern und klarer nächster Aktion; bestehende Fachlogik und
 Offline-Speicherung unverändert. [Änderungen, Screenshots und Prüfungen](docs/P6.md).
 
+## P7 · Pizza-Session und TM7 Guided Cooking
+
+**Pizza-Session planen** verbindet Backtermin, Rezept, Zutaten, Zeitplan, Kochfortschritt und
+Reifemonitor in einer gemeinsamen lokalen Session. Standardgerät ist TM7; TM6, TM5 und Handarbeit
+sind in den Einstellungen auswählbar. Einzelne Arbeitsschritte, Chargen, Timer und Temperaturen
+lassen sich offline fortsetzen. Nach Beginn bleiben Mengen und Gerät eingefroren. Plan-/Ist-Zeiten
+bleiben getrennt; kein Gerät wird angesteuert und keine biologische Messgenauigkeit vorgetäuscht.
+
+Die Übernahme bisheriger Planung erfolgt nur nach ausdrücklicher Vorschau und Speicherung;
+sämtliche alten Schlüssel bleiben erhalten. [Bedienung, Architektur, Migration, offizielle
+Gerätequellen, Grenzen und Screenshots](docs/P7.md).
+
 ## Entwickeln
 
 Node.js >=22.12 (empfohlen 24 LTS), npm:

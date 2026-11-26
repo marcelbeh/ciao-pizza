@@ -1,8 +1,8 @@
 import { maturityForecast } from '../core/maturity/forecast';
 import type { MonitorPlan } from '../core/maturity/model';
 /** Display-only projections. The existing forecast decides every maturity state. */
-export function monitorPresentation(plan: MonitorPlan, now: number) {
-  const forecast = maturityForecast(plan, now);
+export function monitorPresentation(plan: MonitorPlan, now: number, override?: ReturnType<typeof maturityForecast>) {
+  const forecast = override ?? maturityForecast(plan, now);
   const tones = { 'Frühe Reife': 'early', 'Reife entwickelt sich': 'developing', 'Voraussichtlich backbereit': 'ready', 'Möglicherweise überreif': 'caution' } as const;
   const descriptions = {
     early: 'Entwicklung abwarten und den Teig beobachten.',

@@ -10,10 +10,11 @@ import { createSchedule, createTeichnerSchedule } from "../core/schedule/plan";
 vi.mock("../infrastructure/pwa/PwaNotice", () => ({ PwaNotice: () => null }));
 function repository(): FornoRepository {
   return {
+    sessions: createFornoRepository(createIndexedDbStore(`p7-mock-${crypto.randomUUID()}`)).sessions,
     cook: createFornoRepository(createIndexedDbStore(`p5-mock-${crypto.randomUUID()}`)).cook,
     maturity: createFornoRepository(createIndexedDbStore(`p4-mock-${crypto.randomUUID()}`)).maturity,
     pizzaNight: createFornoRepository(createIndexedDbStore(`p3-mock-${crypto.randomUUID()}`)).pizzaNight,
-    load: vi.fn().mockResolvedValue({ cookSession: null, cookError: "", maturity: { version: 1, modelVersion: 1, activeId: null, plans: [], autolyseMinutes: 30 }, maturityError: "", pizzaNight: { version: 1, recipes: [], evening: null }, pizzaNightError: "", formula: { ...defaults, count: 6, hydration: 67.5, flourProfile: "Mein gespeichertes Mehl" }, evening: null, copied: false, hasLegacy: true, schedule: null, scheduleError: "" }),
+    load: vi.fn().mockResolvedValue({ sessions: {version:1,defaultDevice:"tm7",activeId:null,sessions:[],legacyAdopted:false}, sessionError: "", cookSession: null, cookError: "", maturity: { version: 1, modelVersion: 1, activeId: null, plans: [], autolyseMinutes: 30 }, maturityError: "", pizzaNight: { version: 1, recipes: [], evening: null }, pizzaNightError: "", formula: { ...defaults, count: 6, hydration: 67.5, flourProfile: "Mein gespeichertes Mehl" }, evening: null, copied: false, hasLegacy: true, schedule: null, scheduleError: "" }),
     save: vi.fn().mockResolvedValue(undefined),
     deleteSchedule: vi.fn().mockResolvedValue(undefined),
     saveSchedule: vi.fn().mockResolvedValue(undefined),
