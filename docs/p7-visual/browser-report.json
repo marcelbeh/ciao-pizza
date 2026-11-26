@@ -1,0 +1,19 @@
+{
+  "source": "http://127.0.0.1:4175/ciao-pizza/",
+  "browser": "156.0.8078.79",
+  "device": "Simulierte Viewports, kein physischer iPhone-Test",
+  "checks": [
+    "320×852 light: 5-step plan/create, derived quantities, guided water/flour/mix/rest, saved timer, offline reload/resume, batch change, shared temperature, actual bulk start, monitor, navigation, date deletion/paused monitor, legacy data unchanged, no horizontal overflow or runtime errors",
+    "320×852 dark: 5-step plan/create, derived quantities, guided water/flour/mix/rest, saved timer, offline reload/resume, batch change, shared temperature, actual bulk start, monitor, navigation, date deletion/paused monitor, legacy data unchanged, no horizontal overflow or runtime errors",
+    "375×852 light: 5-step plan/create, derived quantities, guided water/flour/mix/rest, saved timer, offline reload/resume, batch change, shared temperature, actual bulk start, monitor, navigation, date deletion/paused monitor, legacy data unchanged, no horizontal overflow or runtime errors",
+    "375×852 dark: 5-step plan/create, derived quantities, guided water/flour/mix/rest, saved timer, offline reload/resume, batch change, shared temperature, actual bulk start, monitor, navigation, date deletion/paused monitor, legacy data unchanged, no horizontal overflow or runtime errors",
+    "393×852 light: 5-step plan/create, derived quantities, guided water/flour/mix/rest, saved timer, offline reload/resume, batch change, shared temperature, actual bulk start, monitor, navigation, date deletion/paused monitor, legacy data unchanged, no horizontal overflow or runtime errors",
+    "393×852 dark: 5-step plan/create, derived quantities, guided water/flour/mix/rest, saved timer, offline reload/resume, batch change, shared temperature, actual bulk start, monitor, navigation, date deletion/paused monitor, legacy data unchanged, no horizontal overflow or runtime errors",
+    "430×852 light: 5-step plan/create, derived quantities, guided water/flour/mix/rest, saved timer, offline reload/resume, batch change, shared temperature, actual bulk start, monitor, navigation, date deletion/paused monitor, legacy data unchanged, no horizontal overflow or runtime errors",
+    "430×852 dark: 5-step plan/create, derived quantities, guided water/flour/mix/rest, saved timer, offline reload/resume, batch change, shared temperature, actual bulk start, monitor, navigation, date deletion/paused monitor, legacy data unchanged, no horizontal overflow or runtime errors",
+    "1280×852 light: 5-step plan/create, derived quantities, guided water/flour/mix/rest, saved timer, offline reload/resume, batch change, shared temperature, actual bulk start, monitor, navigation, date deletion/paused monitor, legacy data unchanged, no horizontal overflow or runtime errors",
+    "1280×852 dark: 5-step plan/create, derived quantities, guided water/flour/mix/rest, saved timer, offline reload/resume, batch change, shared temperature, actual bulk start, monitor, navigation, date deletion/paused monitor, legacy data unchanged, no horizontal overflow or runtime errors"
+  ],
+  "webkit": "Nicht installiert; keine Installationsversuche",
+  "errors": []
+}
