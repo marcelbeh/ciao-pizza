@@ -10,7 +10,7 @@ import { defaults } from '../core/dough/forno';
 import { createPlan } from '../core/dough/model';
 vi.mock('../infrastructure/pwa/PwaNotice', () => ({ PwaNotice: ({ busy }: { busy: boolean }) => <span data-testid="pwa-state">{busy ? 'blocked' : 'ready'}</span> }));
 const setup = async () => { const db = createIndexedDbStore(`p3-ui-${crypto.randomUUID()}`); await db.set(PIZZA_NIGHT_KEY, { version: 1, recipes: [], evening: null }); return { db, repo: createFornoRepository(db) }; };
-const navigation = (label: string) => within(screen.getByRole('navigation', { name: 'Hauptnavigation' })).getByRole('link', { name: label });
+const navigation = (label: string) => screen.getByRole('link', { name: ({Home:'Bisherige Startseite',Teig:'Bisheriger Rechner / TM5',Zeitplan:'Bisheriger Zeitplan',Pizzaabend:'Bisheriger Pizzaabend',Rezepte:'Bisherige Belagrezepte'} as Record<string,string>)[label]??label });
 async function newRecipe() {
   fireEvent.click(await screen.findByRole('button', { name: 'Rezept anlegen' }));
   fireEvent.change(screen.getByLabelText('Rezeptname'), { target: { value: '  Margherita  ' } });
@@ -18,7 +18,7 @@ async function newRecipe() {
   fireEvent.click(screen.getByRole('button', { name: 'Rezept speichern' }));
   await screen.findByText('Rezept auf diesem Gerät gespeichert.');
 }
-beforeEach(() => { window.location.hash = '#/rezepte'; vi.spyOn(window, 'confirm').mockReturnValue(true); });
+beforeEach(() => { window.location.hash = '#/rezepte?legacy=1'; vi.spyOn(window, 'confirm').mockReturnValue(true); });
 describe('P3 recipes, evening and draft protection', () => {
   it('creates, edits and deletes recipes explicitly, preserving stable IDs and requiring confirmation', async () => {
     const { db, repo } = await setup(); render(<App repo={repo} />);
@@ -96,7 +96,7 @@ describe('P3 recipes, evening and draft protection', () => {
     const { db, repo } = await setup(); const dough = createPlan();
     await db.set(LEGACY_KEYS[0], { version: 2, evenings: [{ name: 'Alter Abend', bakeAt: dough.bakeAt, dough, timeZone: 'Europe/Berlin', updatedAt: new Date().toISOString() }] });
     await db.set(PIZZA_NIGHT_KEY, { version: 77, raw: true }); await db.set(SCHEDULE_KEY, { version: 88 });
-    window.location.hash = '#/pizzaabend'; render(<App repo={repo} />);
+    window.location.hash = '#/pizzaabend?legacy=1'; render(<App repo={repo} />);
     expect(await screen.findByRole('heading', { name: 'Bisheriger Pizzaabend' })).toBeVisible(); expect(screen.getByText('Alter Abend')).toBeVisible();
     expect(screen.getByRole('heading', { name: 'Lokale Verwaltung nicht verfügbar' })).toBeVisible(); expect(screen.queryByRole('button', { name: 'Pizzaabend anlegen' })).not.toBeInTheDocument();
     expect(screen.queryByText(/Backtermin:/)).not.toBeInTheDocument(); expect(screen.getByRole('link', { name: /Zeitplan prüfen/ })).toBeVisible();
@@ -107,7 +107,7 @@ describe('P3 recipes, evening and draft protection', () => {
   });
   it('uses the updated shared P2 date without saving an evening date', async () => {
     const { db, repo } = await setup(); const initial = createSchedule(); await db.set(SCHEDULE_KEY, createTeichnerSchedule(initial.bakeAt, initial));
-    window.location.hash = '#/pizzaabend'; render(<App repo={repo} />);
+    window.location.hash = '#/pizzaabend?legacy=1'; render(<App repo={repo} />);
     fireEvent.click(await screen.findByRole('button', { name: 'Pizzaabend anlegen' }));
     fireEvent.change(screen.getByLabelText('Name des Pizzaabends'), { target: { value: 'Freunde' } });
     fireEvent.click(screen.getByRole('button', { name: 'Pizzaabend speichern' })); await screen.findByText('Pizzaabend auf diesem Gerät gespeichert.');

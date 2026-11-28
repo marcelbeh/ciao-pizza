@@ -29,8 +29,8 @@ export default defineConfig({
         start_url: "/ciao-pizza/",
         scope: "/ciao-pizza/",
         display: "standalone",
-        background_color: "#F9F6F1",
-        theme_color: "#F9F6F1",
+        background_color: "#F6F5F0",
+        theme_color: "#F6F5F0",
         icons: [
           {
             src: "icons/forno-brand-v2-192.png",

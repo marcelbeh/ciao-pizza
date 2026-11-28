@@ -28,7 +28,7 @@ describe('P6 honest display projections',()=>{
   });
 });
 async function setup(){const db=createIndexedDbStore(`p6-${crypto.randomUUID()}`);const repo=createFornoRepository(db);await db.set('forno:pizza-night:v1',{version:1,recipes:[],evening:null});await repo.save(defaults);const plan=createTeichnerSchedule(new Date(Date.now()+2*3600000).toISOString(),{mixMinutes:20,roomC:22,fridgeC:4});await repo.saveSchedule(plan);const monitor=newMonitor(defaults,plan);monitor.conditions={doughC:22,doughAt:new Date(Date.now()-120000).toISOString(),roomC:22,fridgeC:4};monitor.temperatures=[{id:'later',kind:'dough',celsius:24,at:new Date(Date.now()-60000).toISOString()}];await repo.maturity.activate(monitor,null);return{db,repo};}
-beforeEach(()=>{window.location.hash='#/reife-monitor';vi.spyOn(window,'confirm').mockReturnValue(true)});
+beforeEach(()=>{window.location.hash='#/reife-monitor?legacy=1';vi.spyOn(window,'confirm').mockReturnValue(true)});
 describe('P6 monitor and guided cooking UI',()=>{
   it('separates stored observations, planned time and latest temperature, and opens a check without writing',async()=>{
     const {db,repo}=await setup();const before=await db.entries!();render(<App repo={repo}/>);const hero=await screen.findByRole('region',{name:'Reifeeinschätzung'});
@@ -39,7 +39,7 @@ describe('P6 monitor and guided cooking UI',()=>{
     fireEvent.click(screen.getByRole('button',{name:'Dunkel'}));expect(screen.getByRole('form',{name:'Freiwilliger Teig-Check'})).toBeVisible();expect(screen.getByTestId('pwa-state')).toHaveTextContent('blocked');fireEvent.click(screen.getByRole('button',{name:'Abbrechen'}));await waitFor(()=>expect(screen.getByTestId('pwa-state')).toHaveTextContent('ready'));expect(await db.entries!()).toEqual(before);
   });
   it('exposes only verified knead-mode facts and clearly marks missing time/speed settings',async()=>{
-    const {db,repo}=await setup();const session=cookPosition(createCookSession(defaults,30),5);await repo.cook.save(session,null);const before=await db.entries!();window.location.hash='#/teig';render(<App repo={repo}/>);fireEvent.click(await screen.findByText('TM5-Rezeptansicht (optional)'));fireEvent.click(screen.getByRole('button',{name:'Kochmodus fortsetzen'}));
+    const {db,repo}=await setup();const session=cookPosition(createCookSession(defaults,30),5);await repo.cook.save(session,null);const before=await db.entries!();window.location.hash='#/teig?legacy=1';render(<App repo={repo}/>);fireEvent.click(await screen.findByText('TM5-Rezeptansicht (optional)'));fireEvent.click(screen.getByRole('button',{name:'Kochmodus fortsetzen'}));
     expect(screen.getByText('Automatischer Wechsel')).toBeVisible();expect(screen.getByText('Nicht bestätigt')).toBeVisible();expect(screen.getByRole('progressbar',{name:'Position im Kochrezept'})).toHaveAttribute('aria-valuenow','6');expect(await db.entries!()).toEqual(before);
   });
 });

@@ -1,0 +1,19 @@
+{
+  "source": "http://127.0.0.1:4175/ciao-pizza/",
+  "browser": "156.0.8078.79",
+  "viewports": [
+    "320×852 light: all 5 planning steps, one cooking pass/11 confirmations for 3 batches, horizontal direct selection, cold offline first open, timer reload, common bulk start/temperature, one session, new navigation, deleted date/paused monitor, preserved legacy records, no overflow/runtime errors",
+    "320×852 dark: all 5 planning steps, one cooking pass/11 confirmations for 3 batches, horizontal direct selection, cold offline first open, timer reload, common bulk start/temperature, one session, new navigation, deleted date/paused monitor, preserved legacy records, no overflow/runtime errors",
+    "375×852 light: all 5 planning steps, one cooking pass/11 confirmations for 3 batches, horizontal direct selection, cold offline first open, timer reload, common bulk start/temperature, one session, new navigation, deleted date/paused monitor, preserved legacy records, no overflow/runtime errors",
+    "375×852 dark: all 5 planning steps, one cooking pass/11 confirmations for 3 batches, horizontal direct selection, cold offline first open, timer reload, common bulk start/temperature, one session, new navigation, deleted date/paused monitor, preserved legacy records, no overflow/runtime errors",
+    "393×852 light: all 5 planning steps, one cooking pass/11 confirmations for 3 batches, horizontal direct selection, cold offline first open, timer reload, common bulk start/temperature, one session, new navigation, deleted date/paused monitor, preserved legacy records, no overflow/runtime errors",
+    "393×852 dark: all 5 planning steps, one cooking pass/11 confirmations for 3 batches, horizontal direct selection, cold offline first open, timer reload, common bulk start/temperature, one session, new navigation, deleted date/paused monitor, preserved legacy records, no overflow/runtime errors",
+    "430×852 light: all 5 planning steps, one cooking pass/11 confirmations for 3 batches, horizontal direct selection, cold offline first open, timer reload, common bulk start/temperature, one session, new navigation, deleted date/paused monitor, preserved legacy records, no overflow/runtime errors",
+    "430×852 dark: all 5 planning steps, one cooking pass/11 confirmations for 3 batches, horizontal direct selection, cold offline first open, timer reload, common bulk start/temperature, one session, new navigation, deleted date/paused monitor, preserved legacy records, no overflow/runtime errors",
+    "1280×852 light: all 5 planning steps, one cooking pass/11 confirmations for 3 batches, horizontal direct selection, cold offline first open, timer reload, common bulk start/temperature, one session, new navigation, deleted date/paused monitor, preserved legacy records, no overflow/runtime errors",
+    "1280×852 dark: all 5 planning steps, one cooking pass/11 confirmations for 3 batches, horizontal direct selection, cold offline first open, timer reload, common bulk start/temperature, one session, new navigation, deleted date/paused monitor, preserved legacy records, no overflow/runtime errors"
+  ],
+  "webkit": "Nicht installiert; kein Installationsversuch",
+  "physicalIphone": false,
+  "errors": []
+}

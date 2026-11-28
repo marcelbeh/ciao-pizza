@@ -1,0 +1,13 @@
+{
+  "result": "PASS",
+  "previous": "P7 main 9173f437",
+  "checks": [
+    "Real service-worker upgrade from previous build",
+    "Update disabled for dirty session draft",
+    "Draft retained until explicit cancellation",
+    "New experience active after update",
+    "Old batch=2, step, confirmed history, absolute timer, legacy budget and all records unchanged",
+    "Offline restart after update"
+  ],
+  "physicalIphone": false
+}

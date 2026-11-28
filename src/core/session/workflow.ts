@@ -4,14 +4,14 @@ import { recipeSteps, sessionBatches, type ActualPhase, type PizzaSession, type 
 import { deviceProfiles } from './devices';
 export const stepTitles:Record<StepId,string>={prepare:'Zutaten vorbereiten',water:'Wasser einwiegen',flour:'Mehl hinzugeben',mix:'Mehl und Wasser verbinden',autolyse:'Autolyse · Teig ruhen lassen',yeast:'Hefe einarbeiten',salt:'Salz einarbeiten',knead:'Kontrolliert fertigkneten',unload:'Teig entnehmen und zusammenführen',temperature:'Teigtemperatur messen',bulk:'Stockgare starten'};
 export function guidedSteps(s:PizzaSession) {
-  const quantities=sessionBatches(s);return recipeSteps.filter(id=>(id!=='autolyse'||s.preparation.autolyseMinutes>0)&&(id!=='yeast'||quantities.yeast>0)&&(id!=='salt'||quantities.salt>0)&&(!['temperature','bulk'].includes(id)||s.cooking.batch===quantities.count-1));
+  const quantities=sessionBatches(s);return recipeSteps.filter(id=>(id!=='autolyse'||s.preparation.autolyseMinutes>0)&&(id!=='yeast'||quantities.yeast>0)&&(id!=='salt'||quantities.salt>0));
 }
 export interface SessionEvent { id:string; label:string; at:string; endsAt?:string; temperatureC?:number; actualKey?:ActualPhase; batch?:number }
 export function sessionTimeline(s:PizzaSession):SessionEvent[]{
   if(s.scheduleRemoved)return[];const phases=calculateSchedule(s.monitor.schedule);const bulk=phases.find(p=>p.id==='bulk'||p.id==='cold-bulk')!;
-  const count=sessionBatches(s).count,minute=60000;let cursor=Date.parse(bulk.at)-(s.monitor.schedule.mixMinutes+s.preparation.autolyseMinutes*count)*minute;
+  const count=sessionBatches(s).count,minute=60000;let cursor=Date.parse(bulk.at)-(s.monitor.schedule.mixMinutes*(s.preparation.workBudget==='per-batch'?count:1)+s.preparation.autolyseMinutes*count)*minute;
   const prep:SessionEvent[]=[];for(let batch=0;batch<count;batch++){
-    const before=s.preparation.beforeRestMinutes/count*minute,after=s.preparation.afterRestMinutes/count*minute;
+    const before=s.preparation.beforeRestMinutes/(s.preparation.workBudget==='per-batch'?1:count)*minute,after=s.preparation.afterRestMinutes/(s.preparation.workBudget==='per-batch'?1:count)*minute;
     const prefix=count>1?`Charge ${batch+1} · `:'';
     prep.push({id:`prepare-${batch}`,label:prefix+'Vorbereiten, Wasser/Mehl einwiegen und verbinden',at:new Date(cursor).toISOString(),endsAt:new Date(cursor+before).toISOString(),batch,...(batch===0?{actualKey:'preparation' as const}:{})});cursor+=before;
     if(s.preparation.autolyseMinutes>0){prep.push({id:`autolyse-${batch}`,label:prefix+'Autolyse',at:new Date(cursor).toISOString(),endsAt:new Date(cursor+s.preparation.autolyseMinutes*minute).toISOString(),batch});cursor+=s.preparation.autolyseMinutes*minute}
@@ -36,7 +36,7 @@ export function advanceCooking(s:PizzaSession) {
   startCooking(s);const steps=guidedSteps(s),index=steps.indexOf(s.cooking.step);if(index<0)throw Error('Kochposition passt nicht zur Rezeptur.');
   const key=`${s.cooking.batch}:${s.cooking.step}`;if(!s.cooking.done.some(x=>x.key===key))s.cooking.done.push({key,at:new Date().toISOString()});
   if(s.cooking.step==='bulk'){if(!s.actual.bulk)recordActual(s,'bulk');return}
-  if(index===steps.length-1){s.cooking.batch++;s.cooking.step='prepare'}else s.cooking.step=steps[index+1];
+  s.cooking.step=steps[index+1];
   s.cooking.timer={endAt:null,remainingMs:s.preparation.autolyseMinutes*60000};
 }
 export function remainingTimer(s:PizzaSession,now:number){return s.cooking.timer.endAt===null?s.cooking.timer.remainingMs:Math.max(0,Math.min(s.preparation.autolyseMinutes*60000,s.cooking.timer.endAt-now))}

@@ -21,18 +21,18 @@ function repository(): FornoRepository {
     backup: vi.fn().mockResolvedValue({ format: "forno-preserved-data", version: 1, entries: { "ciao-workspace:v2": { recipes: [{ name: "Original" }] } } }),
   };
 }
-beforeEach(() => { window.location.hash = "#/"; });
+beforeEach(() => { window.location.hash = "#/?legacy=1"; });
 describe("FORNO. cinematic navigation and preserved features", () => {
-  it("shows saved values and five real navigation destinations without writing on load", async () => {
+  it("shows saved values and four real navigation destinations without writing on load", async () => {
     const repo = repository(); render(<App repo={repo} />);
     await screen.findByRole("heading", { name: "Aktuelle Teigplanung" });
     expect(screen.getByText("Mein gespeichertes Mehl")).toBeVisible();
     expect(screen.getByText("67,5")).toBeVisible();
     const links = within(screen.getByRole("navigation", { name: "Hauptnavigation" })).getAllByRole("link");
-    expect(links.map(link => link.textContent)).toEqual(["Home", "Teig", "Zeitplan", "Pizzaabend", "Rezepte"]);
+    expect(links.map(link => link.textContent)).toEqual(["Start", "Sessions", "Rezepte", "Wissen"]);
     expect(links[0]).toHaveAttribute("aria-current", "page");
     expect(repo.save).not.toHaveBeenCalled();
-    fireEvent.click(links[4]);
+    fireEvent.click(links[2]);
     expect(await screen.findByRole("heading", { name: "Rezepte" })).toBeVisible();
     expect(screen.getByText(/Noch keine Belagrezepte/)).toBeVisible();
     expect(repo.save).not.toHaveBeenCalled();
@@ -79,7 +79,7 @@ describe("FORNO. cinematic navigation and preserved features", () => {
 
 describe("P2 schedule integration", () => {
   it("previews edits, saves explicitly and exposes the next planned step on Home without touching the formula", async () => {
-    const repo = repository(); window.location.hash = "#/zeitplan";
+    const repo = repository(); window.location.hash = "#/zeitplan?legacy=1";
     render(<App repo={repo} />);
     const bulk = await screen.findByRole("textbox", { name: /^Stockgare im Kühlschrank/ });
     fireEvent.change(bulk, { target: { value: "3,5" } });
@@ -88,7 +88,7 @@ describe("P2 schedule integration", () => {
     fireEvent.click(screen.getByRole("button", { name: "Zeitplan speichern" }));
     await screen.findByText("Zeitplan auf diesem Gerät gespeichert.");
     expect(repo.saveSchedule).toHaveBeenCalledWith(expect.objectContaining({ coldBulkHours: 3.5, method: "cold-staged" }));
-    fireEvent.click(screen.getByRole("link", { name: "Home" }));
+    fireEvent.click(screen.getByRole("link", { name: "Bisherige Startseite" }));
     expect(await screen.findByText("Teig mischen und kneten")).toBeVisible();
     expect(repo.save).not.toHaveBeenCalled();
   });
@@ -96,7 +96,7 @@ describe("P2 schedule integration", () => {
     const db = createIndexedDbStore(`p2-ui-${crypto.randomUUID()}`);
     const repo = createFornoRepository(db);
     await repo.save({ ...defaults, count: 11 });
-    window.location.hash = "#/zeitplan";
+    window.location.hash = "#/zeitplan?legacy=1";
     const view = render(<App repo={repo} />);
     const date = await screen.findByLabelText("Backdatum und Uhrzeit");
     fireEvent.change(date, { target: { value: "2027-01-10T18:00" } });
@@ -110,7 +110,7 @@ describe("P2 schedule integration", () => {
     expect((await repo.load()).formula.count).toBe(11);
   });
   it("blocks invalid input and lets a failed write be retried with the draft intact", async () => {
-    const repo = repository(); window.location.hash = "#/zeitplan";
+    const repo = repository(); window.location.hash = "#/zeitplan?legacy=1";
     vi.mocked(repo.saveSchedule).mockRejectedValueOnce(Error("Storage full"));
     render(<App repo={repo} />);
     const bulk = await screen.findByRole("textbox", { name: /^Stockgare im Kühlschrank/ });
@@ -127,7 +127,7 @@ describe("P2 schedule integration", () => {
     expect(repo.saveSchedule).toHaveBeenCalledTimes(2);
   });
   it("offers only Teichner for fresh plans without writing on load", async () => {
-    const repo = repository(); window.location.hash = "#/zeitplan"; render(<App repo={repo} />);
+    const repo = repository(); window.location.hash = "#/zeitplan?legacy=1"; render(<App repo={repo} />);
     expect(await screen.findByRole("textbox", { name: /^Stockgare im Kühlschrank/ })).toHaveValue("24");
     expect(screen.queryByLabelText("Teigführung")).not.toBeInTheDocument();
     expect(screen.queryByLabelText("Vorlage")).not.toBeInTheDocument();
@@ -138,7 +138,7 @@ describe("P2 schedule integration", () => {
   it("blocks an empty date without discarding a previously stored plan", async () => {
     const repo = repository(); const loaded = await repo.load(); const initial = createSchedule(); const saved = createTeichnerSchedule(initial.bakeAt, initial);
     vi.mocked(repo.load).mockResolvedValue({ ...loaded, schedule: saved });
-    window.location.hash = "#/zeitplan"; render(<App repo={repo} />);
+    window.location.hash = "#/zeitplan?legacy=1"; render(<App repo={repo} />);
     const date = await screen.findByLabelText("Backdatum und Uhrzeit");
     fireEvent.change(date, { target: { value: "" } });
     expect(date).toHaveAttribute("aria-invalid", "true");
@@ -149,9 +149,9 @@ describe("P2 schedule integration", () => {
   it("shows a persisted schedule error without blocking the calculator", async () => {
     const repo = repository(); const loaded = await repo.load();
     vi.mocked(repo.load).mockResolvedValue({ ...loaded, scheduleError: "Zeitplan nicht lesbar; Sicherung herunterladen." });
-    window.location.hash = "#/zeitplan"; render(<App repo={repo} />);
+    window.location.hash = "#/zeitplan?legacy=1"; render(<App repo={repo} />);
     expect(await screen.findByRole("alert")).toHaveTextContent("nicht lesbar");
-    fireEvent.click(screen.getByRole("link", { name: "Teig" }));
+    fireEvent.click(screen.getByRole("link", { name: "Bisheriger Rechner / TM5" }));
     expect(await screen.findByRole("textbox", { name: /Pizzaanzahl/ })).toBeVisible();
     expect(repo.saveSchedule).not.toHaveBeenCalled();
   });
@@ -169,7 +169,7 @@ describe("Teichner template integration", () => {
     const db = createIndexedDbStore(`teichner-ui-${crypto.randomUUID()}`); const repo = createFornoRepository(db);
     const old = { ...createSchedule(), bakeAt: new Date(Math.floor((Date.now() + 30 * 3600000) / 60000) * 60000).toISOString(), bulkHours: 3, preheatMinutes: 90 };
     await repo.saveSchedule(old); await db.set("forno:pizza-night:v1", { version: 1, recipes: [], evening: null }); const before = await db.entries!();
-    window.location.hash = "#/zeitplan"; render(<App repo={repo} />);
+    window.location.hash = "#/zeitplan?legacy=1"; render(<App repo={repo} />);
     expect(await screen.findByRole("heading", { name: "Bisheriger Zeitplan" })).toBeVisible();
     expect(screen.getByLabelText("Backdatum und Uhrzeit")).toBeDisabled();
     fireEvent.click(screen.getByRole("button", { name: "Teichner · 48 Stunden verwenden" }));
@@ -189,14 +189,14 @@ describe("Teichner template integration", () => {
     fireEvent.click(screen.getByRole("button", { name: "Änderungen speichern" }));
     await screen.findByText("Zeitplan auf diesem Gerät gespeichert.");
     expect((await repo.load()).schedule).toMatchObject({ version: 2, method: "cold-staged", coldBulkHours: 24, coldBallHours: 20, acclimationHours: 4, roomC: 23, fridgeC: 5 });
-    fireEvent.click(screen.getByRole("link", { name: "Home" }));
+    fireEvent.click(screen.getByRole("link", { name: "Bisherige Startseite" }));
     expect(await screen.findByText("Portionieren/Rundschleifen · Stückgare im Kühlschrank")).toBeVisible();
-    fireEvent.click(screen.getByRole("link", { name: "Zeitplan" }));
+    fireEvent.click(screen.getByRole("link", { name: "Bisheriger Zeitplan" }));
     expect(await screen.findByRole("textbox", { name: /^Stockgare im Kühlschrank/ })).toHaveValue("24");
   });
   it("retains the staged draft on failed save without replacing the old plan", async () => {
     const db = createIndexedDbStore(`teichner-failure-${crypto.randomUUID()}`); const repo = createFornoRepository(db); const old = createSchedule();
-    await repo.saveSchedule(old); window.location.hash = "#/zeitplan"; render(<App repo={repo} />);
+    await repo.saveSchedule(old); window.location.hash = "#/zeitplan?legacy=1"; render(<App repo={repo} />);
     fireEvent.click(await screen.findByRole("button", { name: "Teichner · 48 Stunden verwenden" }));
     vi.spyOn(db, "update").mockRejectedValueOnce(Error("Storage full"));
     fireEvent.click(screen.getByRole("button", { name: "Änderungen speichern" }));
@@ -210,7 +210,7 @@ describe("Teichner template integration", () => {
 });
 
 it("recalculates Thermomix batches with the existing recipe and hides them for invalid inputs", async () => {
-  const repo = repository(); window.location.hash = "#/teig"; render(<App repo={repo} />);
+  const repo = repository(); window.location.hash = "#/teig?legacy=1"; render(<App repo={repo} />);
   const section = await screen.findByRole("region", { name: "Thermomix-Chargen" });
   fireEvent.click(within(section).getByText("TM5-Rezeptansicht (optional)"));
   fireEvent.click(within(section).getByText("Rezeptübersicht und Gerätehinweise"));
