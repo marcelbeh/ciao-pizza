@@ -12,7 +12,7 @@
   var resolved;
   function apply() {
     resolved = choice === "system" ? (media && media.matches ? "dark" : "light") : choice;
-    var background = resolved === "dark" ? "#1B1B1B" : "#F9F6F1";
+    var background = resolved === "dark" ? "#101210" : "#F6F5F0";
     var root = document.documentElement;
     root.dataset.theme = resolved;
     root.style.colorScheme = resolved;

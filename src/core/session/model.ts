@@ -11,7 +11,7 @@ export const recipeSteps: StepId[] = ['prepare','water','flour','mix','autolyse'
 export interface PizzaSession {
   version: 1; id: string; revision: number; name: string; createdAt: string; updatedAt: string;
   recipe: { id: RecipeId; version: 1 }; device: DeviceId; timeZone: string; bakeUntil: string | null;
-  monitor: MonitorPlan; preparation: { autolyseMinutes: number; beforeRestMinutes: number; afterRestMinutes: number };
+  monitor: MonitorPlan; preparation: { autolyseMinutes: number; beforeRestMinutes: number; afterRestMinutes: number; workBudget?: 'per-batch' };
   locked: boolean; completed: boolean; scheduleRemoved: boolean;
   actual: Partial<Record<ActualPhase,string>>;
   cooking: { step: StepId; batch: number; timer: { endAt: number | null; remainingMs: number }; done: { key: string; at: string }[] };
@@ -31,7 +31,7 @@ export function sessionBatches(s: PizzaSession) {
 }
 export function createSession(formula:Formula,schedule:SchedulePlan,device:DeviceId,name='Mein Pizzaabend'):PizzaSession {
   const now=new Date().toISOString(),id=crypto.randomUUID();const monitor=newMonitor(formula,schedule,now,id);
-  const s:PizzaSession={version:1,id,revision:0,name:name.trim(),createdAt:now,updatedAt:now,recipe:{id:'forno-autolyse',version:1},device,timeZone:Intl.DateTimeFormat().resolvedOptions().timeZone,bakeUntil:null,monitor,preparation:{autolyseMinutes:30,beforeRestMinutes:schedule.mixMinutes/2,afterRestMinutes:schedule.mixMinutes/2},locked:false,completed:false,scheduleRemoved:false,actual:{},cooking:{step:'prepare',batch:0,timer:{endAt:null,remainingMs:30*60000},done:[]},origin:'new'};
+  const s:PizzaSession={version:1,id,revision:0,name:name.trim(),createdAt:now,updatedAt:now,recipe:{id:'forno-autolyse',version:1},device,timeZone:Intl.DateTimeFormat().resolvedOptions().timeZone,bakeUntil:null,monitor,preparation:{workBudget:'per-batch',autolyseMinutes:30,beforeRestMinutes:schedule.mixMinutes/2,afterRestMinutes:schedule.mixMinutes/2},locked:false,completed:false,scheduleRemoved:false,actual:{},cooking:{step:'prepare',batch:0,timer:{endAt:null,remainingMs:30*60000},done:[]},origin:'new'};
   assertSession(s);return s;
 }
 export function updateSessionPlan(s:PizzaSession,formula:Formula,schedule:SchedulePlan,device:DeviceId) {
@@ -49,7 +49,7 @@ export function assertSession(value:unknown):asserts value is PizzaSession {
   iso(s.createdAt);iso(s.updatedAt);if(s.updatedAt<s.createdAt)throw Error('Ungültiger Änderungszeitpunkt.');assertDevice(s.device);if(typeof s.timeZone!=='string'||!s.timeZone)throw Error('Ungültige Zeitzone.');try{new Intl.DateTimeFormat('de',{timeZone:s.timeZone})}catch{throw Error('Ungültige Zeitzone.')}
   shape(s.recipe,['id','version']);if(!['forno-autolyse','marcel-64'].includes(s.recipe.id)||s.recipe.version!==1)throw Error('Unbekannte Rezeptversion.');assertMonitor(s.monitor);if(s.monitor.id!==s.id||s.monitor.yeastGrams!==calculateFormula(s.monitor.formula).ingredients.yeast)throw Error('Widersprüchliche Session-Rezeptur.');
   if(s.bakeUntil!==null){iso(s.bakeUntil);if(Date.parse(s.bakeUntil)<=Date.parse(s.monitor.schedule.bakeAt)||Date.parse(s.bakeUntil)-Date.parse(s.monitor.schedule.bakeAt)>12*3600000)throw Error('Das Backfenster muss nach dem Backbeginn liegen und höchstens 12 Stunden dauern.');}
-  shape(s.preparation,['autolyseMinutes','beforeRestMinutes','afterRestMinutes']);if(!Number.isInteger(s.preparation.autolyseMinutes))throw Error('Autolyse in ganzen Minuten angeben.');for(const [key,n]of Object.entries(s.preparation))if(typeof n!=='number'||!Number.isFinite(n)||n<0||n>(key==='autolyseMinutes'?240:60))throw Error('Ungültiges Vorbereitungsbudget.');
+  shape(s.preparation,['autolyseMinutes','beforeRestMinutes','afterRestMinutes',...(Object.hasOwn(s.preparation,'workBudget')?['workBudget']:[])]);if(s.preparation.workBudget!==undefined&&s.preparation.workBudget!=='per-batch')throw Error('Unbekanntes Arbeitsbudget.');if(!Number.isInteger(s.preparation.autolyseMinutes))throw Error('Autolyse in ganzen Minuten angeben.');for(const [key,n]of Object.entries(s.preparation).filter(([key])=>key!=='workBudget'))if(typeof n!=='number'||!Number.isFinite(n)||n<0||n>(key==='autolyseMinutes'?240:60))throw Error('Ungültiges Vorbereitungsbudget.');
   if(Math.abs(s.preparation.beforeRestMinutes+s.preparation.afterRestMinutes-s.monitor.schedule.mixMinutes)>1e-8)throw Error('Vorbereitungsbudget stimmt nicht mit dem Zeitplan überein.');
   for(const flag of [s.locked,s.completed,s.scheduleRemoved])if(typeof flag!=='boolean')throw Error('Ungültiger Sessionstatus.');
   if(!s.actual||typeof s.actual!=='object'||Array.isArray(s.actual)||Object.keys(s.actual).some(k=>!['preparation','bulk','cold','balls','acclimate','preheat','bake','complete'].includes(k)))throw Error('Ungültige Ist-Zeiten.');for(const at of Object.values(s.actual))iso(at);

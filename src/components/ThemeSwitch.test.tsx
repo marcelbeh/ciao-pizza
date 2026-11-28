@@ -53,7 +53,7 @@ describe("Theme bootstrap before app paint", () => {
   it("defaults to the OS synchronously without writing a preference", () => {
     const t = bootstrap({ dark: true });
     expect(t.doc.documentElement.dataset.theme).toBe("dark");
-    expect(t.doc.querySelector('meta[name="theme-color"]')?.getAttribute("content")).toBe("#1B1B1B");
+    expect(t.doc.querySelector('meta[name="theme-color"]')?.getAttribute("content")).toBe("#101210");
     expect(t.api.getSnapshot()).toBe("system|dark|true");
     expect(t.setItem).not.toHaveBeenCalled();
     t.api.dispose();
@@ -74,7 +74,7 @@ describe("Theme bootstrap before app paint", () => {
     t.api.setChoice("light"); t.system(false); t.system(true);
     expect(t.doc.documentElement.dataset.theme).toBe("light");
     expect(t.doc.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]')?.getAttribute("content")).toBe("default");
-    expect(t.doc.querySelector('meta[name="theme-color"]')?.getAttribute("content")).toBe("#F9F6F1");
+    expect(t.doc.querySelector('meta[name="theme-color"]')?.getAttribute("content")).toBe("#F6F5F0");
     t.api.setChoice("system"); expect(t.doc.documentElement.dataset.theme).toBe("dark"); t.api.dispose();
   });
   it("isolates theme storage and handles cross-tab changes and unavailable storage", () => {
@@ -93,7 +93,7 @@ describe("Theme changes preserve app state", () => {
     const db = createIndexedDbStore(`theme-calculator-${crypto.randomUUID()}`); const repo = createFornoRepository(db);
     await repo.save(defaults); await repo.saveSchedule(createSchedule());
     await db.set("forno:pizza-night:v1", { version: 1, recipes: [], evening: null });
-    const before = await db.entries!(); window.location.hash = "#/teig";
+    const before = await db.entries!(); window.location.hash = "#/teig?legacy=1";
     render(<App repo={repo} />);
     const input = await screen.findByRole("textbox", { name: /Pizzaanzahl/ });
     fireEvent.change(input, { target: { value: "" } });
@@ -106,14 +106,14 @@ describe("Theme changes preserve app state", () => {
   it("keeps an unsaved schedule draft, timeline and navigation in both modes", async () => {
     const t = bootstrap({ doc: document }); window.fornoTheme = t.api;
     const db = createIndexedDbStore(`theme-schedule-${crypto.randomUUID()}`); const repo = createFornoRepository(db);
-    window.location.hash = "#/zeitplan"; render(<App repo={repo} />);
+    window.location.hash = "#/zeitplan?legacy=1"; render(<App repo={repo} />);
     const input = await screen.findByRole("textbox", { name: /^Stockgare im Kühlschrank/ });
     fireEvent.change(input, { target: { value: "3,5" } });
     fireEvent.click(screen.getByRole("button", { name: "Dunkel" }));
     expect(input).toHaveValue("3,5"); expect(screen.getByRole("list", { name: "Zeitstrahl nach Tagen" })).toBeVisible();
     fireEvent.click(screen.getByRole("button", { name: "Hell" }));
     expect(input).toHaveValue("3,5"); expect((await repo.load()).schedule).toBeNull();
-    fireEvent.click(screen.getByRole("link", { name: "Home" }));
+    fireEvent.click(screen.getByRole("link", { name: "Bisherige Startseite" }));
     await screen.findByRole("heading", { name: "Aktuelle Teigplanung" });
     fireEvent.click(screen.getByRole("link", { name: /Mein Journal/ }));
     await waitFor(() => expect(screen.getByRole("heading", { name: "Mein Journal" })).toBeVisible());

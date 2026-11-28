@@ -8,12 +8,12 @@ import { defaults } from '../core/dough/forno';
 import { MATURITY_KEY } from '../infrastructure/storage/maturityRepository';
 import { activeMonitor, newMonitor } from '../core/maturity/model';
 vi.mock('../infrastructure/pwa/PwaNotice',()=>({PwaNotice:({busy}:{busy:boolean})=><span data-testid="pwa-state">{busy?'blocked':'ready'}</span>}));
-const navigation=(name:string)=>within(screen.getByRole('navigation',{name:'Hauptnavigation'})).getByRole('link',{name});
+const navigation=(name:string)=>screen.getByRole('link',{name:({Home:'Bisherige Startseite',Teig:'Bisheriger Rechner / TM5',Zeitplan:'Bisheriger Zeitplan',Pizzaabend:'Bisheriger Pizzaabend',Rezepte:'Bisherige Belagrezepte'} as Record<string,string>)[name]??name});
 async function setup(withSchedule=true){const db=createIndexedDbStore(`p4-ui-${crypto.randomUUID()}`);const repo=createFornoRepository(db);await db.set('forno:pizza-night:v1',{version:1,recipes:[],evening:null});await repo.save(defaults);if(withSchedule){const initial=createSchedule();await repo.saveSchedule(createTeichnerSchedule(initial.bakeAt,initial));}return {db,repo};}
-beforeEach(()=>{window.location.hash='#/reife-monitor';vi.spyOn(window,'confirm').mockReturnValue(true);});
+beforeEach(()=>{window.location.hash='#/reife-monitor?legacy=1';vi.spyOn(window,'confirm').mockReturnValue(true);});
 describe('P4 UI and shared TM5 temperature',()=>{
   it('starts from the saved formula/schedule, records the temperature once in TM5 and restores it in the monitor',async()=>{
-    const {db,repo}=await setup();window.location.hash='#/teig';const view=render(<App repo={repo}/>);
+    const {db,repo}=await setup();window.location.hash='#/teig?legacy=1';const view=render(<App repo={repo}/>);
     const panel=await screen.findByRole('region',{name:'Thermomix-Chargen'});fireEvent.click(within(panel).getByText('TM5-Rezeptansicht (optional)'));fireEvent.click(within(panel).getByText('Rezeptübersicht und Gerätehinweise'));
     expect(within(panel).getByText('Mehl und Wasser mischen')).toBeVisible();expect(within(panel).getByText('Autolyse · 30 Minuten')).toBeVisible();
     expect(within(panel).getByText(/Das gesamte Wasser/)).toBeVisible();expect(within(panel).getByText(/keine validierte TM5-Maximalmenge/)).toBeVisible();
@@ -78,7 +78,7 @@ describe('P4 UI and shared TM5 temperature',()=>{
     expect((await repo.backup()).entries[MATURITY_KEY]).toEqual(raw);
   });
   it('persists an explicitly changed autolyse pause without changing the recipe or time plan',async()=>{
-    const {db,repo}=await setup();const before=await db.entries!();window.location.hash='#/teig';render(<App repo={repo}/>);
+    const {db,repo}=await setup();const before=await db.entries!();window.location.hash='#/teig?legacy=1';render(<App repo={repo}/>);
     const card=await screen.findByRole('region',{name:'Thermomix-Chargen'});fireEvent.click(within(card).getByText('TM5-Rezeptansicht (optional)'));fireEvent.click(within(card).getByText('Rezeptübersicht und Gerätehinweise'));
     fireEvent.click(within(card).getByRole('button',{name:'Autolyse anpassen'}));fireEvent.change(screen.getByLabelText('Autolyse (Minuten)'),{target:{value:'45'}});
     fireEvent.click(screen.getByRole('button',{name:'Autolyse speichern'}));await screen.findByText('Autolyse · 45 Minuten');

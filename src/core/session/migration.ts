@@ -11,7 +11,7 @@ export function legacySession(source:{formula:Formula;schedule:SchedulePlan|null
   const warnings=['Originale bleiben unverändert im Altbestand und in der Sicherung. Die Vorbereitung wird um das sichtbare Autolyse-Planbudget ergänzt. Gärphasen und Backtermin bleiben gleich.'];
   const monitor=activeMonitor(source.maturity);
   const compatible=monitor&&JSON.stringify(monitor.schedule)===JSON.stringify(source.schedule)&&monitor.yeastKind==='instant'&&monitor.yeastGrams===calculateFormula(monitor.formula).ingredients.yeast;
-  const session=createSession(compatible?monitor.formula:source.formula,source.schedule,device,'Übernommener Pizzaabend');session.origin='legacy';
+  const session=createSession(compatible?monitor.formula:source.formula,source.schedule,device,'Übernommener Pizzaabend');session.origin='legacy';delete session.preparation.workBudget;
   if(compatible){session.monitor={...structuredClone(monitor),id:session.id};if(JSON.stringify(monitor.formula)!==JSON.stringify(source.formula))warnings.push('Die feste Rezeptur des gespeicherten Monitors hat Vorrang vor inzwischen geänderten Rechnerwerten.');}
   else if(monitor)warnings.push('Abweichende oder spezielle Monitor-Daten werden nicht vermischt; der vollständige bisherige Monitor bleibt im Altbestand lesbar.');
   const cook=source.cookSession;

@@ -23,13 +23,16 @@ Offline-Speicherung unverändert. [Änderungen, Screenshots und Prüfungen](docs
 
 **Pizza-Session planen** verbindet Backtermin, Rezept, Zutaten, Zeitplan, Kochfortschritt und
 Reifemonitor in einer gemeinsamen lokalen Session. Standardgerät ist TM7; TM6, TM5 und Handarbeit
-sind in den Einstellungen auswählbar. Einzelne Arbeitsschritte, Chargen, Timer und Temperaturen
-lassen sich offline fortsetzen. Nach Beginn bleiben Mengen und Gerät eingefroren. Plan-/Ist-Zeiten
+sind in den Einstellungen auswählbar. Die neue Premium-Oberfläche folgt dem freigegebenen Geräte-Entwurf. Eine einzige Anleitung
+für alle Chargen zeigt Mengen je Charge mit Rundungsausgleich; Fortschritt, Timer und Temperaturen
+lassen sich offline fortsetzen. Start, Sessions, Rezepte und Wissen bilden die Hauptnavigation. Nach Beginn bleiben Mengen und Gerät eingefroren. Plan-/Ist-Zeiten
 bleiben getrennt; kein Gerät wird angesteuert und keine biologische Messgenauigkeit vorgetäuscht.
 
 Die Übernahme bisheriger Planung erfolgt nur nach ausdrücklicher Vorschau und Speicherung;
 sämtliche alten Schlüssel bleiben erhalten. [Bedienung, Architektur, Migration, offizielle
 Gerätequellen, Grenzen und Screenshots](docs/P7.md).
+
+[P7 Experience: neue Oberfläche, einmaliger Chargenablauf, Budget-Kompatibilität und Abnahme](docs/P7-EXPERIENCE.md).
 
 ## Entwickeln
 
