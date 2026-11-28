@@ -1,5 +1,5 @@
 import { Component, lazy, Suspense, useEffect, useRef, useState, type ReactNode } from "react";
-import { createHashRouter, RouterProvider, Link, NavLink, Route, Routes, useLocation } from "react-router-dom";
+import { createHashRouter, RouterProvider, Link, Route, Routes, useLocation } from "react-router-dom";
 import { Icon } from "../components/Icon";
 import { calculateFormula, defaults, formulaIssues, ranges, type Formula, type NumericField } from "../core/dough/forno";
 import { createFornoRepository, type FornoRepository, type EveningSummary } from "../infrastructure/storage/fornoRepository";
@@ -359,7 +359,7 @@ function Workspace({ repo }: { repo: FornoRepository }) {
     </main>
     <nav className={`floating-dock ${legacyMode?'legacy-dock':''}`} aria-label="Hauptnavigation">
       {([ ["/", "Start", "home"], ["/sessions", "Sessions", "evening"], ["/rezepte", "Rezepte", "book"], ["/wissen", "Wissen", "journal"] ] as const).map(([to, label, icon]) =>
-        <NavLink key={to} to={to} end><Icon name={icon} /><span>{label}</span></NavLink>)}
+        <Link key={to} to={to} className={(to===location.pathname||(to==='/sessions'&&['/session','/teig','/zeitplan','/reife-monitor','/pizzaabend'].includes(location.pathname))||(to==='/wissen'&&['/einstellungen','/journal'].includes(location.pathname)))?'active':undefined} aria-current={(to===location.pathname||(to==='/sessions'&&['/session','/teig','/zeitplan','/reife-monitor','/pizzaabend'].includes(location.pathname))||(to==='/wissen'&&['/einstellungen','/journal'].includes(location.pathname)))?'page':undefined}><Icon name={icon} /><span>{label}</span></Link>)}
     </nav>
   </div>;
 }

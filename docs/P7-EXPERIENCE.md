@@ -104,7 +104,7 @@ Geräteanzeigen als „Prüfen“ dargestellt. Keine Geräteverbindung, Telemetr
 
 ## Qualität und visuelle Abnahme
 
-`npm run check`: **283 erfolgreiche Tests in 22 Dateien**, Typecheck und Produktionsbuild erfolgreich. Bisherige Regressionsprüfungen plus 21 neue Tests zu einmaligem Durchlauf,
+`npm run check`: **284 erfolgreiche Tests in 22 Dateien**, Typecheck und Produktionsbuild erfolgreich. Bisherige Regressionsprüfungen plus 22 neue Tests zu einmaligem Durchlauf,
 Zutaten-/Rundungssummen, Chargengrenzen, neuem und altem Arbeitsbudget, eingefrorenem Rezept,
 Schrittauswahl, gemeinsamer Abschlussbestätigung, Speicherausfall, Sessionauswahl und Datenerhalt.
 Die historischen P1–P6-UI-Tests testen weiterhin ihre vollständige Funktion über die ausdrücklich
